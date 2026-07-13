@@ -15,7 +15,6 @@ const runRoot = resolve(sourceEvolutionRoot, 'runs', runId);
 const reportPath = resolve(starterRoot, 'reports', 'wp-09-source-evolution.md');
 const patchPath = resolve(starterRoot, 'reports', 'wp-09-candidate.patch');
 const cdpPort = Number(process.env.BLANKSEED_WP09_CDP_PORT || 9343);
-const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -63,6 +62,13 @@ function run(command, args, options = {}) {
 
 function git(args, options = {}) {
   return run('git', args, { cwd: options.cwd ?? repoRoot, timeoutMs: options.timeoutMs ?? 120000 });
+}
+
+function npm(args, options = {}) {
+  if (process.platform === 'win32') {
+    return run('cmd.exe', ['/d', '/s', '/c', ['npm', ...args].join(' ')], options);
+  }
+  return run('npm', args, options);
 }
 
 function buildCandidatePatch() {
@@ -347,8 +353,8 @@ commands.push(addWorktree);
 
 try {
   commands.push(git(['apply', patchPath], { cwd: worktreePath }));
-  commands.push(run(npmBin, ['run', 'check'], { cwd: resolve(worktreePath, 'starter'), timeoutMs: 120000 }));
-  commands.push(run(npmBin, ['test'], { cwd: resolve(worktreePath, 'starter'), timeoutMs: 120000 }));
+  commands.push(npm(['run', 'check'], { cwd: resolve(worktreePath, 'starter'), timeoutMs: 120000 }));
+  commands.push(npm(['test'], { cwd: resolve(worktreePath, 'starter'), timeoutMs: 120000 }));
   commands.push(git(['status', '--short'], { cwd: worktreePath }));
   commands.push(git(['add', 'starter/src/renderer/index.html'], { cwd: worktreePath }));
   commands.push(git(['commit', '-m', 'WP09 candidate source evolution health marker'], { cwd: worktreePath }));
