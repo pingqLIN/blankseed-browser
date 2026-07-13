@@ -183,6 +183,57 @@ calls require a stricter provider capability registry.
 
 ---
 
+## ADR-007 — Keep source-evolution acceptance manual after candidate validation
+
+**Status:** Accepted  
+**Date:** 2026-07-13
+
+### Context
+
+Phase 6 requires Git-backed source self-modification with a stable checkpoint,
+candidate worktree, patch application, automated checks, candidate launch health
+and rollback. Accepting a candidate into `main` is more consequential than
+proving a candidate can be generated and verified.
+
+### Evidence
+
+WP-09 runtime smoke created candidate branch
+`codex/wp09-source-evolution-1783928693189`, applied an inspectable UI patch,
+ran candidate `npm run check` and `npm test`, launched the candidate Electron
+app, verified console readiness plus the source-evolution marker, committed the
+candidate change to `4b708041c53ffc1292b5514988797194b446a199`, and removed the
+candidate worktree while leaving `main` unmodified by the candidate patch.
+
+### Alternatives
+
+- Automatically merge any validated candidate into `main`.
+- Apply candidate patches directly in the stable worktree.
+- Skip candidate commits and retain only patch files.
+
+### Decision
+
+Keep candidate acceptance manual. The source-evolution runner may create a
+candidate branch/worktree, apply and commit a candidate patch, run checks/tests
+and verify candidate launch health, but it must roll back the live worktree by
+removing the candidate worktree instead of auto-merging into `main`.
+
+### Consequences
+
+- Source self-modification is demonstrable and Git-backed without silently
+  changing the stable line.
+- Candidate source has a commit identity and patch evidence for review.
+- Accepting a candidate remains a separate, explicit Git merge decision.
+- Future automation can add a reviewed accept step without changing the safety
+  boundary.
+
+### Rollback/review trigger
+
+Review when the project needs automatic acceptance, dependency-changing source
+patches, multiple concurrent candidate branches, or conflict resolution during
+candidate merge.
+
+---
+
 ## ADR template
 
 ```markdown

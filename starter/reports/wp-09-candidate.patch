@@ -1,0 +1,15 @@
+diff --git a/starter/src/renderer/index.html b/starter/src/renderer/index.html
+--- a/starter/src/renderer/index.html
++++ b/starter/src/renderer/index.html
+@@ -29,6 +29,10 @@
+       <div class="status-cell">
+         <span>Modules</span>
+         <strong id="stat-modules">0 active</strong>
+       </div>
++      <div class="status-cell" id="source-evolution-health" data-source-evolution="candidate">
++        <span>Source</span>
++        <strong>candidate ok</strong>
++      </div>
+     </section>
+ 
+     <section class="panel">
