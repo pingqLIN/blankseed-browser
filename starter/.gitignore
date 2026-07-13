@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+*.log
+config/local.json
+data/
+workspace/experiments/*
+!workspace/experiments/.gitkeep
+workspace/modules/*
+!workspace/modules/.gitkeep
+workspace/state/*
+!workspace/state/.gitkeep

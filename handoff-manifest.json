@@ -1,0 +1,249 @@
+{
+  "schema": "blankseed-handoff/0.1",
+  "packageName": "blankseed-browser-handoff-v0.1.0",
+  "version": "0.1.0",
+  "createdAt": "2026-07-12T00:00:00+08:00",
+  "validatedAt": "2026-07-12",
+  "purpose": "Development handoff package for Codex and other coding agents.",
+  "platformDecision": "Electron/Chromium standalone application; not a Chrome Extension.",
+  "electronBaseline": "43.1.0",
+  "validation": {
+    "syntaxCheck": "passed",
+    "unitTests": "4 passed, 0 failed",
+    "dependencyLock": "created",
+    "guiRuntime": "not completed in artifact container because Electron binary download was unavailable; required in Phase 0"
+  },
+  "entryDocuments": [
+    "README_HANDOFF.md",
+    "00_EXTERNAL_AGENT_MASTER_PROMPT.md",
+    "02_ARCHITECTURE_SPECIFICATION_v0.1.md",
+    "03_EXECUTION_PLAN_v0.1.md",
+    "VALIDATION_REPORT.md"
+  ],
+  "starterPath": "starter/",
+  "knownIncomplete": [
+    "Model provider integration",
+    "Generated Node.js execution runtime",
+    "Versioned module store",
+    "Git-backed source self-modification",
+    "Automated browser fixture tests",
+    "Target Windows GUI runtime verification"
+  ],
+  "files": [
+    {
+      "path": "00_EXTERNAL_AGENT_MASTER_PROMPT.md",
+      "bytes": 3108,
+      "sha256": "20c5b4d25a6efdee10376a88d41308175ec00f0468001dc53209f809898b2568"
+    },
+    {
+      "path": "01_RESEARCH_CHARTER.md",
+      "bytes": 3474,
+      "sha256": "271f70234e40a721e7a4c4363d1c2db4a0609634238b51b516184bdd220d0369"
+    },
+    {
+      "path": "02_ARCHITECTURE_SPECIFICATION_v0.1.md",
+      "bytes": 6813,
+      "sha256": "9e6da3a0c81b21695bc166ae6c58264d63b9ff73810ffb82b72cbddf79c38b4f"
+    },
+    {
+      "path": "03_EXECUTION_PLAN_v0.1.md",
+      "bytes": 5305,
+      "sha256": "9fbc1c1075268de557743ff75de0103fd20a7b4670d90be38dc116fd91d40504"
+    },
+    {
+      "path": "04_ACCEPTANCE_AND_STOP_CONDITIONS.md",
+      "bytes": 3555,
+      "sha256": "370c68aedf6feeaecb6dded2934c337f0f7150b50150a29c554d710769a8ccdb"
+    },
+    {
+      "path": "05_EXPERIMENT_GOVERNANCE_AND_RECOVERY.md",
+      "bytes": 3083,
+      "sha256": "a8b4e52572b01533890809080ff703cdd22c85d50f506b82b841b58c058b19ce"
+    },
+    {
+      "path": "06_PROTOCOL_AND_DATA_CONTRACTS.md",
+      "bytes": 3712,
+      "sha256": "3707fc2f18883232bab473617892531a0a0f2c23ace7aa1a6954d4224fc4ee14"
+    },
+    {
+      "path": "07_EXPECTED_PROJECT_TREE.md",
+      "bytes": 1974,
+      "sha256": "f053d4068d5423cf1743f77f96fd60797f253e5d2c65c5de55d2ff3d2b05d1fc"
+    },
+    {
+      "path": "08_AGENT_WORK_PACKAGES.md",
+      "bytes": 2324,
+      "sha256": "108909761cf6c73954e3602da1dd90114b3ba0a12475d7e8f17a98740563fddc"
+    },
+    {
+      "path": "09_DECISION_LOG.md",
+      "bytes": 2706,
+      "sha256": "745c43d7737669972cecf563e9200b0f531b553cfe5238730df60130b5e829f3"
+    },
+    {
+      "path": "10_REFERENCE_SOURCES.md",
+      "bytes": 1335,
+      "sha256": "f64e82133628a16c1083cac4850f4c264c9e5cc18e926042c66d91961354c17f"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 3403,
+      "sha256": "991015d7723199332f288eb3989bb320a85dbbca6b6a1a3ee2fa0970be424279"
+    },
+    {
+      "path": "FILE_LIST.txt",
+      "bytes": 1244,
+      "sha256": "ca6fb65545ed10cf563df635dbe68dca1cc9c938de36323a07120ba99ad21565"
+    },
+    {
+      "path": "PRODUCT.md",
+      "bytes": 2049,
+      "sha256": "3c614f0a8caa911d3f6fbb7e3093100e3fa0db78b6a1edf342bcc6d23b473f14"
+    },
+    {
+      "path": "README_HANDOFF.md",
+      "bytes": 2986,
+      "sha256": "fefc6f9402f612b655c866b7014c1377c8036bd6682941f52acb234797b1f5e7"
+    },
+    {
+      "path": "VALIDATION_REPORT.md",
+      "bytes": 1645,
+      "sha256": "73b2ce38f3098f8d8e2e437df070f2e451d11266f8797b5a2ce061eae5b35037"
+    },
+    {
+      "path": "starter/.gitignore",
+      "bytes": 110,
+      "sha256": "888f41c744c6c6a92c4c0f2f3628411d6687b5b7402021061450cfef51507981"
+    },
+    {
+      "path": "starter/LICENSE_DECISION_REQUIRED.md",
+      "bytes": 391,
+      "sha256": "7a379656bba246c1dcced5b684f7b2d187eebff8b815c2377b00682adb5f6002"
+    },
+    {
+      "path": "starter/README.md",
+      "bytes": 1775,
+      "sha256": "917571598b2070767a3514d783e3b781387c52341ee5fa9a9de9a7a4989c4bd5"
+    },
+    {
+      "path": "starter/config/defaults.json",
+      "bytes": 322,
+      "sha256": "c3b16b33b04c17536ff1cd9db1c70d8b779e936ff60bc5b5467a9d970415672b"
+    },
+    {
+      "path": "starter/package-lock.json",
+      "bytes": 6628,
+      "sha256": "9f94ab9617612f7d8757b73abf13a014cfdef42b090eaa3281d2effaf35c6461"
+    },
+    {
+      "path": "starter/package.json",
+      "bytes": 425,
+      "sha256": "25fc16cab8bdb951e2ce7ba46eda760d568cdfe6fd372f3c78eb1dec67a20245"
+    },
+    {
+      "path": "starter/reports/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "starter/scripts/check-project.mjs",
+      "bytes": 1674,
+      "sha256": "c054e2c34ebff2d9b915b05c117ec61e6c11f10bb37f7e62fb8d2c6f15d93fb1"
+    },
+    {
+      "path": "starter/src/main/checkpoint-store.cjs",
+      "bytes": 1076,
+      "sha256": "fca2e4863e8f54d36ffecd4167310101f2720ffbbdcfc1e153f9be8cb3db6b81"
+    },
+    {
+      "path": "starter/src/main/event-store.cjs",
+      "bytes": 1327,
+      "sha256": "a5c19be457d59dabe62d80dd8076e08a3aaaa3055ade89165b2d876bea48775e"
+    },
+    {
+      "path": "starter/src/main/ipc-router.cjs",
+      "bytes": 2668,
+      "sha256": "6534f3f18b660f6ee8465fc86312289bfb5efe161f120925da6df6a5525944f5"
+    },
+    {
+      "path": "starter/src/main/main.cjs",
+      "bytes": 3150,
+      "sha256": "e7d512f29b3b6e529b0eb5a51e91155eed42bbce6813fd67554a21d177908a08"
+    },
+    {
+      "path": "starter/src/main/target-view.cjs",
+      "bytes": 7315,
+      "sha256": "5d112a48cdb4a1173f8c6e549265d712f627c9fdddc5ee7096d6452d95e589f4"
+    },
+    {
+      "path": "starter/src/main/utility-probe.cjs",
+      "bytes": 1912,
+      "sha256": "87644814296f1b1aca1011f72d3afabaf80ee43113e4c89e5d98b937df2b5bf3"
+    },
+    {
+      "path": "starter/src/preload/preload.cjs",
+      "bytes": 1463,
+      "sha256": "12e766441da5fc1872550a0e6df8cf43a70d6f05033464da8d92a3ef6e1a0acf"
+    },
+    {
+      "path": "starter/src/renderer/app.js",
+      "bytes": 2475,
+      "sha256": "b4c833685cfab14b96b2e7e5bee8567a5a57236089945de66b09e7c49624f059"
+    },
+    {
+      "path": "starter/src/renderer/index.html",
+      "bytes": 2539,
+      "sha256": "ece0f6eb6b51183dc525b1d218f1cf6b7ca5159c5d3eb28e8e7da1c073a5b9f1"
+    },
+    {
+      "path": "starter/src/renderer/styles.css",
+      "bytes": 1499,
+      "sha256": "1973f4498f733e8e51ca3e9e6faab98dbe3df2bd2d6229961bdb30d7823534d4"
+    },
+    {
+      "path": "starter/src/shared/contracts.cjs",
+      "bytes": 1968,
+      "sha256": "12748ff545cd0c9312031624899c035d64e244f315e5c6be0aee30c4ed260081"
+    },
+    {
+      "path": "starter/src/utility/agent-runtime.cjs",
+      "bytes": 513,
+      "sha256": "00840d5962328174623b403c91a5f0df5ac45aee45b48512035c92c1b4ae63aa"
+    },
+    {
+      "path": "starter/test/contracts.test.mjs",
+      "bytes": 984,
+      "sha256": "eff8be06109a1d633662999dfefa8137ecfce6a10b2177766f9a854b3f37b2c0"
+    },
+    {
+      "path": "starter/workspace/experiments/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "starter/workspace/fixtures/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "starter/workspace/generated-ui/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "starter/workspace/libraries/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "starter/workspace/modules/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "starter/workspace/state/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

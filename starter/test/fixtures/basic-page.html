@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>BlankSeed Fixture</title>
+</head>
+<body>
+  <main>
+    <h1>BlankSeed Fixture</h1>
+    <button id="action">Action</button>
+    <p data-role="summary">Fixture page for broker verification.</p>
+  </main>
+  <script>
+    window.fixtureState = { loaded: true, clicks: 0 };
+    document.getElementById('action').addEventListener('click', () => {
+      window.fixtureState.clicks += 1;
+      console.info('fixture action clicked', window.fixtureState.clicks);
+    });
+  </script>
+</body>
+</html>
