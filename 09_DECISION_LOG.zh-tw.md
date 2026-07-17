@@ -47,3 +47,9 @@ Phase 1 與 kill hierarchy 需要取消 pending page/CDP execution。決定新�
 Phase 5 adapter 原本能解析 OpenAI-compatible `tool_calls`，卻只把它當 dead-end output，不能 dispatch raw capability、把結果餵回下一回合，也不能自動重現 Phase 4 的 failure/correction/reuse。決定新增 main-process-only `EvolutionRunManager` 與 `RawCapabilityDispatcher`；internal contract 保持 provider-neutral，由 adapter 負責 provider wire format。Dispatcher 只呼叫既有 page/CDP/process/module/checkpoint service，不讓 model text 選任意 IPC channel，也不加入 summarize/translate 等 task whitelist。
 
 WP-11 loopback fixture 已實際完成 snapshot、建立故意回傳 BigInt 的 candidate、觀察 `SERIALIZATION_FAILED`、產生修正版、test/commit/activate/invoke，並在第二個 Electron session reuse。每個 run 保存 checkpoint、完整 transcript/action result、source hash、metrics 與 run/turn/action correlation identity。這證明 protocol 與 correction evidence path，不代表 real-model quality 或 prompt-injection robustness。Hosted credentials、non-loopback transport、parallel evolution、dependency mutation 與自動接受 source change 均需另行 review。
+
+## ADR-012 — 在 loopback-only research profile 評估真實本機模型
+
+WP-11 已用 deterministic fixture 關閉 Phase 5 protocol gap，但無法證明真實模型的 task quality、evidence-driven correction 或 prompt-injection robustness。決定採用 `11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md`：固定一個無憑證本機模型，以四個 scenario family、每類三個獨立 trials 執行；每次使用隔離狀態、synthetic canary、完整 manifest 與明確 pass/hold/stop gates。
+
+WP-12 採專用 `workspace-research-loopback-only` profile，先縮小高風險試驗的 network 與 data exposure，但不新增 semantic task whitelist，也不改變 Kernel raw-tool catalog 或人工 source acceptance boundary。Series 若失敗或 HOLD，仍是不可刪除的研究證據；WP-12 通過也不授權 hosted credentials、自動接受 source change 或更廣 host access。若無法維持 evidence、process cleanup 或 loopback-only control，立即停止並回復 pre-run checkpoint；更換 provider、network profile、scenario matrix、Kernel tools 或 protected-data boundary 前必須重新 review。

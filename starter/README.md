@@ -5,6 +5,9 @@ This is an intentionally small Electron scaffold for the BlankSeed Browser hando
 Complete operator instructions are in [`../USER_GUIDE.md`](../USER_GUIDE.md),
 with a Traditional Chinese companion at
 [`../USER_GUIDE.zh-tw.md`](../USER_GUIDE.zh-tw.md).
+The approved next-stage experiment is defined by
+[`../11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md`](../11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md)
+and its [Traditional Chinese companion](../11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.zh-tw.md).
 
 ## Requirements
 
@@ -26,10 +29,13 @@ One-command verification:
 ```powershell
 npm run verify
 npm run verify:runtime
+npm run verify:wp11
 ```
 
 `verify` runs syntax/configuration/document-companion checks and unit tests.
 `verify:runtime` additionally runs the scoped Windows Electron hardening smoke.
+`verify:wp11` additionally proves the deterministic automated evolution loop;
+it is a WP-12 preflight, not real-model evidence.
 
 ## Current UI
 

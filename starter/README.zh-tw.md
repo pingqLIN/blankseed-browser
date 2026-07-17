@@ -5,6 +5,7 @@
 這是一個刻意保持極簡的 Electron scaffold，供 BlankSeed Browser 研究使用。
 
 完整流程請參閱 [`../USER_GUIDE.zh-tw.md`](../USER_GUIDE.zh-tw.md)；英文權威來源為 [`../USER_GUIDE.md`](../USER_GUIDE.md)。
+已核准的下一階段實驗定義於 [`../11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.zh-tw.md`](../11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.zh-tw.md)；英文權威來源為 [`../11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md`](../11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md)。
 
 ## 需求與啟動
 
@@ -27,7 +28,7 @@ npm run verify:runtime
 npm run verify:wp11
 ```
 
-`verify` 會執行 syntax、configuration、document companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke。
+`verify` 會執行 syntax、configuration、document companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke；`verify:wp11` 驗證 deterministic automated evolution loop，是 WP-12 preflight，不是真實模型證據。
 
 ## 目前 UI 與能力
 

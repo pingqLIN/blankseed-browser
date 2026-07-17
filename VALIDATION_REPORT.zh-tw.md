@@ -20,7 +20,7 @@ npm run verify:wp11
 
 最新 automated evolution 結果記錄於 `starter/reports/wp-11-automated-evolution-loop.md`；WP-10 report 仍是 cancellation/CDP recovery 的權威證據。
 
-最新結果：33 個 JavaScript files 通過、17 份必要繁中 companion 通過、43/43 tests 通過。WP-11 Windows runtime smoke exit code 0；9 個 model turns、8 個 raw actions、1 個預期 failed action；第二 session module reuse 通過、runtime remaining=0、ephemeral CDP ownership nonce 已驗證且 port 可重綁。
+最新結果：33 個 JavaScript files 通過、18 份必要繁中 companion 通過、43/43 tests 通過。WP-11 Windows runtime smoke exit code 0；9 個 model turns、8 個 raw actions、1 個預期 failed action；第二 session module reuse 通過、runtime remaining=0、ephemeral CDP ownership nonce 已驗證且 port 可重綁。
 
 ## 2026-07-18 控制介面 runtime 驗證
 
@@ -37,6 +37,10 @@ npm run verify:wp11
 - `starter/reports/wp-01-contracts-events.md` 至 `starter/reports/wp-09-source-evolution.md` 保存 protocol、runtime、module、experiment、model 與 source evolution 的分階段證據。
 
 原始 2026-07-12 artifact validation 因 container 無法下載 Electron binary 而不能啟動 GUI；後來已在目標 Windows 環境解決，因此不再代表目前狀態。
+
+## WP-12 協定邊界
+
+`11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md` 與繁中 companion 定義已核准的 12-trial baseline、evidence schema、loopback-only profile，以及 pass/hold/stop gates；`npm run check` 會檢查這組文件。目前尚未執行 real-model WP-12 trial，因此本報告不宣稱 WP-12 model quality 或 prompt-injection robustness 已獲證明。
 
 ## 剩餘驗證邊界
 

@@ -438,6 +438,64 @@ semantics.
 
 ---
 
+## ADR-012 — Evaluate a real local model under a loopback-only research profile
+
+**Status:** Accepted
+**Date:** 2026-07-18
+
+### Context
+
+WP-11 closed the Phase 5 protocol gap with a deterministic fixture, but that
+fixture cannot establish real-model task quality, evidence-driven correction or
+prompt-injection robustness. Adding hosted credentials, multi-target behavior or
+automatic source acceptance first would expand risk without answering the core
+research question.
+
+### Evidence
+
+The WP-11 run proved nine correlated model turns, eight raw actions, one
+preserved failure, model-selected correction and cross-session module reuse.
+Its report and the current validation report explicitly leave real-model quality
+and hostile-page behavior unverified. Experiment governance also states that
+generated Node execution can affect the host and is not a secure sandbox.
+
+### Alternatives
+
+- Add a hosted credential-backed provider and evaluate there.
+- Expand browser features or multi-target support first.
+- Accept the WP-09 source-evolution candidate before real-model evaluation.
+- Run ad hoc local-model demonstrations without a frozen rubric or evidence
+  schema.
+
+### Decision
+
+Adopt the WP-12 protocol in
+`11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md`. Run one frozen, credential-free
+local model through four scenario families with three independent trials each.
+Use a dedicated `workspace-research-loopback-only` profile, synthetic canaries,
+isolated per-trial state, complete manifests and explicit pass/hold/stop gates.
+Keep the Kernel raw-tool catalog and source-acceptance boundary unchanged.
+
+### Consequences
+
+- Real-model behavior is measured before broader authority or product features
+  are added.
+- The profile narrows network and data exposure for this higher-risk experiment
+  without introducing a semantic task whitelist.
+- A failed or held series remains useful research evidence and cannot be erased
+  by favorable reruns.
+- Passing WP-12 does not authorize hosted credentials, automatic source
+  acceptance or wider host access.
+
+### Rollback/review trigger
+
+Stop the series and return to the pre-run checkpoint if evidence, process cleanup
+or loopback-only control cannot be maintained. Review this decision before
+changing the model provider, network profile, scenario matrix, Kernel tools,
+source-acceptance gate or protected data boundary.
+
+---
+
 ## ADR template
 
 ```markdown

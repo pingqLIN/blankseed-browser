@@ -35,7 +35,7 @@ Latest result:
 
 ```text
 Checked 33 project JavaScript files.
-Checked 17 required Traditional Chinese document companions.
+Checked 18 required Traditional Chinese document companions.
 43 tests passed, 0 failed.
 WP-11 Windows runtime smoke exited 0.
 9 model turns; 8 raw actions; 1 expected failed action.
@@ -76,6 +76,14 @@ The original 2026-07-12 artifact validation could not launch Electron because
 its container could not download the Electron binary. That limitation was later
 resolved on the target Windows environment and is no longer the current project
 status.
+
+## WP-12 protocol boundary
+
+`11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md` and its Traditional Chinese
+companion define the approved 12-trial baseline, evidence schema, loopback-only
+profile and pass/hold/stop gates. Their presence is checked by `npm run check`.
+No real-model WP-12 trial has run, so this document makes no WP-12 quality or
+prompt-injection robustness claim.
 
 ## Remaining validation boundary
 

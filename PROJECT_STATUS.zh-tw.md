@@ -8,6 +8,7 @@
 - WP-00 至 WP-11 均已在 `starter/reports/` 留下證據報告。
 - WP-09 candidate branch 只保留作本機證據，刻意未合併至 `main`。
 - Trusted control surface 的使用者介面採用繁中，並有英文權威的 operator guide 與 `.zh-tw.md` companion。
+- WP-12 真實本機模型評估協定已核准；目前尚未執行 WP-12 real-model trial。
 - 專案仍是 Windows-first 的本機研究環境，不是可發布的瀏覽器產品。
 
 ## 階段判定
@@ -29,11 +30,13 @@
 - 每個 automated run 都在 `workspace/evolution-runs/<evo_*>/run.json` 保存 pre-run checkpoint 與 run/turn/action correlation identity。
 - 可發布技術文件以英文為權威來源，重要文件明確維護 `.zh-tw.md` companion。
 - Protocol 與 manifest 的 status 原值維持英文，renderer 面向使用者時才映射為繁中。
+- 在評估 hosted credentials、multi-target expansion 或自動接受 source change 前，先以專用 `workspace-research-loopback-only` profile 執行 WP-12。
 
 ## 剩餘風險
 
 - Page JavaScript cancellation 能終止 broker 的結果生命週期，但不能保證 Chromium 立即停止已開始執行的 JavaScript。
 - Deterministic fixture 證明 transport、dispatch、correction 與 reuse；real-model quality 與 prompt-injection robustness 仍未證明。
+- 目前沒有 WP-12 pass/hold evidence；協定是計畫，不是實驗結果。
 - Evolution cancellation 會阻止後續 dispatch 並可取消 active model request，但不保證立即停止 Chromium 已開始的 JavaScript。
 - Source evolution 尚未證明 dependency change、merge conflict 與多個 concurrent candidate。
 - CI 驗證 syntax、configuration、文件 companion 與 unit test；Electron smoke 仍是 Windows runtime workflow。

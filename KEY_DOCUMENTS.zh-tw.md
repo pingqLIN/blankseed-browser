@@ -18,6 +18,7 @@
 - [驗收與停止條件](04_ACCEPTANCE_AND_STOP_CONDITIONS.zh-tw.md)
 - [實驗治理與復原](05_EXPERIMENT_GOVERNANCE_AND_RECOVERY.zh-tw.md)
 - [協定與資料契約](06_PROTOCOL_AND_DATA_CONTRACTS.zh-tw.md)
+- [WP-12 真實本機模型評估協定](11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.zh-tw.md)
 - [代理工作包](08_AGENT_WORK_PACKAGES.zh-tw.md)
 - [架構決策紀錄](09_DECISION_LOG.zh-tw.md)
 
