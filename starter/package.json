@@ -6,8 +6,11 @@
   "main": "src/main/main.cjs",
   "scripts": {
     "start": "electron .",
-    "check": "node scripts/check-project.mjs",
-    "test": "node --test"
+    "check": "node scripts/check-project.mjs && node scripts/check-doc-companions.mjs",
+    "test": "node --test",
+    "verify": "npm run check && npm test",
+    "verify:runtime": "npm run verify && node scripts/runtime-wp10-hardening-smoke.mjs",
+    "verify:wp11": "npm run verify && node scripts/runtime-wp11-evolution-loop-smoke.mjs"
   },
   "engines": {
     "node": ">=22"

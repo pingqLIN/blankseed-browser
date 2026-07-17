@@ -59,6 +59,24 @@ The source is wrapped in an async function by the broker and executed in an isol
 
 No semantic method whitelist is required in Research Mode. The broker must still capture method, parameters, target identity, result/error and detach state.
 
+## Broker execution cancellation
+
+```json
+{
+  "kind": "execution.cancel",
+  "payload": {
+    "executionId": "exe_optional"
+  }
+}
+```
+
+Omitting `executionId` requests cancellation of every active page/CDP broker
+execution. Cancellation terminates the broker result lifecycle with
+`EXECUTION_CANCELLED`; page JavaScript already running inside Chromium may not
+stop immediately. An unexpected CDP detach is recorded and the next independent
+CDP command attempts one reattach. The failed command is not automatically
+replayed because raw CDP methods may have side effects.
+
 ## Generated Node execution request
 
 ```json
@@ -119,9 +137,77 @@ Suggested infrastructure error codes:
 - PROCESS_KILL_FAILED
 - CDP_ATTACH_FAILED
 - CDP_DETACHED
+- MODEL_ADAPTER_FAILED
 - CHECKPOINT_FAILED
 - MODULE_VERSION_CONFLICT
 - RESTART_HEALTH_FAILED
+
+## Provider-neutral model action loop
+
+The main process may run a bounded model/action loop through
+`evolution.run`. Provider adapters encode and decode their own wire format, but
+the Kernel consumes normalized raw capability requests:
+
+```json
+{
+  "actionId": "act_...",
+  "toolCallId": "call_...",
+  "name": "module_candidate_test",
+  "arguments": "{\"candidateId\":\"cand_...\"}"
+}
+```
+
+The fixed dispatcher exposes infrastructure families such as page snapshot and
+execution, raw CDP, supervised Node execution, module lifecycle and checkpoint
+creation. These names are not business-task verbs such as summarize, translate
+or purchase. Unknown or malformed tool requests become structured
+`INVALID_REQUEST` action results and are returned to the model; they are never
+treated as arbitrary IPC channel names.
+
+```json
+{
+  "protocol": "blankseed/0.1",
+  "kind": "model.action.result",
+  "actionId": "act_...",
+  "toolCallId": "call_...",
+  "name": "module_candidate_test",
+  "actionKind": "module.candidate.test",
+  "status": "error",
+  "result": {
+    "passed": false
+  },
+  "error": {
+    "code": "SERIALIZATION_FAILED"
+  },
+  "sourceHash": "sha256:..."
+}
+```
+
+Every run creates an `evo_*` identity and a pre-run checkpoint. Model turns,
+actions, broker/runtime executions and module provenance carry the run, turn
+and action correlation identities. A durable run manifest is stored at:
+
+```text
+workspace/evolution-runs/<evolutionRunId>/run.json
+```
+
+The `blankseed-evolution-run/0.1` manifest contains input messages, redacted
+context/input hashes, normalized model outputs, action requests and results,
+checkpoint identity, source hashes, metrics and terminal outcome. Run limits
+(`maxTurns`, `maxActions`, per-turn timeout) are observable infrastructure
+bounds and do not define allowable semantic capabilities.
+
+The current local bounds also cap one normalized action result at 1 MiB and one
+run manifest at 16 MiB. An oversized action result becomes a structured error
+with its size and hash. If a run reaches the manifest budget, dispatch stops and
+the last complete manifest is closed with an evidence-truncation error instead
+of writing an unbounded or invalid artifact.
+
+The loopback OpenAI-compatible encoder transmits the packaged operational
+context as a system message, accepts tool-only assistant messages with null
+content, sends raw function definitions without Authorization and preserves
+`tool_call_id` on tool results. Hosted credentials and non-loopback transports
+remain outside this contract.
 
 ## Module manifest
 
@@ -163,7 +249,11 @@ Stored as one JSON object per line:
   "eventId": "evt_...",
   "sequence": 17,
   "sessionId": "ses_...",
+  "requestId": "req_...",
   "executionId": "exe_...",
+  "evolutionRunId": "evo_...",
+  "turnId": "turn_...",
+  "actionId": "act_...",
   "type": "page.execution.completed",
   "timestamp": "...",
   "data": {}
@@ -198,6 +288,8 @@ Limits should be configuration values and logged, not hidden behavior:
 - execution timeout;
 - stdout/stderr retained bytes;
 - event file rotation;
-- snapshot text/element limits.
+- snapshot text/element limits;
+- evolution model-turn and action limits.
+- evolution action-result and run-evidence byte budgets.
 
 These infrastructure limits do not define what semantic functions may be created.

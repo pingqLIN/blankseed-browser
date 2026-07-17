@@ -24,6 +24,9 @@ class EventStore {
       sessionId: context.sessionId ?? this.sessionId,
       requestId: context.requestId ?? null,
       executionId: context.executionId ?? null,
+      evolutionRunId: context.evolutionRunId ?? null,
+      turnId: context.turnId ?? null,
+      actionId: context.actionId ?? null,
       data
     };
     fs.appendFileSync(this.filePath, `${this.#stringifyEvent(event)}\n`, 'utf8');

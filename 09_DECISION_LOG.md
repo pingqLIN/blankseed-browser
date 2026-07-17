@@ -2,7 +2,7 @@
 
 ## ADR-001 — Use Electron before CEF or Chromium fork
 
-**Status:** Accepted  
+**Status:** Accepted
 **Date:** 2026-07-12
 
 ### Context
@@ -28,7 +28,7 @@ Review when a required capability cannot be implemented through webContents/CDP/
 
 ## ADR-002 — No Chrome Extension architecture
 
-**Status:** Accepted  
+**Status:** Accepted
 **Date:** 2026-07-12
 
 ### Context
@@ -49,7 +49,7 @@ Build a standalone Chromium application rather than a Chrome Extension.
 
 ## ADR-003 — Remove semantic action whitelist
 
-**Status:** Accepted  
+**Status:** Accepted
 **Date:** 2026-07-12
 
 ### Context
@@ -231,6 +231,210 @@ removing the candidate worktree instead of auto-merging into `main`.
 Review when the project needs automatic acceptance, dependency-changing source
 patches, multiple concurrent candidate branches, or conflict resolution during
 candidate merge.
+
+---
+
+## ADR-008 — Add explicit broker cancellation and next-command CDP recovery
+
+**Status:** Accepted
+**Date:** 2026-07-15
+
+### Context
+
+Phase 1 and the experiment kill hierarchy require pending page/CDP broker work
+to be cancellable. CDP also needs a deterministic response to unexpected
+debugger detach without silently replaying raw commands that may have side
+effects.
+
+### Evidence
+
+WP-10 unit tests cancelled a pending page execution with
+`EXECUTION_CANCELLED` and recorded the cancel event chain. A separate test
+forced an unexpected debugger detach and verified `cdp.recovery.started` plus
+`cdp.recovery.completed` on the next command. The Windows runtime smoke
+cancelled one active page execution and one active CDP command, reporting
+`cancelled=2` and `remaining=0`.
+
+### Alternatives
+
+- Keep timeout-only behavior.
+- Reload or destroy the target view for every cancellation.
+- Automatically replay the command after a CDP detach.
+
+### Decision
+
+Expose `blankseed:execution:cancel` through the narrow preload API and let the
+broker abort the result lifecycle for selected or all active page/CDP
+executions. Detach CDP when a broker-owned command is cancelled. Record an
+unexpected detach and reattach on the next independent command, but never replay
+the failed raw command automatically.
+
+### Consequences
+
+- Stop All can address model, broker and generated-runtime activity.
+- Page cancellation is honest about its boundary: already-running Chromium
+  JavaScript may continue even though the broker result is cancelled.
+- Unexpected debugger state is visible and recoverable without duplicating
+  potentially stateful commands.
+
+### Rollback/review trigger
+
+Review if Electron exposes a reliable per-execution JavaScript termination API,
+if CDP session ownership becomes shared, or if cancellation cannot reclaim a
+broker-owned debugger attachment.
+
+---
+
+## ADR-009 — Use a credential-free loopback adapter as the first real model transport
+
+**Status:** Accepted
+**Date:** 2026-07-15
+
+### Context
+
+WP-08 proved the provider-neutral turn contract with `local.manual`, but did not
+send a request to an actual model-server transport. Adding a hosted provider
+would require a separate credential-storage and redaction decision.
+
+### Evidence
+
+WP-10 added an HTTP integration test and an Electron runtime smoke against a
+loopback OpenAI-compatible fixture. Both completed through
+`local.openai-compatible`; the integration test verified that no Authorization
+header was sent. Non-loopback endpoints and credential-bearing endpoint URLs
+are rejected.
+
+### Alternatives
+
+- Add a hosted credential-backed adapter now.
+- Continue using only `local.manual`.
+- Allow arbitrary user-supplied HTTP endpoints.
+
+### Decision
+
+Add `local.openai-compatible` with a configuration-owned endpoint and model.
+Restrict the endpoint to HTTP(S) loopback, forbid credentials in the URL, send
+no authorization header and keep secret-shaped request keys rejected. Operators
+may override endpoint and model through non-secret environment variables.
+
+### Consequences
+
+- A real local model server can use the provider-neutral turn path without
+  expanding credential scope.
+- The adapter is compatible with local OpenAI-style chat-completions servers,
+  but it does not prove model quality.
+- Hosted-provider work remains blocked on an explicit secret-storage decision.
+
+### Rollback/review trigger
+
+Review before supporting non-loopback endpoints, authorization headers, hosted
+providers, streaming responses or provider-specific tool semantics.
+
+---
+
+## ADR-010 — Enforce Traditional Chinese companions for important documents
+
+**Status:** Accepted
+**Date:** 2026-07-15
+
+### Context
+
+The machine-level governance requires important public, operator-facing and
+release-facing Markdown documents to have `.zh-tw.md` companions. The repo only
+said that user-facing documentation should use Traditional Chinese, so stale or
+missing companion coverage was not executable policy.
+
+### Evidence
+
+The WP-10 documentation audit found no existing `.zh-tw.md` companions. The new
+companion checker validates 14 authoritative documents and their authority
+markers; `npm run check` passed with all 14 present.
+
+### Alternatives
+
+- Keep the language rule as prose only.
+- Replace English technical sources with Chinese files.
+- Translate every historical report regardless of current importance.
+
+### Decision
+
+Keep English publishable technical files authoritative, preserve already-Chinese
+files such as `README_HANDOFF.md`, add explicit `.zh-tw.md` companions for the
+important active set and enforce that set through `npm run check`.
+
+### Consequences
+
+- Chinese readers have a discoverable documentation layer through
+  `KEY_DOCUMENTS.zh-tw.md`.
+- Future edits to important documents must maintain their companions.
+- Historical reports remain outside the mandatory set unless they become active
+  operator documents.
+
+### Rollback/review trigger
+
+Review when the project changes its authoritative language model, the important
+document set changes, or companion drift needs semantic rather than existence
+validation.
+
+---
+
+## ADR-011 — Route model tool calls through a bounded Kernel evolution loop
+
+**Status:** Accepted
+**Date:** 2026-07-17
+
+### Context
+
+The Phase 5 adapter could parse OpenAI-compatible `tool_calls`, but returned
+them as dead-end output. It did not dispatch raw capabilities, return results
+to a later model turn or reproduce the Phase 4 failure/correction/reuse
+experiment. A smoke script that directly chained renderer APIs would not prove
+model-driven evolution and would bypass the intended orchestration boundary.
+
+### Evidence
+
+WP-11 added a main-process `EvolutionRunManager` and
+`RawCapabilityDispatcher`. A deterministic loopback fixture requested a page
+snapshot, created a non-serializable candidate, observed
+`SERIALIZATION_FAILED`, generated corrected source, tested, committed,
+activated and invoked it. A second Electron session reused the active committed
+version. The run persisted one checkpoint, nine model turns, eight actions and
+one expected failed action with correlated events and module provenance.
+
+### Alternatives
+
+- Let the renderer or smoke script interpret and execute model tool calls.
+- Add task-level tools such as summarize or translate.
+- Bind the Kernel contract directly to OpenAI function-call messages.
+- Delay all action dispatch until hosted credential support exists.
+
+### Decision
+
+Add a bounded, main-process-only evolution loop. Keep its internal contract
+provider-neutral and let adapters translate provider wire formats. Dispatch
+only named raw capability families through existing target, broker, process,
+module and checkpoint services with their existing validation and event paths.
+Persist a complete local run manifest and structured action results. Reject
+unknown or malformed tools without introducing a semantic task whitelist.
+
+### Consequences
+
+- Phase 4 capability evolution can run through automated model turns while
+  producing equivalent failure, correction, source, event and reuse evidence.
+- Model text never selects arbitrary IPC channels or gains direct main-process
+  access.
+- The fixed Kernel now owns bounded orchestration and correlation IDs; semantic
+  capabilities remain generated artifacts.
+- Fixture evidence proves the protocol and correction path, not real-model
+  quality or prompt-injection robustness.
+
+### Rollback/review trigger
+
+Disable the `evolution.run` IPC and remove the evolution manager/dispatcher if
+correlation or rollback integrity cannot be maintained. Review before adding
+hosted credentials, non-loopback transports, parallel evolution runs,
+dependency mutation, automatic source acceptance or provider-specific Kernel
+semantics.
 
 ---
 

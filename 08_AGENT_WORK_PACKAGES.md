@@ -78,6 +78,14 @@ Each package should be completed as an independently reviewable change.
 - candidate launch and health handshake.
 - accept/rollback.
 
+## WP-10 Operational hardening
+
+- explicit page/CDP broker cancellation;
+- next-command recovery after unexpected CDP detach;
+- credential-free loopback OpenAI-compatible adapter;
+- important-document Traditional Chinese companion gate;
+- one-command static/unit verification and a scoped Windows runtime smoke.
+
 ## Parallelism guidance
 
 After WP-00:
@@ -87,7 +95,8 @@ After WP-00:
 - WP-04 may proceed after WP-01 contracts stabilize.
 - WP-05 depends on WP-01 and WP-04.
 - WP-07 depends on WP-03 through WP-06.
-- WP-09 must remain last.
+- WP-09 remains the last source-evolution package. WP-10 may harden the stable
+  Kernel without accepting the WP-09 candidate branch.
 
 ## Review checklist per work package
 

@@ -60,6 +60,30 @@ if (!Number.isInteger(defaults.modelContextEventLimit) || defaults.modelContextE
   failed = true;
   console.error('modelContextEventLimit must be a positive integer.');
 }
+if (!Number.isInteger(defaults.evolutionMaxTurns) || defaults.evolutionMaxTurns <= 0) {
+  failed = true;
+  console.error('evolutionMaxTurns must be a positive integer.');
+}
+if (!Number.isInteger(defaults.evolutionMaxActions) || defaults.evolutionMaxActions <= 0) {
+  failed = true;
+  console.error('evolutionMaxActions must be a positive integer.');
+}
+if (!Number.isInteger(defaults.evolutionActionResultLimitBytes) || defaults.evolutionActionResultLimitBytes <= 0) {
+  failed = true;
+  console.error('evolutionActionResultLimitBytes must be a positive integer.');
+}
+if (!Number.isInteger(defaults.evolutionMaxEvidenceBytes) || defaults.evolutionMaxEvidenceBytes <= 0) {
+  failed = true;
+  console.error('evolutionMaxEvidenceBytes must be a positive integer.');
+}
+if (typeof defaults.localModelEndpoint !== 'string' || defaults.localModelEndpoint.length === 0) {
+  failed = true;
+  console.error('localModelEndpoint must be a non-empty string.');
+}
+if (typeof defaults.localModelName !== 'string' || defaults.localModelName.length === 0) {
+  failed = true;
+  console.error('localModelName must be a non-empty string.');
+}
 
 if (failed) process.exit(1);
 console.log(`Checked ${checked} project JavaScript files; baseline configuration is valid.`);

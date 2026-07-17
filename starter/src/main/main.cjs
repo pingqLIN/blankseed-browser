@@ -10,11 +10,17 @@ const { CheckpointStore } = require('./checkpoint-store.cjs');
 const { TargetViewController } = require('./target-view.cjs');
 const { ProcessSupervisor } = require('./process-supervisor.cjs');
 const { ModuleStore } = require('./module-store.cjs');
-const { ModelTurnManager } = require('./model-adapter.cjs');
+const { LocalOpenAICompatibleAdapter, ModelTurnManager } = require('./model-adapter.cjs');
+const { EvolutionRunManager, RawCapabilityDispatcher } = require('./evolution-loop.cjs');
 const { registerIpc } = require('./ipc-router.cjs');
 
 const packageJson = require('../../package.json');
 const defaults = require('../../config/defaults.json');
+const config = Object.freeze({
+  ...defaults,
+  localModelEndpoint: process.env.BLANKSEED_LOCAL_MODEL_ENDPOINT || defaults.localModelEndpoint,
+  localModelName: process.env.BLANKSEED_LOCAL_MODEL_NAME || defaults.localModelName
+});
 
 let mainWindow = null;
 let target = null;
@@ -22,12 +28,17 @@ let cleanupIpc = null;
 let processSupervisor = null;
 let moduleStore = null;
 let modelTurnManager = null;
+let evolutionRunManager = null;
 let eventStore = null;
 const sessionId = `ses_${crypto.randomUUID()}`;
 
 function createWindow() {
   const dataRoot = path.join(app.getPath('userData'), 'blankseed-data');
+  const workspaceRoot = process.env.BLANKSEED_WORKSPACE_ROOT
+    ? path.resolve(process.env.BLANKSEED_WORKSPACE_ROOT)
+    : path.join(app.getAppPath(), 'workspace');
   fs.mkdirSync(dataRoot, { recursive: true });
+  fs.mkdirSync(workspaceRoot, { recursive: true });
   eventStore = new EventStore(dataRoot, { sessionId });
 
   mainWindow = new BrowserWindow({
@@ -53,25 +64,25 @@ function createWindow() {
 
   target = new TargetViewController({
     window: mainWindow,
-    controlPanelWidth: defaults.controlPanelWidth,
-    initialUrl: defaults.initialUrl,
-    worldId: defaults.pageWorldId,
+    controlPanelWidth: config.controlPanelWidth,
+    initialUrl: config.initialUrl,
+    worldId: config.pageWorldId,
     eventStore,
     pushEvent
   });
 
   processSupervisor = new ProcessSupervisor({
     eventStore,
-    workspaceRoot: path.join(app.getAppPath(), 'workspace'),
-    defaultTimeoutMs: defaults.generatedNodeRuntimeTimeoutMs,
-    maxLogBytes: defaults.generatedRuntimeMaxLogBytes,
-    killGraceMs: defaults.generatedRuntimeKillGraceMs
+    workspaceRoot,
+    defaultTimeoutMs: config.generatedNodeRuntimeTimeoutMs,
+    maxLogBytes: config.generatedRuntimeMaxLogBytes,
+    killGraceMs: config.generatedRuntimeKillGraceMs
   });
   moduleStore = new ModuleStore({
     eventStore,
     processSupervisor,
-    workspaceRoot: path.join(app.getAppPath(), 'workspace'),
-    defaultTimeoutMs: defaults.generatedNodeRuntimeTimeoutMs
+    workspaceRoot,
+    defaultTimeoutMs: config.generatedNodeRuntimeTimeoutMs
   });
 
   const getStatus = () => ({
@@ -82,7 +93,7 @@ function createWindow() {
     node: process.versions.node,
     sessionId,
     dataRoot,
-    config: defaults,
+    config,
     modules: moduleStore.getState(),
     target: target.getState()
   });
@@ -97,8 +108,32 @@ function createWindow() {
     getStatus,
     getEvents: (limit) => eventStore.tail(limit),
     getModules: () => moduleStore.list(),
-    defaultTimeoutMs: defaults.modelTurnTimeoutMs,
-    eventLimit: defaults.modelContextEventLimit
+    adapters: {
+      'local.openai-compatible': new LocalOpenAICompatibleAdapter({
+        endpoint: config.localModelEndpoint,
+        model: config.localModelName
+      })
+    },
+    defaultTimeoutMs: config.modelTurnTimeoutMs,
+    eventLimit: config.modelContextEventLimit
+  });
+  const rawCapabilityDispatcher = new RawCapabilityDispatcher({
+    target,
+    checkpointStore,
+    eventStore,
+    processSupervisor,
+    moduleStore,
+    config
+  });
+  evolutionRunManager = new EvolutionRunManager({
+    eventStore,
+    modelTurnManager,
+    dispatcher: rawCapabilityDispatcher,
+    checkpointStore,
+    workspaceRoot,
+    defaultMaxTurns: config.evolutionMaxTurns,
+    defaultMaxActions: config.evolutionMaxActions,
+    maxEvidenceBytes: config.evolutionMaxEvidenceBytes
   });
 
   cleanupIpc = registerIpc({
@@ -109,17 +144,23 @@ function createWindow() {
     processSupervisor,
     moduleStore,
     modelTurnManager,
+    evolutionRunManager,
     sessionId,
     getStatus,
-    config: defaults
+    config
   });
 
   eventStore.append('app.started', getStatus(), { sessionId });
 
-  mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+  const smokeNonce = process.env.BLANKSEED_SMOKE_NONCE;
+  mainWindow.loadFile(
+    path.join(__dirname, '..', 'renderer', 'index.html'),
+    smokeNonce ? { query: { blankseedSmokeNonce: smokeNonce } } : undefined
+  );
   mainWindow.on('resize', () => target?.updateBounds());
   mainWindow.on('close', () => {
     eventStore?.append('app.window.closing', {}, { sessionId });
+    evolutionRunManager?.cancel({}, { sessionId, requestId: 'req_app_shutdown_evolution' });
     processSupervisor?.shutdown({ sessionId, requestId: 'req_app_shutdown_runtime' });
     target?.destroy();
     cleanupIpc?.();
@@ -131,6 +172,7 @@ function createWindow() {
     processSupervisor = null;
     moduleStore = null;
     modelTurnManager = null;
+    evolutionRunManager = null;
   });
 }
 

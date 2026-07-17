@@ -120,6 +120,32 @@ test('CapabilityBroker reports page execution timeout', async () => {
   assert.equal(eventStore.events.at(-1).type, 'page.execution.failed');
 });
 
+test('CapabilityBroker cancels active page execution with an inspectable event chain', async () => {
+  const { broker, eventStore } = createHarness({
+    executeJavaScript: () => new Promise(() => {})
+  });
+
+  const pending = broker.executePage('await new Promise(() => {});', {
+    sessionId: 'ses_12345678',
+    requestId: 'req_cancel_page_12345678',
+    timeoutMs: 1000
+  });
+  await Promise.resolve();
+  const cancelled = broker.cancel({}, {
+    sessionId: 'ses_12345678',
+    requestId: 'req_cancel_request_12345678'
+  });
+  const result = await pending;
+
+  assert.equal(cancelled.cancelled, 1);
+  assert.equal(cancelled.remaining, 0);
+  assert.equal(result.status, 'error');
+  assert.equal(result.error.code, 'EXECUTION_CANCELLED');
+  assert.ok(eventStore.events.some((event) => event.type === 'broker.execution.cancel.requested'));
+  assert.ok(eventStore.events.some((event) => event.type === 'broker.execution.cancel.completed'));
+  assert.equal(eventStore.events.at(-1).type, 'page.execution.failed');
+});
+
 test('CapabilityBroker rejects stale expected target before execution', async () => {
   let called = false;
   const { broker } = createHarness({
@@ -200,4 +226,21 @@ test('CapabilityBroker wraps CDP attach failures', async () => {
   assert.equal(result.error.code, 'CDP_ATTACH_FAILED');
   assert.equal(eventStore.events.at(-2).type, 'cdp.attach.failed');
   assert.equal(eventStore.events.at(-1).type, 'cdp.command.failed');
+});
+
+test('CapabilityBroker records unexpected CDP detach and recovers on the next command', async () => {
+  const { broker, debuggerApi, eventStore } = createHarness();
+  debuggerApi.attached = true;
+  debuggerApi.attached = false;
+  debuggerApi.emit('detach', {}, 'target closed');
+
+  const result = await broker.sendCdp('Page.getNavigationHistory', {}, {
+    sessionId: 'ses_12345678',
+    requestId: 'req_cdp_recover_12345678'
+  });
+
+  assert.equal(result.status, 'ok');
+  assert.ok(eventStore.events.some((event) => event.type === 'cdp.detached.unexpected'));
+  assert.ok(eventStore.events.some((event) => event.type === 'cdp.recovery.started'));
+  assert.ok(eventStore.events.some((event) => event.type === 'cdp.recovery.completed'));
 });

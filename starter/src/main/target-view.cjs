@@ -138,6 +138,10 @@ class TargetViewController {
     return this.broker.sendCdp(method, params, context);
   }
 
+  cancelExecutions(filter = {}, context = {}) {
+    return this.broker.cancel(filter, context);
+  }
+
   destroy() {
     if (this.view && !this.view.webContents.isDestroyed()) {
       const targetId = this.view.webContents.id;

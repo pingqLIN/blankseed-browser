@@ -1,5 +1,8 @@
 # Execution Plan v0.1
 
+> Current implementation status is maintained in `PROJECT_STATUS.md`. This plan
+> remains the authoritative phase definition and exit-criteria reference.
+
 ## Phase 0 — Baseline and scaffold verification
 
 ### Objective

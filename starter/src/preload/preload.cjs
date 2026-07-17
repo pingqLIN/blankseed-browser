@@ -13,6 +13,7 @@ const channels = Object.freeze({
   targetSnapshot: 'blankseed:target:snapshot',
   pageExecute: 'blankseed:page:execute',
   cdpSend: 'blankseed:cdp:send',
+  executionCancel: 'blankseed:execution:cancel',
   checkpointCreate: 'blankseed:checkpoint:create',
   eventsTail: 'blankseed:events:tail',
   utilityPing: 'blankseed:utility:ping',
@@ -28,6 +29,8 @@ const channels = Object.freeze({
   moduleInvoke: 'blankseed:module:invoke',
   modelTurn: 'blankseed:model:turn',
   modelCancel: 'blankseed:model:cancel',
+  evolutionRun: 'blankseed:evolution:run',
+  evolutionCancel: 'blankseed:evolution:cancel',
   eventPush: 'blankseed:event:push'
 });
 
@@ -51,7 +54,7 @@ function invoke(channel, payload) {
 
 function withOptions(payload, options = {}) {
   const extra = {};
-  for (const key of ['requestId', 'targetId', 'documentGeneration', 'timeoutMs', 'cwd', 'environment', 'adapter', 'options']) {
+  for (const key of ['requestId', 'targetId', 'documentGeneration', 'timeoutMs', 'cwd', 'environment', 'adapter', 'options', 'maxTurns', 'maxActions']) {
     if (options[key] !== undefined) extra[key] = options[key];
   }
   return Object.keys(extra).length > 0 ? { ...payload, ...extra } : payload;
@@ -73,6 +76,12 @@ contextBridge.exposeInMainWorld('blankseed', {
   },
   cdp: {
     send: (method, params, options) => invoke(channels.cdpSend, withOptions({ method, params }, options))
+  },
+  execution: {
+    cancel: (executionId, options) => invoke(
+      channels.executionCancel,
+      withOptions(executionId ? { executionId } : {}, options)
+    )
   },
   checkpoint: {
     create: (label, options) => invoke(channels.checkpointCreate, withOptions({ label }, options))
@@ -103,5 +112,12 @@ contextBridge.exposeInMainWorld('blankseed', {
   model: {
     turn: (messages, options) => invoke(channels.modelTurn, withOptions({ messages }, options)),
     cancel: (options) => invoke(channels.modelCancel, withOptions({}, options))
+  },
+  evolution: {
+    run: (messages, options) => invoke(channels.evolutionRun, withOptions({ messages }, options)),
+    cancel: (evolutionRunId, options) => invoke(
+      channels.evolutionCancel,
+      withOptions(evolutionRunId ? { evolutionRunId } : {}, options)
+    )
   }
 });

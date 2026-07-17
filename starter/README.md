@@ -17,6 +17,16 @@ npm test
 npm start
 ```
 
+One-command verification:
+
+```powershell
+npm run verify
+npm run verify:runtime
+```
+
+`verify` runs syntax/configuration/document-companion checks and unit tests.
+`verify:runtime` additionally runs the scoped Windows Electron hardening smoke.
+
 ## Current UI
 
 - Left: local trusted control panel.
@@ -35,6 +45,11 @@ Available baseline controls:
 - stop active generated Node.js execution;
 - create, test, commit, activate, invoke and roll back generated modules;
 - inspect active modules, checkpoints and the execution timeline.
+- cancel active page/CDP broker executions;
+- perform provider-neutral model turns through `local.manual` or the
+  credential-free `local.openai-compatible` loopback adapter.
+- run a bounded provider-neutral model/tool evolution loop through the same raw
+  broker, runtime, module and checkpoint services.
 
 ## Important
 
@@ -100,3 +115,31 @@ sandbox: true
 ```
 
 The local UI also uses context isolation and a narrow preload API.
+
+## Local model adapter
+
+The real model transport is intentionally loopback-only and sends no
+authorization header. It defaults to:
+
+```text
+endpoint: http://127.0.0.1:1234/v1/chat/completions
+model: local-model
+```
+
+Operators may set `BLANKSEED_LOCAL_MODEL_ENDPOINT` and
+`BLANKSEED_LOCAL_MODEL_NAME` before launch. The endpoint must remain HTTP(S)
+loopback (`127.0.0.1`, `localhost` or `::1`) and must not contain credentials.
+
+## Automated evolution verification
+
+Run the deterministic Phase 5 exit smoke on Windows:
+
+```powershell
+npm run verify:wp11
+```
+
+It uses an isolated temporary workspace and a credential-free loopback fixture.
+The model fixture requests raw tools, observes one intentional candidate
+serialization failure, produces corrected source, commits and activates the
+module, then a second Electron session reuses it. Normal launches persist run
+manifests under `workspace/evolution-runs/`.

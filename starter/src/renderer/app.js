@@ -286,9 +286,15 @@ $('utility-stop').addEventListener('click', () => run(() => window.blankseed.uti
 $('stop-all').addEventListener('click', () => run(async () => {
   state.stop = { state: 'requested', label: 'requested' };
   renderStopState();
-  const stopped = await window.blankseed.utility.stop({ requestId: requestId('stop_all') });
-  state.stop = { state: 'confirmed', label: `confirmed / remaining ${stopped.remaining}` };
-  return stopped;
+  const [evolution, executions, runtime, model] = await Promise.all([
+    window.blankseed.evolution.cancel(null, { requestId: requestId('stop_evolution') }),
+    window.blankseed.execution.cancel(null, { requestId: requestId('stop_execution') }),
+    window.blankseed.utility.stop({ requestId: requestId('stop_runtime') }),
+    window.blankseed.model.cancel({ requestId: requestId('stop_model') })
+  ]);
+  const remaining = Number(runtime.remaining || 0) + Number(executions.remaining || 0);
+  state.stop = { state: 'confirmed', label: `confirmed / remaining ${remaining}` };
+  return { evolution, executions, runtime, model, remaining };
 }));
 $('module-refresh').addEventListener('click', () => run(() => window.blankseed.modules.list(), { skipRefresh: false }));
 $('module-create').addEventListener('click', () => run(async () => {

@@ -14,7 +14,7 @@ const {
   serializeError
 } = require('../shared/contracts.cjs');
 
-function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, processSupervisor, moduleStore, modelTurnManager, sessionId, getStatus, config }) {
+function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, processSupervisor, moduleStore, modelTurnManager, evolutionRunManager, sessionId, getStatus, config }) {
   const handlers = [];
   const seenRequestIds = new Set();
   const payloadLimit = config.ipcPayloadLimitBytes;
@@ -120,6 +120,13 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
     const params = payload.params === undefined ? {} : assertPlainObject(payload.params, 'params');
     return target.sendCdp(method, params, context);
   });
+  handle(channels.executionCancel, 'execution.cancel', async (payload = {}, context) => {
+    assertPlainObject(payload, 'payload');
+    const executionId = payload.executionId === undefined
+      ? undefined
+      : assertIdentifier(payload.executionId, 'executionId', 'exe');
+    return target.cancelExecutions({ executionId }, context);
+  });
   handle(channels.checkpointCreate, 'checkpoint.create', async (payload = {}, context) => {
     if (payload !== undefined) assertPlainObject(payload, 'payload');
     return checkpointStore.create(payload.label ?? 'manual checkpoint', context);
@@ -197,6 +204,20 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
     return modelTurnManager.turn({ ...payload, timeoutMs }, context);
   });
   handle(channels.modelCancel, 'model.cancel', async (_payload, context) => modelTurnManager.cancel(context));
+  handle(channels.evolutionRun, 'evolution.run', async (payload, context) => {
+    assertPlainObject(payload, 'payload');
+    const timeoutMs = payload.timeoutMs === undefined
+      ? config.modelTurnTimeoutMs
+      : assertInteger(payload.timeoutMs, 'timeoutMs', { min: 1, max: 300000 });
+    return evolutionRunManager.run({ ...payload, timeoutMs }, context);
+  });
+  handle(channels.evolutionCancel, 'evolution.cancel', async (payload = {}, context) => {
+    assertPlainObject(payload, 'payload');
+    const evolutionRunId = payload.evolutionRunId === undefined
+      ? undefined
+      : assertIdentifier(payload.evolutionRunId, 'evolutionRunId', 'evo');
+    return evolutionRunManager.cancel({ evolutionRunId }, context);
+  });
 
   return () => {
     for (const channel of handlers) ipcMain.removeHandler(channel);

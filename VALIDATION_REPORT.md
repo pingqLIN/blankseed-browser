@@ -1,56 +1,65 @@
 # Validation Report
 
-Date: 2026-07-12
+Date: 2026-07-17 Asia/Taipei
 
-## Completed
+## Current validation contract
 
-From `starter/`:
+Run from `starter/`:
 
-```text
-node scripts/check-project.mjs
+```powershell
+npm run verify
+npm run verify:runtime
+npm run verify:wp11
 ```
 
-Result:
+`verify` covers JavaScript syntax, configuration, required Traditional Chinese
+document companions and unit tests. `verify:runtime` additionally launches the
+Windows Electron candidate against loopback-only fixtures, verifies page/CDP
+cancellation and the local OpenAI-compatible model transport, then closes the
+application and fixture server.
+
+`verify:wp11` additionally runs a deterministic OpenAI-compatible tool loop in
+an isolated workspace. It verifies observable candidate failure, model-driven
+correction, commit/activation/invocation, a complete correlated run manifest,
+reuse from a second Electron session and process/port cleanup.
+
+## Current result
+
+The current automated-evolution result is recorded in
+`starter/reports/wp-11-automated-evolution-loop.md`. That report is the durable
+command/output evidence for the latest run. The WP-10 report remains the
+authoritative cancellation/CDP-recovery evidence.
+
+Latest result:
 
 ```text
-Checked 26 project files; JavaScript syntax and baseline configuration are valid.
+Checked 32 project JavaScript files.
+Checked 16 required Traditional Chinese document companions.
+41 tests passed, 0 failed.
+WP-11 Windows runtime smoke exited 0.
+9 model turns; 8 raw actions; 1 expected failed action.
+Second-session module reuse passed; runtime remaining 0; CDP port reusable.
+Ephemeral CDP ownership nonce verified.
 ```
 
-From `starter/`:
+## Earlier evidence
 
-```text
-node --test
-```
+- `starter/reports/phase-0-baseline.md` records the first successful Windows
+  Electron launch and raw primitive verification.
+- `starter/reports/wp-01-contracts-events.md` through
+  `starter/reports/wp-09-source-evolution.md` record the incremental protocol,
+  runtime, module, experiment, model and source-evolution evidence.
 
-Result:
+The original 2026-07-12 artifact validation could not launch Electron because
+its container could not download the Electron binary. That limitation was later
+resolved on the target Windows environment and is no longer the current project
+status.
 
-```text
-4 tests passed
-0 tests failed
-```
+## Remaining validation boundary
 
-Dependency resolution was also verified with:
-
-```text
-npm install --package-lock-only --ignore-scripts
-```
-
-Result: lockfile created, 0 reported vulnerabilities at validation time.
-
-## Not completed in the artifact environment
-
-A full Electron GUI launch could not be completed because the execution container could not download the Electron Linux binary from GitHub/CDN. The failure was network/DNS related, not a reported application runtime exception:
-
-```text
-TypeError: fetch failed
-Electron failed to install correctly
-Could not resolve host: github.com
-```
-
-Therefore the package does **not** claim that the Electron window and WebContentsView were runtime-verified in this container. Phase 0 requires the receiving agent to run `npm install` and `npm start` on the target Windows environment and record actual results.
-
-## Defects found and corrected during validation
-
-1. URL normalization initially rewrote `file://` input as HTTPS instead of rejecting it. The implementation now detects any explicit scheme first and rejects non-HTTP(S) protocols.
-2. Target console event handling was updated to the Electron 43 details-object form instead of the deprecated positional fields.
-3. WebContentsView cleanup was moved to the BrowserWindow `close` event so target resources are closed before the owning window is destroyed.
+- Hosted model credentials are not tested or handled.
+- CI runs static and unit verification only; Electron runtime smoke remains a
+  Windows operator workflow.
+- Real local-model quality, prompt-injection robustness and parallel evolution
+  runs are not validated by the deterministic fixture.
+- WP-09 candidate acceptance remains manual and is not part of `verify:runtime`.

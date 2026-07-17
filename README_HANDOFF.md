@@ -33,15 +33,17 @@
 
 ## 建議閱讀順序
 
-1. `00_EXTERNAL_AGENT_MASTER_PROMPT.md`
-2. `01_RESEARCH_CHARTER.md`
-3. `02_ARCHITECTURE_SPECIFICATION_v0.1.md`
-4. `03_EXECUTION_PLAN_v0.1.md`
-5. `04_ACCEPTANCE_AND_STOP_CONDITIONS.md`
-6. `05_EXPERIMENT_GOVERNANCE_AND_RECOVERY.md`
-7. `06_PROTOCOL_AND_DATA_CONTRACTS.md`
-8. `08_AGENT_WORK_PACKAGES.md`
-9. `starter/README.md`
+繁中入口請先看 `KEY_DOCUMENTS.zh-tw.md`；英文技術原檔維持權威來源。
+
+1. `00_EXTERNAL_AGENT_MASTER_PROMPT.md`／`00_EXTERNAL_AGENT_MASTER_PROMPT.zh-tw.md`
+2. `01_RESEARCH_CHARTER.md`／`01_RESEARCH_CHARTER.zh-tw.md`
+3. `02_ARCHITECTURE_SPECIFICATION_v0.1.md`／`02_ARCHITECTURE_SPECIFICATION_v0.1.zh-tw.md`
+4. `03_EXECUTION_PLAN_v0.1.md`／`03_EXECUTION_PLAN_v0.1.zh-tw.md`
+5. `04_ACCEPTANCE_AND_STOP_CONDITIONS.md`／`04_ACCEPTANCE_AND_STOP_CONDITIONS.zh-tw.md`
+6. `05_EXPERIMENT_GOVERNANCE_AND_RECOVERY.md`／`05_EXPERIMENT_GOVERNANCE_AND_RECOVERY.zh-tw.md`
+7. `06_PROTOCOL_AND_DATA_CONTRACTS.md`／`06_PROTOCOL_AND_DATA_CONTRACTS.zh-tw.md`
+8. `08_AGENT_WORK_PACKAGES.md`／`08_AGENT_WORK_PACKAGES.zh-tw.md`
+9. `starter/README.md`／`starter/README.zh-tw.md`
 
 ## 代理的第一個任務
 
@@ -69,17 +71,23 @@ npm start
 - JSON Lines 執行紀錄。
 - 檔案型 checkpoint。
 - Utility Process（工具程序）通訊探針。
-- 不含模型 API、不含特定網站 adapter、不含特定任務功能。
+- 可監督的 generated Node runtime。
+- Versioned module store 與 rollback。
+- Provider-neutral model turn 與本機 loopback adapter。
+- Provider-neutral model/tool evolution loop、correlated run manifest 與跨 session module reuse。
+- Git-backed source-evolution candidate workflow。
+- 不含特定網站 adapter、不含固定任務功能。
 
-## 尚未完成
+## 目前剩餘工作
 
-- AI 模型連接器。
-- 持久模組系統。
-- AI 生成程式碼的 utility runtime。
-- Git checkpoint 與 rollback。
-- 自動測試瀏覽器 fixture。
-- 多分頁管理。
-- Source self-modification。
+完整狀態以 `PROJECT_STATUS.md`／`PROJECT_STATUS.zh-tw.md` 為準。目前主要缺口為：
+
+- Hosted model credential storage 與 redaction policy；目前只允許無憑證 loopback adapter。
+- Real local-model quality 與 prompt-injection robustness；目前自動迴圈以 deterministic fixture 驗證 protocol/correction/reuse。
+- 多分頁／multi-target session 管理。
+- Source-evolution dependency change、merge conflict 與 concurrent candidate handling。
+- WP-09 candidate 的產品負責人人工接受；目前保留證據但不 merge。
+- Phase 7 engine boundary review；只有出現可重現 Electron blocker 才啟動。
 
 ## 交付原則
 
@@ -90,3 +98,10 @@ npm start
 3. 每次執行可觀測、可停止、可復原。
 4. 不將模型輸出偽裝成已驗證結果。
 5. 不為「看起來安全」而重新加入固定任務白名單。
+
+## 歷史 handoff artifact
+
+`handoff-manifest.json` 與 `FILE_LIST.txt` 保留為 2026-07-12 原始交付包的
+不可變 inventory snapshot；其中的 `knownIncomplete` 與檔案清單不代表目前
+實作狀態。現在的狀態、驗證與重要文件入口分別以
+`PROJECT_STATUS.md`、`VALIDATION_REPORT.md` 與 `KEY_DOCUMENTS.zh-tw.md` 為準。

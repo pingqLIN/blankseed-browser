@@ -2,7 +2,7 @@
 
 const PROTOCOL = 'blankseed/0.1';
 const DEFAULT_IPC_PAYLOAD_LIMIT_BYTES = 1_048_576;
-const ID_PATTERN = /^(req|exe|ses|chk)_[A-Za-z0-9][A-Za-z0-9_-]{7,}$/;
+const ID_PATTERN = /^(req|exe|ses|chk|evo|act)_[A-Za-z0-9][A-Za-z0-9_-]{7,}$/;
 
 const errorCodes = Object.freeze({
   invalidRequest: 'INVALID_REQUEST',
@@ -16,6 +16,7 @@ const errorCodes = Object.freeze({
   processKillFailed: 'PROCESS_KILL_FAILED',
   cdpAttachFailed: 'CDP_ATTACH_FAILED',
   cdpDetached: 'CDP_DETACHED',
+  modelAdapterFailed: 'MODEL_ADAPTER_FAILED',
   checkpointFailed: 'CHECKPOINT_FAILED',
   moduleVersionConflict: 'MODULE_VERSION_CONFLICT'
 });
@@ -29,6 +30,7 @@ const channels = Object.freeze({
   targetSnapshot: 'blankseed:target:snapshot',
   pageExecute: 'blankseed:page:execute',
   cdpSend: 'blankseed:cdp:send',
+  executionCancel: 'blankseed:execution:cancel',
   checkpointCreate: 'blankseed:checkpoint:create',
   eventsTail: 'blankseed:events:tail',
   utilityPing: 'blankseed:utility:ping',
@@ -44,6 +46,8 @@ const channels = Object.freeze({
   moduleInvoke: 'blankseed:module:invoke',
   modelTurn: 'blankseed:model:turn',
   modelCancel: 'blankseed:model:cancel',
+  evolutionRun: 'blankseed:evolution:run',
+  evolutionCancel: 'blankseed:evolution:cancel',
   eventPush: 'blankseed:event:push'
 });
 

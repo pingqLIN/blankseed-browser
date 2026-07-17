@@ -10,6 +10,20 @@ Build an experimental Chromium application in which AI can progressively create 
 - Source identifiers and protocol fields: English.
 - Explain uncommon English technical terms in Chinese when they first appear.
 
+## Documentation companions
+
+- English is authoritative for publishable technical documents unless the file
+  is already explicitly authored in Traditional Chinese, such as
+  `README_HANDOFF.md`.
+- Important entry, governance, architecture, execution, acceptance, protocol,
+  decision, validation and operator-facing Markdown documents require a
+  human-readable Traditional Chinese companion beside the source file.
+- Use the `.zh-tw.md` suffix, for example `PRODUCT.zh-tw.md`.
+- Keep the companion meaning-aligned with the authoritative source; do not use
+  line-by-line bilingual duplication in one file.
+- `KEY_DOCUMENTS.zh-tw.md` is the discovery index for the required companion
+  set. `npm run check` must fail when a required companion is missing.
+
 ## Non-negotiable invariants
 
 1. **No task whitelist.** Do not restrict the model to predetermined business actions such as click/type/summarize/translate.

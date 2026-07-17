@@ -1,11 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const {
+  LocalOpenAICompatibleAdapter,
   ModelTurnManager,
   assertNoSecrets,
+  normalizeLoopbackEndpoint,
   normalizeMessages,
   packageContext
 } = require('../src/main/model-adapter.cjs');
@@ -29,7 +32,7 @@ class MemoryEventStore {
   }
 }
 
-function createManager() {
+function createManager(adapters = {}) {
   const eventStore = new MemoryEventStore();
   const manager = new ModelTurnManager({
     eventStore,
@@ -52,7 +55,8 @@ function createManager() {
       { sequence: 1, type: 'module.activated', timestamp: '2026-07-13T00:00:00.000Z', requestId: 'req_12345678', executionId: null, data: { moduleId: 'generated.example', version: '0.1.0' } }
     ],
     getModules: () => ({ active: { 'generated.example': '0.1.0' }, modules: [{}], candidates: [] }),
-    defaultTimeoutMs: 50
+    adapters,
+    defaultTimeoutMs: 1000
   });
   return { eventStore, manager };
 }
@@ -76,7 +80,87 @@ test('packageContext redacts to operational summaries and stable hash', () => {
 
 test('model adapter validation rejects secret-shaped payloads and bad messages', () => {
   assert.throws(() => assertNoSecrets({ apiKey: 'sk-test' }), /must not include secrets/);
+  assert.throws(() => assertNoSecrets({ options: { accessToken: 'blocked' } }), /must not include secrets/);
+  assert.doesNotThrow(() => assertNoSecrets({ options: { maxTokens: 64 } }));
   assert.throws(() => normalizeMessages([{ role: 'user', content: '' }]), /invalid/);
+  assert.throws(() => normalizeLoopbackEndpoint('https://example.com/v1/chat/completions'), /loopback/);
+});
+
+test('LocalOpenAICompatibleAdapter performs a credential-free loopback model turn', async (context) => {
+  let received = null;
+  const server = createServer(async (request, response) => {
+    const chunks = [];
+    for await (const chunk of request) chunks.push(chunk);
+    received = {
+      authorization: request.headers.authorization,
+      body: JSON.parse(Buffer.concat(chunks).toString('utf8'))
+    };
+    response.writeHead(200, { 'content-type': 'application/json' });
+    response.end(JSON.stringify({
+      choices: [{ message: { role: 'assistant', content: 'loopback adapter ok' } }]
+    }));
+  });
+  await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+  context.after(() => server.close());
+  const endpoint = `http://127.0.0.1:${server.address().port}/v1/chat/completions`;
+  const adapter = new LocalOpenAICompatibleAdapter({ endpoint, model: 'fixture-model' });
+  const { manager } = createManager({ 'local.openai-compatible': adapter });
+
+  const result = await manager.turn({
+    adapter: 'local.openai-compatible',
+    messages: [{ role: 'user', content: 'Use the local fixture.' }],
+    options: { temperature: 0.2, maxTokens: 64 }
+  }, {
+    sessionId: 'ses_12345678',
+    requestId: 'req_local_model_12345678'
+  });
+
+  assert.equal(result.status, 'ok');
+  assert.equal(result.adapter, 'local.openai-compatible');
+  assert.equal(result.output.content, 'loopback adapter ok');
+  assert.equal(received.authorization, undefined);
+  assert.equal(received.body.model, 'fixture-model');
+  assert.equal(received.body.temperature, 0.2);
+  assert.equal(received.body.max_tokens, 64);
+  assert.match(received.body.messages[0].content, /BlankSeed operational context JSON/);
+  assert.match(received.body.messages[0].content, /contextHash/);
+});
+
+test('LocalOpenAICompatibleAdapter accepts tool-only output and preserves tool result correlation', async () => {
+  let received = null;
+  const adapter = new LocalOpenAICompatibleAdapter({
+    endpoint: 'http://127.0.0.1:1234/v1/chat/completions',
+    model: 'fixture-model',
+    fetchImpl: async (_url, request) => {
+      received = JSON.parse(request.body);
+      return new Response(JSON.stringify({
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: null,
+            tool_calls: [{
+              id: 'call_fixture_12345678',
+              type: 'function',
+              function: { name: 'page_snapshot', arguments: '{}' }
+            }]
+          }
+        }]
+      }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+  });
+  const output = await adapter.run({
+    messages: [
+      { role: 'assistant', content: '', toolRequests: [{ id: 'call_previous_12345678', name: 'page_snapshot', arguments: '{}' }] },
+      { role: 'tool', content: '{"status":"ok"}', toolCallId: 'call_previous_12345678', name: 'page_snapshot' }
+    ],
+    contextPackage: { contextHash: 'sha256:fixture' },
+    tools: [{ type: 'function', function: { name: 'page_snapshot', description: 'snapshot', parameters: { type: 'object' } } }]
+  });
+
+  assert.equal(output.content, '');
+  assert.equal(output.toolRequests[0].name, 'page_snapshot');
+  assert.equal(received.tool_choice, 'auto');
+  assert.equal(received.messages.at(-1).tool_call_id, 'call_previous_12345678');
 });
 
 test('ModelTurnManager returns deterministic local adapter result and events', async () => {
