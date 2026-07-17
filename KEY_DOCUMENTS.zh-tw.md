@@ -23,6 +23,7 @@
 
 ## 操作與驗證
 
+- [程式使用說明](USER_GUIDE.zh-tw.md)
 - [Starter 操作說明](starter/README.zh-tw.md)
 - [驗證報告](VALIDATION_REPORT.zh-tw.md)
 - [WP-10 操作 hardening 證據](starter/reports/wp-10-operational-hardening.zh-tw.md)

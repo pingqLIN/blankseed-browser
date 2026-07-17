@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-07-17 Asia/Taipei
+Date: 2026-07-18 Asia/Taipei
 
 ## Current validation contract
 
@@ -14,9 +14,10 @@ npm run verify:wp11
 
 `verify` covers JavaScript syntax, configuration, required Traditional Chinese
 document companions and unit tests. `verify:runtime` additionally launches the
-Windows Electron candidate against loopback-only fixtures, verifies page/CDP
-cancellation and the local OpenAI-compatible model transport, then closes the
-application and fixture server.
+Windows Electron candidate against loopback-only fixtures, exercises the
+Traditional Chinese control surface through its actual DOM event handlers,
+verifies page/CDP cancellation and the local OpenAI-compatible model transport,
+then closes the application and fixture server.
 
 `verify:wp11` additionally runs a deterministic OpenAI-compatible tool loop in
 an isolated workspace. It verifies observable candidate failure, model-driven
@@ -33,14 +34,35 @@ authoritative cancellation/CDP-recovery evidence.
 Latest result:
 
 ```text
-Checked 32 project JavaScript files.
-Checked 16 required Traditional Chinese document companions.
-41 tests passed, 0 failed.
+Checked 33 project JavaScript files.
+Checked 17 required Traditional Chinese document companions.
+43 tests passed, 0 failed.
 WP-11 Windows runtime smoke exited 0.
 9 model turns; 8 raw actions; 1 expected failed action.
 Second-session module reuse passed; runtime remaining 0; CDP port reusable.
 Ephemeral CDP ownership nonce verified.
 ```
+
+## 2026-07-18 control-surface runtime verification
+
+- Launch command: `npm run verify:runtime`; its runtime step launches
+  `electron.exe --remote-debugging-port=<ephemeral> --user-data-dir=<temporary> .`.
+- Tested URL: loopback `basic-page.html` fixture on an ephemeral port.
+- Actions performed: entered the fixture URL through the navigation form,
+  selected **檢查 Snapshot**, traversed Page/CDP/Node/Module tabs with
+  Arrow/Home/End keyboard events, and completed Candidate → Test → Commit →
+  Activate through the visible controls.
+- Expected result: Traditional Chinese labels remain visible, tab ARIA state
+  follows focus, module states render as 候選／已測試／已提交／已啟用, and no
+  button crosses a 420 px viewport.
+- Actual result: all assertions passed; the snapshot returned the tested URL,
+  the keyboard sequence selected `cdp → module → node → page`, all four module
+  labels matched, and the overflow list was empty.
+- Relevant evidence: structured stdout from
+  `starter/scripts/runtime-wp10-hardening-smoke.mjs` and its correlated
+  temporary `<userData>/blankseed-data/events/events.jsonl`. The isolated
+  user-data/workspace is removed only after successful process and port cleanup;
+  this report is the durable result record.
 
 ## Earlier evidence
 

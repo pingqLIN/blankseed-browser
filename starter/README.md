@@ -2,6 +2,10 @@
 
 This is an intentionally small Electron scaffold for the BlankSeed Browser handoff.
 
+Complete operator instructions are in [`../USER_GUIDE.md`](../USER_GUIDE.md),
+with a Traditional Chinese companion at
+[`../USER_GUIDE.zh-tw.md`](../USER_GUIDE.zh-tw.md).
+
 ## Requirements
 
 - Windows 10/11 recommended.

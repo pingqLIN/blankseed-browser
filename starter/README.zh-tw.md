@@ -2,7 +2,9 @@
 
 > 本檔為 `starter/README.md` 的繁體中文 companion；英文原檔為權威來源。
 
-這是一個刻意保持極小的 Electron scaffold，供 BlankSeed Browser 研究使用。
+這是一個刻意保持極簡的 Electron scaffold，供 BlankSeed Browser 研究使用。
+
+完整流程請參閱 [`../USER_GUIDE.zh-tw.md`](../USER_GUIDE.zh-tw.md)；英文權威來源為 [`../USER_GUIDE.md`](../USER_GUIDE.md)。
 
 ## 需求與啟動
 
@@ -17,7 +19,7 @@ npm test
 npm start
 ```
 
-單一驗證入口：
+可用的一鍵驗證入口：
 
 ```powershell
 npm run verify
@@ -25,21 +27,36 @@ npm run verify:runtime
 npm run verify:wp11
 ```
 
-`verify` 執行 syntax、configuration、文件 companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke。
+`verify` 會執行 syntax、configuration、document companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke。
 
 ## 目前 UI 與能力
 
-左側是 trusted local control panel，右側是 WebContentsView remote target。
+左側是 trusted local control panel。右側是 `WebContentsView` 的 remote target。
 
-可用能力包括 navigation/back/forward/reload、page snapshot、isolated JavaScript、raw CDP、file checkpoint、utility process、supervised generated Node execution、Stop、module candidate/test/commit/activate/invoke/rollback、event timeline、page/CDP cancellation、model turns，以及經同一組 raw broker/runtime/module/checkpoint service 執行的有界 provider-neutral model/tool evolution loop。
+可用能力包括：
 
-Model turn 可使用 deterministic `local.manual`，或不送 authorization header、只允許 loopback 的 `local.openai-compatible` adapter。
+- navigate URL；
+- back/forward/reload；
+- 取得基本 page snapshot；
+- 在 isolated world `1001` 執行 JavaScript；
+- 傳送 raw CDP method 與參數；
+- 建立 file checkpoint；
+- ping utility process；
+- 在 supervised utility process 執行 generated Node.js source；
+- 停止進行中的 generated Node.js execution；
+- 建立、測試、commit、activate、invoke 與 rollback generated modules；
+- 檢視 active modules、checkpoints 與 execution timeline；
+- 取消進行中的 page/CDP broker 執行；
+- 透過 `local.manual` 或無憑證 `local.openai-compatible` loopback adapter 執行 provider-neutral model turn；
+- 透過同一組 raw broker、runtime、module 與 checkpoint 服務，執行 bounded 的 provider-neutral model/tool evolution loop。
 
-## 重要限制
+## 重要
 
-Generated Node source 在 disposable utilityProcess 執行；這是 observability/recovery boundary，不是 security sandbox。Runtime source、redacted input metadata、stdout/stderr、result/error 存於 ignored 的 `workspace/experiments/`。
+Generated Node.js source 在 disposable `utilityProcess` 中執行（不在主行程），這是可觀測與回復邊界，不是 security sandbox。Runtime source、redacted input metadata、stdout/stderr、result 與 error artifacts 存放於 Git 忽略的 `workspace/experiments/`。
 
-Electron runtime data 位於：
+## Runtime data
+
+Electron runtime data 會寫入其 userData 目錄：
 
 ```text
 <userData>/blankseed-data/
@@ -47,46 +64,61 @@ Electron runtime data 位於：
 └─ checkpoints/*.json
 ```
 
+UI 會顯示已解析的路徑。
+
 ## 人工驗證
 
 1. 啟動應用。
 2. 前往 `https://example.com/`。
-3. 使用 Inspect Page。
-4. 在 isolated page world 執行讀取 title/headings 的程式。
-5. 傳送 CDP `Page.getNavigationHistory`。
+3. 按下 **檢查 Snapshot**。
+4. 執行：
+
+```js
+return {
+  title: document.title,
+  headings: [...document.querySelectorAll('h1,h2')].map((el) => el.textContent)
+};
+```
+
+5. 傳送 CDP 方法：
+
+```text
+Page.getNavigationHistory
+```
+
+並附上參數 `{}`。
+
 6. 建立 checkpoint。
-7. 執行一段 generated Node source。
-8. 檢查左側結果與 log path。
+7. 執行 generated Node.js source：
+
+```js
+console.log('hello from generated runtime');
+return {
+  platform: process.platform,
+  cwd: process.cwd()
+};
+```
+
+8. 確認左側結果面板與 log path。
 
 ## 本機模型 adapter
 
-預設值：
+實際模型傳輸（model transport）刻意限制於 loopback，且不會附帶 authorization header。預設值為：
 
 ```text
 endpoint: http://127.0.0.1:1234/v1/chat/completions
 model: local-model
 ```
 
-啟動前可設定 `BLANKSEED_LOCAL_MODEL_ENDPOINT` 與 `BLANKSEED_LOCAL_MODEL_NAME`。Endpoint 必須是 HTTP(S) loopback（`127.0.0.1`、`localhost`、`::1`），且 URL 不得包含 credentials。
+啟動前可設定 `BLANKSEED_LOCAL_MODEL_ENDPOINT` 與
+`BLANKSEED_LOCAL_MODEL_NAME`。endpoint 必須維持 HTTP(S) loopback（`127.0.0.1`、`localhost` 或 `::1`），不得包含 credentials。
 
 ## 自動演化驗證
 
-Windows 可執行：
+在 Windows 執行 deterministic Phase 5 exit smoke：
 
 ```powershell
 npm run verify:wp11
 ```
 
-此指令使用 isolated temporary workspace 與無憑證 loopback fixture。Fixture model 會要求 raw tools，觀察一次故意的 candidate serialization failure，自行提出 corrected source、commit/activate module，再由第二個 Electron session reuse。一般啟動的 run manifest 存於 `workspace/evolution-runs/`。
-
-## Security posture
-
-Remote page 固定維持：
-
-```text
-nodeIntegration: false
-contextIsolation: true
-sandbox: true
-```
-
-Local UI 也使用 context isolation 與 narrow preload API。
+此流程會使用 isolated temporary workspace 與無憑證 loopback fixture。fixture model 會要求 raw tools，觀察一次預設的 candidate serialization failure，生成 corrected source，並進行 commit/activate module，之後由第二個 Electron session 重複使用。一般啟動的 run manifest 會寫在 `workspace/evolution-runs/`。

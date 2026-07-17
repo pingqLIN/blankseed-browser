@@ -16,6 +16,7 @@ const authoritativeFiles = [
   '06_PROTOCOL_AND_DATA_CONTRACTS.md',
   '08_AGENT_WORK_PACKAGES.md',
   '09_DECISION_LOG.md',
+  'USER_GUIDE.md',
   'VALIDATION_REPORT.md',
   'starter/README.md',
   'starter/reports/wp-10-operational-hardening.md',

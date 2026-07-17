@@ -1,12 +1,13 @@
 # BlankSeed Browser 專案狀態
 
-> 本檔為 `PROJECT_STATUS.md` 的繁體中文 companion；英文原檔為權威來源。狀態日期：2026-07-17（Asia/Taipei）。
+> 本檔為 `PROJECT_STATUS.md` 的繁體中文 companion；英文原檔為權威來源。狀態日期：2026-07-18（Asia/Taipei）。
 
 ## 快照
 
-- 本次 hardening 前，穩定分支為 `main`、HEAD 為 `40a62ef`。
+- 穩定分支為 `main`；目前 UI 繁中化工作建立於 WP-11 baseline commit `59a0da3`。
 - WP-00 至 WP-11 均已在 `starter/reports/` 留下證據報告。
 - WP-09 candidate branch 只保留作本機證據，刻意未合併至 `main`。
+- Trusted control surface 的使用者介面採用繁中，並有英文權威的 operator guide 與 `.zh-tw.md` companion。
 - 專案仍是 Windows-first 的本機研究環境，不是可發布的瀏覽器產品。
 
 ## 階段判定
@@ -27,6 +28,7 @@
 - 固定 tool catalog 只保留 raw infrastructure family，不把 summarize/translate 等 semantic task verb 加入 Kernel。
 - 每個 automated run 都在 `workspace/evolution-runs/<evo_*>/run.json` 保存 pre-run checkpoint 與 run/turn/action correlation identity。
 - 可發布技術文件以英文為權威來源，重要文件明確維護 `.zh-tw.md` companion。
+- Protocol 與 manifest 的 status 原值維持英文，renderer 面向使用者時才映射為繁中。
 
 ## 剩餘風險
 

@@ -1,12 +1,13 @@
 # BlankSeed Browser Project Status
 
-> Status date: 2026-07-17 Asia/Taipei. This file is an operational snapshot; the phase specifications and Decision Log remain authoritative for scope and architecture.
+> Status date: 2026-07-18 Asia/Taipei. This file is an operational snapshot; the phase specifications and Decision Log remain authoritative for scope and architecture.
 
 ## Snapshot
 
-- Stable branch: `main` at `40a62ef` before the current hardening work.
+- Stable branch: `main`; the current UI localization slice builds on the WP-11 baseline commit `59a0da3`.
 - Work packages WP-00 through WP-11 have evidence reports under `starter/reports/`.
 - The WP-09 candidate branch remains local evidence and is intentionally not merged into `main`.
+- The trusted control surface uses Traditional Chinese user-facing labels and has an English-authoritative operator guide with a `.zh-tw.md` companion.
 - The application remains a local Windows-first research environment, not a release-ready browser product.
 
 ## Phase assessment
@@ -27,6 +28,7 @@
 - Keep the fixed tool catalog at raw infrastructure families. Do not add summarize/translate or other semantic task verbs to the Kernel.
 - Persist each automated run under `workspace/evolution-runs/<evo_*>/run.json` with a pre-run checkpoint and run/turn/action correlation identities.
 - Keep English publishable technical documents authoritative and maintain explicit `.zh-tw.md` companions for the important document set.
+- Keep protocol and manifest status values in English while mapping their user-facing renderer labels to Traditional Chinese.
 
 ## Remaining risks
 

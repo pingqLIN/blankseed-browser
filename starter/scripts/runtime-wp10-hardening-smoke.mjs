@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 const cwd = resolve(import.meta.dirname, '..');
@@ -9,6 +10,9 @@ const fixturePath = resolve(cwd, 'test/fixtures/basic-page.html');
 const electronPath = resolve(cwd, 'node_modules/electron/dist/electron.exe');
 const cdpPort = await allocateLoopbackPort();
 const smokeNonce = randomUUID();
+const temporaryRoot = await mkdtemp(join(tmpdir(), 'blankseed-wp10-'));
+const userDataDirectory = resolve(temporaryRoot, 'user-data');
+const workspaceRoot = resolve(temporaryRoot, 'workspace');
 
 function sleep(ms) {
   return new Promise((resolveSleep) => setTimeout(resolveSleep, ms));
@@ -135,13 +139,18 @@ const server = createServer(async (request, response) => {
 await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
 const serverOrigin = `http://127.0.0.1:${server.address().port}`;
 const fixtureUrl = `${serverOrigin}/basic-page.html`;
-const electron = spawn(electronPath, [`--remote-debugging-port=${cdpPort}`, '.'], {
+const electron = spawn(electronPath, [
+  `--remote-debugging-port=${cdpPort}`,
+  `--user-data-dir=${userDataDirectory}`,
+  '.'
+], {
   cwd,
   env: {
     ...process.env,
     BLANKSEED_LOCAL_MODEL_ENDPOINT: `${serverOrigin}/v1/chat/completions`,
     BLANKSEED_LOCAL_MODEL_NAME: 'fixture-model',
-    BLANKSEED_SMOKE_NONCE: smokeNonce
+    BLANKSEED_SMOKE_NONCE: smokeNonce,
+    BLANKSEED_WORKSPACE_ROOT: workspaceRoot
   },
   stdio: ['ignore', 'ignore', 'pipe']
 });
@@ -162,16 +171,99 @@ try {
   if (!control) throw new Error(`Control page target not found. Targets: ${JSON.stringify(targets)}`);
   const cdp = await connect(control.webSocketDebuggerUrl);
   await cdp.send('Runtime.enable');
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: 420,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
   const expression = `
 (async () => {
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  await new Promise((resolve) => {
-    if (window.blankseedConsoleReady) resolve();
-    else setTimeout(resolve, 1000);
-  });
-  await window.blankseed.target.navigate(${JSON.stringify(fixtureUrl)}, { requestId: 'req_wp10_nav_fixture' });
-  await sleep(500);
-  const pagePending = window.blankseed.page.execute(
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const waitUntil = async (predicate, label, timeoutMs = 10000) => {
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        const value = predicate();
+        if (value) return value;
+        await sleep(100);
+      }
+      throw new Error('Timed out waiting for ' + label);
+    };
+    await waitUntil(() => window.blankseedConsoleReady, 'console readiness');
+
+    const selectedTab = () => document.querySelector('.tab[aria-selected="true"]')?.dataset.tab;
+    const pageTab = document.getElementById('tab-button-page');
+    const cdpTab = document.getElementById('tab-button-cdp');
+    const nodeTab = document.getElementById('tab-button-node');
+    const moduleTab = document.getElementById('tab-button-module');
+    pageTab.focus();
+    pageTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    const afterRight = selectedTab();
+    cdpTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    const afterEnd = selectedTab();
+    moduleTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    const afterLeft = selectedTab();
+    nodeTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    const afterHome = selectedTab();
+
+    const urlInput = document.getElementById('url');
+    urlInput.value = ${JSON.stringify(fixtureUrl)};
+    document.getElementById('navigate-form').requestSubmit();
+    await waitUntil(() => document.getElementById('target-summary').textContent.includes(${JSON.stringify(fixtureUrl)}), 'UI navigation');
+    document.getElementById('snapshot').click();
+    const snapshotEnvelope = await waitUntil(() => {
+      try {
+        const value = JSON.parse(document.getElementById('result').textContent);
+        return value?.status === 'ok' && value?.result?.url === ${JSON.stringify(fixtureUrl)} ? value : null;
+      } catch {
+        return null;
+      }
+    }, 'UI snapshot');
+
+    moduleTab.click();
+    document.getElementById('module-id').value = 'generated.ui.localization';
+    document.getElementById('module-version').value = '0.1.0';
+    document.getElementById('module-description').value = 'UI localization runtime verification';
+    document.getElementById('module-source').value = 'return { localized: true, value: Number(environment.value || 0) + 1 };';
+    document.getElementById('module-create').click();
+    const candidateId = await waitUntil(() => {
+      const value = document.getElementById('module-candidate').value;
+      return value.startsWith('cand_') ? value : null;
+    }, 'candidate creation');
+    await waitUntil(() => document.getElementById('module-browser').textContent.includes('候選'), 'candidate status label');
+    const candidateLabel = document.getElementById('module-browser').textContent;
+
+    document.getElementById('module-test').click();
+    await waitUntil(() => document.getElementById('module-browser').textContent.includes('已測試'), 'tested status label');
+    const testedLabel = document.getElementById('module-browser').textContent;
+
+    document.getElementById('module-commit').click();
+    await waitUntil(() => document.getElementById('module-browser').textContent.includes('已提交'), 'committed status label');
+    const committedLabel = document.getElementById('module-browser').textContent;
+
+    document.getElementById('module-activate').click();
+    await waitUntil(() => document.getElementById('module-browser').textContent.includes('已啟用'), 'active status label');
+    const activeLabel = document.getElementById('module-browser').textContent;
+
+    const overflowingButtons = [...document.querySelectorAll('button')]
+      .filter((button) => {
+        const rect = button.getBoundingClientRect();
+        return rect.left < 0 || rect.right > window.innerWidth;
+      })
+      .map((button) => button.id || button.textContent.trim());
+    const ui = {
+      language: document.documentElement.lang,
+      title: document.title,
+      viewportWidth: window.innerWidth,
+      keyboardTabs: { afterRight, afterEnd, afterLeft, afterHome },
+      snapshotUrl: snapshotEnvelope.result.url,
+      moduleLifecycle: { candidateId, candidateLabel, testedLabel, committedLabel, activeLabel },
+      moduleGridColumns: getComputedStyle(document.querySelector('.module-grid')).gridTemplateColumns,
+      overflowingButtons
+    };
+
+    pageTab.click();
+    const pagePending = window.blankseed.page.execute(
     'await new Promise((resolve) => setTimeout(resolve, 30000)); return "late page";',
     { requestId: 'req_wp10_page_slow', timeoutMs: 30000 }
   );
@@ -192,9 +284,10 @@ try {
   });
   const status = await window.blankseed.status.get({ requestId: 'req_wp10_status' });
   const events = await window.blankseed.events.tail();
-  return {
-    sessionId: status.sessionId,
-    cancel,
+    return {
+      sessionId: status.sessionId,
+      ui,
+      cancel,
     page,
     cdp: cdpResult,
     model,
@@ -215,6 +308,21 @@ try {
   if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
   const value = result.result.value;
   assert(value.cancel.cancelled === 2, 'page/CDP cancellation did not find both active executions');
+  assert(value.ui.language === 'zh-Hant-TW', 'control surface language is not Traditional Chinese');
+  assert(value.ui.title === 'BlankSeed Browser 控制台', 'localized control surface title is missing');
+  assert(JSON.stringify(value.ui.keyboardTabs) === JSON.stringify({
+    afterRight: 'cdp',
+    afterEnd: 'module',
+    afterLeft: 'node',
+    afterHome: 'page'
+  }), 'keyboard tab navigation did not follow Arrow/Home/End behavior');
+  assert(value.ui.snapshotUrl === fixtureUrl, 'UI Snapshot action did not return the tested URL');
+  assert(value.ui.moduleLifecycle.candidateLabel.includes('候選'), 'candidate status was not localized');
+  assert(value.ui.moduleLifecycle.testedLabel.includes('已測試'), 'tested status was not localized');
+  assert(value.ui.moduleLifecycle.committedLabel.includes('已提交'), 'committed status was not localized');
+  assert(value.ui.moduleLifecycle.activeLabel.includes('已啟用'), 'active status was not localized');
+  assert(value.ui.viewportWidth === 420, 'narrow viewport emulation was not applied');
+  assert(value.ui.overflowingButtons.length === 0, `narrow layout overflowed: ${value.ui.overflowingButtons.join(', ')}`);
   assert(value.page.status === 'error' && value.page.error.code === 'EXECUTION_CANCELLED', 'page execution was not cancelled');
   assert(value.cdp.status === 'error' && value.cdp.error.code === 'EXECUTION_CANCELLED', 'CDP execution was not cancelled');
   assert(value.model.status === 'ok', 'loopback local model turn failed');
@@ -229,7 +337,13 @@ try {
 }
 
 await assertPortReusable(cdpPort);
+await rm(temporaryRoot, { recursive: true, force: true });
 console.log(JSON.stringify({
   ...output,
-  cleanup: { cdpPort, cdpPortReusable: true, ownershipNonceVerified: true }
+  cleanup: {
+    cdpPort,
+    cdpPortReusable: true,
+    ownershipNonceVerified: true,
+    temporaryEvidenceRemovedAfterSuccess: true
+  }
 }, null, 2));

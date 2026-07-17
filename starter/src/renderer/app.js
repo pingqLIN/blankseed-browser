@@ -4,12 +4,18 @@ const $ = (id) => document.getElementById(id);
 const result = $('result');
 const timeline = $('timeline');
 
+const moduleStatusLabels = Object.freeze({
+  candidate: '候選',
+  tested: '已測試',
+  committed: '已提交'
+});
+
 const state = {
   activeTab: 'page',
   events: [],
   modules: { active: {}, modules: [], candidates: [] },
   status: null,
-  stop: { state: 'idle', label: 'idle' }
+  stop: { state: 'idle', label: '待命' }
 };
 
 function requestId(label) {
@@ -18,7 +24,7 @@ function requestId(label) {
 }
 
 function short(value, length = 10) {
-  if (!value) return 'none';
+  if (!value) return '無';
   const text = String(value);
   return text.length > length ? `${text.slice(0, length)}...` : text;
 }
@@ -91,20 +97,20 @@ function renderStatus() {
   const activeCount = Object.keys(state.modules.active || {}).length;
   $('stat-session').textContent = short(status.sessionId, 14);
   $('stat-target').textContent = status.target?.documentGeneration === undefined
-    ? 'no target'
+    ? '尚無 Target'
     : `t${status.target.targetId}/g${status.target.documentGeneration}`;
-  $('stat-runtime').textContent = status.config?.generatedNodeRuntimeEnabled ? 'node on' : 'node off';
-  $('stat-modules').textContent = `${activeCount} active`;
+  $('stat-runtime').textContent = status.config?.generatedNodeRuntimeEnabled ? 'Node 已啟用' : 'Node 未啟用';
+  $('stat-modules').textContent = `${activeCount} 個啟用`;
   $('target-summary').textContent = status.target?.url
-    ? `${status.target.url} | ${status.target.title || 'untitled'}`
-    : status.error || 'waiting for target';
+    ? `${status.target.url} | ${status.target.title || '無標題'}`
+    : status.error || '等待 Target';
 }
 
 function renderStopState() {
   const nodeEvents = state.events.filter((event) => event.type?.startsWith('node.runtime.stop'));
   const latest = nodeEvents.at(-1);
-  if (latest?.type === 'node.runtime.stop.requested') state.stop = { state: 'requested', label: 'requested' };
-  if (latest?.type === 'node.runtime.stop.confirmed') state.stop = { state: 'confirmed', label: `confirmed / remaining ${latest.data?.remaining ?? 0}` };
+  if (latest?.type === 'node.runtime.stop.requested') state.stop = { state: 'requested', label: '已要求停止' };
+  if (latest?.type === 'node.runtime.stop.confirmed') state.stop = { state: 'confirmed', label: `已確認 / 剩餘 ${latest.data?.remaining ?? 0}` };
   const el = $('stop-state');
   el.className = `stop-state ${state.stop.state}`;
   el.querySelector('strong').textContent = state.stop.label;
@@ -118,19 +124,20 @@ function renderModules() {
   const candidates = state.modules.candidates || [];
 
   if (committed.length === 0 && candidates.length === 0) {
-    browser.textContent = 'No modules.';
+    browser.textContent = '尚無模組。';
     return;
   }
 
   for (const manifest of committed) {
+    const isActive = active[manifest.id] === manifest.version;
     const row = document.createElement('button');
     row.type = 'button';
     row.className = 'browser-row';
-    if (active[manifest.id] === manifest.version) row.classList.add('active-row');
+    if (isActive) row.classList.add('active-row');
     row.addEventListener('click', () => fillModule(manifest));
     row.append(
       makeText('strong', `${manifest.id}@${manifest.version}`),
-      makeText('span', active[manifest.id] === manifest.version ? 'active' : manifest.status),
+      makeText('span', isActive ? '已啟用' : moduleStatusLabel(manifest.status)),
       makeText('small', manifest.sourceHash)
     );
     browser.append(row);
@@ -146,11 +153,15 @@ function renderModules() {
     });
     row.append(
       makeText('strong', `${manifest.id}@${manifest.version}`),
-      makeText('span', manifest.status),
+      makeText('span', moduleStatusLabel(manifest.status)),
       makeText('small', manifest.candidateId)
     );
     browser.append(row);
   }
+}
+
+function moduleStatusLabel(status) {
+  return moduleStatusLabels[status] || status || '未知';
 }
 
 function fillModule(manifest) {
@@ -164,7 +175,7 @@ function renderCheckpoints() {
   browser.replaceChildren();
   const checkpoints = state.events.filter((event) => event.type === 'checkpoint.created').slice(-8).reverse();
   if (checkpoints.length === 0) {
-    browser.textContent = 'No checkpoints.';
+    browser.textContent = '尚無 Checkpoint。';
     return;
   }
   for (const event of checkpoints) {
@@ -183,7 +194,7 @@ function renderTimeline() {
   timeline.replaceChildren();
   const rows = state.events.slice(-80).reverse();
   if (rows.length === 0) {
-    timeline.textContent = 'No events.';
+    timeline.textContent = '尚無事件。';
     return;
   }
   for (const event of rows) {
@@ -232,10 +243,15 @@ function makeText(tag, text) {
 function setTab(tab) {
   state.activeTab = tab;
   for (const button of document.querySelectorAll('.tab')) {
-    button.classList.toggle('active', button.dataset.tab === tab);
+    const isActive = button.dataset.tab === tab;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-selected', String(isActive));
+    button.tabIndex = isActive ? 0 : -1;
   }
   for (const panel of document.querySelectorAll('.tab-panel')) {
-    panel.classList.toggle('active', panel.id === `tab-${tab}`);
+    const isActive = panel.id === `tab-${tab}`;
+    panel.classList.toggle('active', isActive);
+    panel.hidden = !isActive;
   }
 }
 
@@ -243,7 +259,7 @@ function moduleManifest() {
   return {
     id: $('module-id').value.trim(),
     version: $('module-version').value.trim(),
-    description: $('module-description').value.trim() || 'Generated capability',
+    description: $('module-description').value.trim() || '生成的 capability',
     entry: 'index.cjs',
     runtime: 'node',
     provenance: {
@@ -263,6 +279,19 @@ function moduleEnvironment() {
 
 document.querySelectorAll('.tab').forEach((button) => {
   button.addEventListener('click', () => setTab(button.dataset.tab));
+  button.addEventListener('keydown', (event) => {
+    const tabs = [...document.querySelectorAll('.tab')];
+    const currentIndex = tabs.indexOf(button);
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+    if (nextIndex === currentIndex) return;
+    event.preventDefault();
+    setTab(tabs[nextIndex].dataset.tab);
+    tabs[nextIndex].focus();
+  });
 });
 
 $('refresh-all').addEventListener('click', () => refreshAll());
@@ -284,7 +313,7 @@ $('utility-ping').addEventListener('click', () => run(() => window.blankseed.uti
 $('utility-execute').addEventListener('click', () => run(() => window.blankseed.utility.execute($('utility-source').value, { requestId: requestId('node') })));
 $('utility-stop').addEventListener('click', () => run(() => window.blankseed.utility.stop({ requestId: requestId('node_stop') })));
 $('stop-all').addEventListener('click', () => run(async () => {
-  state.stop = { state: 'requested', label: 'requested' };
+  state.stop = { state: 'requested', label: '已要求停止' };
   renderStopState();
   const [evolution, executions, runtime, model] = await Promise.all([
     window.blankseed.evolution.cancel(null, { requestId: requestId('stop_evolution') }),
@@ -293,7 +322,7 @@ $('stop-all').addEventListener('click', () => run(async () => {
     window.blankseed.model.cancel({ requestId: requestId('stop_model') })
   ]);
   const remaining = Number(runtime.remaining || 0) + Number(executions.remaining || 0);
-  state.stop = { state: 'confirmed', label: `confirmed / remaining ${remaining}` };
+  state.stop = { state: 'confirmed', label: `已確認 / 剩餘 ${remaining}` };
   return { evolution, executions, runtime, model, remaining };
 }));
 $('module-refresh').addEventListener('click', () => run(() => window.blankseed.modules.list(), { skipRefresh: false }));
@@ -312,7 +341,7 @@ $('module-invoke').addEventListener('click', () => run(() => window.blankseed.mo
 })));
 $('module-rollback').addEventListener('click', () => run(() => window.blankseed.modules.rollback($('module-id').value, $('module-version').value, { requestId: requestId('module_rollback') })));
 $('refresh-events').addEventListener('click', () => refreshAll());
-$('clear-result').addEventListener('click', () => { result.textContent = 'Ready.'; });
+$('clear-result').addEventListener('click', () => { result.textContent = '已就緒。'; });
 
 window.blankseed.events.subscribe(() => {
   refreshEvents().then(renderAll);

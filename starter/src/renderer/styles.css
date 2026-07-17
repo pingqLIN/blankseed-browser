@@ -95,6 +95,8 @@ p { margin-top: 3px; color: var(--muted); font-size: 12px; }
 
 .toolbar { gap: 6px; }
 .inline-form { gap: 6px; }
+.inline-form input { flex: 1 1 auto; }
+.inline-form button { flex: 0 0 auto; white-space: nowrap; }
 
 .tabs {
   display: grid;
@@ -160,7 +162,11 @@ button {
   border-radius: 7px;
   padding: 6px 9px;
   cursor: pointer;
+  white-space: normal;
+  text-align: center;
 }
+
+.button-grid button { min-height: 38px; }
 
 button:hover { background: #33362e; }
 button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
@@ -179,7 +185,7 @@ button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 }
 
 .module-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 0.74fr); }
-.button-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.button-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .micro-output {
   margin-top: 7px;
@@ -290,8 +296,6 @@ button.browser-row { cursor: pointer; }
 @media (max-width: 420px) {
   body { width: 100vw; }
   main { padding: 10px; }
-  .status-grid,
-  .button-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .module-grid { grid-template-columns: minmax(0, 1fr); }
 }
