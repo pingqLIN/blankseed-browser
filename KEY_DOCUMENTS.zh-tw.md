@@ -14,6 +14,9 @@
 ## 架構與執行
 
 - [架構規格](02_ARCHITECTURE_SPECIFICATION_v0.1.zh-tw.md)
+- [Runtime 架構總覽](docs/ARCHITECTURE.zh-tw.md)
+- [Agent Capability Lifecycle](docs/AGENT_CAPABILITY_LIFECYCLE.zh-tw.md)
+- [Agent 自我擴展 Security Model](docs/SECURITY_MODEL.zh-tw.md)
 - [執行計畫](03_EXECUTION_PLAN_v0.1.zh-tw.md)
 - [驗收與停止條件](04_ACCEPTANCE_AND_STOP_CONDITIONS.zh-tw.md)
 - [實驗治理與復原](05_EXPERIMENT_GOVERNANCE_AND_RECOVERY.zh-tw.md)
