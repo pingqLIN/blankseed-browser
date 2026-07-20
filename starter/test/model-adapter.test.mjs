@@ -5,9 +5,12 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const {
+  HostedOpenAIResponsesAdapter,
   LocalOpenAICompatibleAdapter,
   ModelTurnManager,
   assertNoSecrets,
+  encodeResponsesInput,
+  normalizeHostedOpenAIEndpoint,
   normalizeLoopbackEndpoint,
   normalizeMessages,
   packageContext
@@ -161,6 +164,122 @@ test('LocalOpenAICompatibleAdapter accepts tool-only output and preserves tool r
   assert.equal(output.toolRequests[0].name, 'page_snapshot');
   assert.equal(received.tool_choice, 'auto');
   assert.equal(received.messages.at(-1).tool_call_id, 'call_previous_12345678');
+});
+
+test('HostedOpenAIResponsesAdapter enforces fixed egress and converts Responses function calls', async () => {
+  const fakeKey = 'fixture-provider-key-never-log';
+  let request = null;
+  const adapter = new HostedOpenAIResponsesAdapter({
+    id: 'openai.gpt-5.6-sol',
+    label: 'OpenAI GPT-5.6 Sol',
+    model: 'gpt-5.6-sol',
+    apiKey: fakeKey,
+    fetchImpl: async (url, options) => {
+      request = { url, options, body: JSON.parse(options.body) };
+      return new Response(JSON.stringify({
+        id: 'resp_fixture_12345678',
+        model: 'gpt-5.6-sol-2026-07-01',
+        output: [{
+          id: 'fc_fixture_12345678',
+          type: 'function_call',
+          call_id: 'call_fixture_12345678',
+          name: 'page_snapshot',
+          arguments: '{}'
+        }],
+        usage: { input_tokens: 12, output_tokens: 7, total_tokens: 19 }
+      }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+  });
+  const output = await adapter.run({
+    messages: [{ role: 'user', content: 'Inspect the fixture.' }],
+    contextPackage: { contextHash: 'sha256:fixture' },
+    options: { reasoningEffort: 'high', maxTokens: 128 },
+    tools: [{ type: 'function', function: { name: 'page_snapshot', description: 'Snapshot', parameters: { type: 'object', additionalProperties: false, properties: {} } } }]
+  });
+
+  assert.equal(request.url, 'https://api.openai.com/v1/responses');
+  assert.equal(request.options.headers.authorization, `Bearer ${fakeKey}`);
+  assert.equal(request.options.redirect, 'error');
+  assert.equal(request.body.model, 'gpt-5.6-sol');
+  assert.equal(request.body.store, false);
+  assert.equal(request.body.parallel_tool_calls, false);
+  assert.deepEqual(request.body.reasoning, { effort: 'high' });
+  assert.equal(request.body.max_output_tokens, 128);
+  assert.deepEqual(request.body.tools[0], {
+    type: 'function',
+    name: 'page_snapshot',
+    description: 'Snapshot',
+    parameters: { type: 'object', additionalProperties: false, properties: {} },
+    strict: false
+  });
+  assert.equal(output.toolRequests[0].providerItemId, 'fc_fixture_12345678');
+  assert.equal(output.toolRequests[0].id, 'call_fixture_12345678');
+  assert.equal(output.provider.responseId, 'resp_fixture_12345678');
+  assert.equal(JSON.stringify(output).includes(fakeKey), false);
+});
+
+test('Hosted Responses continuation preserves function-call correlation without credential material', () => {
+  const input = encodeResponsesInput([
+    {
+      role: 'assistant',
+      content: '',
+      toolRequests: [{
+        id: 'call_fixture_12345678',
+        name: 'page_snapshot',
+        arguments: '{}',
+        providerItemId: 'fc_fixture_12345678'
+      }]
+    },
+    { role: 'tool', name: 'page_snapshot', toolCallId: 'call_fixture_12345678', content: '{"status":"ok"}' }
+  ], { contextHash: 'sha256:fixture' });
+  assert.deepEqual(input.at(-2), {
+    type: 'function_call',
+    call_id: 'call_fixture_12345678',
+    name: 'page_snapshot',
+    arguments: '{}',
+    id: 'fc_fixture_12345678'
+  });
+  assert.deepEqual(input.at(-1), {
+    type: 'function_call_output',
+    call_id: 'call_fixture_12345678',
+    output: '{"status":"ok"}'
+  });
+  assert.throws(() => normalizeHostedOpenAIEndpoint('https://example.com/v1/responses'), /not allowlisted/);
+  assert.throws(() => normalizeHostedOpenAIEndpoint('https://api.openai.com/v1/responses?redirect=1'), /not allowlisted/);
+  assert.throws(() => normalizeHostedOpenAIEndpoint('https://user:pass@api.openai.com/v1/responses'), /not allowlisted/);
+});
+
+test('ModelTurnManager records redacted hosted egress metadata and never returns the provider key', async () => {
+  const fakeKey = 'fixture-provider-key-never-return';
+  const adapter = new HostedOpenAIResponsesAdapter({
+    id: 'openai.gpt-5.6-terra',
+    model: 'gpt-5.6-terra',
+    apiKey: fakeKey,
+    fetchImpl: async () => new Response(JSON.stringify({
+      id: 'resp_fixture_hosted',
+      model: 'gpt-5.6-terra',
+      output: [{ type: 'message', content: [{ type: 'output_text', text: 'hosted fixture ok' }] }]
+    }), { status: 200, headers: { 'content-type': 'application/json' } })
+  });
+  const { eventStore, manager } = createManager({ [adapter.id]: adapter });
+  const result = await manager.turn({
+    adapter: adapter.id,
+    messages: [{ role: 'user', content: 'Synthetic context only.' }]
+  }, { sessionId: 'ses_12345678', requestId: 'req_hosted_fixture_12345678' });
+  assert.equal(result.status, 'ok');
+  assert.equal(result.output.content, 'hosted fixture ok');
+  const serialized = JSON.stringify({ result, events: eventStore.events });
+  assert.equal(serialized.includes(fakeKey), false);
+  const egress = eventStore.events.find((event) => event.type === 'model.egress.allowed');
+  assert.deepEqual(egress.data, {
+    turnId: result.turnId,
+    adapter: adapter.id,
+    provider: 'openai',
+    origin: 'https://api.openai.com',
+    model: 'gpt-5.6-terra',
+    redirectPolicy: 'error',
+    credentialBoundary: 'main-process-only'
+  });
 });
 
 test('ModelTurnManager returns deterministic local adapter result and events', async () => {

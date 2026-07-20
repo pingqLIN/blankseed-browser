@@ -18,6 +18,7 @@ Protected assets 包含：
 - Node Runtime、Browser Target 與 control console 的 availability；
 - chronological execution、validation、activation 與 recovery evidence；
 - generated Node code 可存取的 local workspace 與 host resource。
+- Main Process 持有的 hosted model provider credential。
 
 Main Process 與 local application source 屬於 trusted。Remote Target、generated source、model output、Module Candidate 與 external page data 都是 untrusted input。Committed 或 active Module 代表已被 version 與 selection，不代表自動成為安全可信。
 
@@ -48,6 +49,10 @@ Remote page 是 untrusted content，可能嘗試影響 Agent、觸發不安全 P
 ### Evidence 與 identity loss
 
 缺少 source hash、request 或 execution identity、Test result、activation history 或 environment identity，可能讓 run 無法重現。因此 silent evidence loss 是 security 與 governance failure，不只是 logging defect。
+
+### Hosted credential 與 egress risk
+
+若 provider key 被 generated Node code 繼承、由 Renderer IPC 接受、寫入 event，或送往非 allowlisted endpoint，就會跨越 trust boundary。Redirect 也可能把 Authorization header 帶離預期 origin。Hosted context 是 external data transfer，必須限制在使用者要求的 Agent operation 範圍內。
 
 ## Control Mechanism
 
@@ -83,6 +88,10 @@ Page、CDP、Node、Module、model、evolution 與 Checkpoint operation 使用 o
 
 Target `WebContentsView` 使用 `nodeIntegration: false`、`contextIsolation: true` 與 `sandbox: true`。Page code 在 isolated world 執行，Target 不會取得 trusted preload API。Target `webContents` 會隨 owner 明確銷毀。
 
+### Hosted provider boundary
+
+Hosted OpenAI request 固定使用官方 HTTPS Responses endpoint 與一個已設定的 GPT-5.6 adapter identity。Main Process 把 `OPENAI_API_KEY` 注入 Authorization header；Renderer/model payload 會拒絕 secret-shaped field。Redirect 一律拒絕，明確使用 `store: false`，event 只保留 provider/model/origin/response identity、usage、hash 與 redacted decision metadata。Generated utility process 使用 explicit environment allowlist，排除 provider key 與無關 environment variable。
+
 ## Failure containment 與 recovery order
 
 優先使用影響最小且適用的 control：
@@ -106,6 +115,7 @@ Target `WebContentsView` 使用 `nodeIntegration: false`、`contextIsolation: tr
 - Module version 具有 local hash，但沒有 signature 或 publisher authentication。
 - Rollback 無法逆轉 external side effect。
 - Policy decision 仍屬於 model output 之外的 operator/governance responsibility。
+- Hosted transport 本身不等於 data-loss-prevention policy，也不授權傳送與 task 無關的 local content。
 
 ## Future Extension
 
@@ -134,3 +144,4 @@ Skill Registry、Capability Marketplace 與 Multi-Agent Governance 可加入 pub
 5. 每個 active Module 都解析到明確 committed version 與 source hash。
 6. Stop、Rollback 與 Checkpoint 是三種 claim 不同的 control。
 7. Failed code、validation result、error 與 recovery action 維持可檢視。
+8. Hosted credential 只留在 Main Process，不進入 generated Runtime environment、Renderer IPC payload 或 retained evidence。

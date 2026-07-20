@@ -450,6 +450,7 @@ class EvolutionRunManager {
           type: 'function',
           name: typeof request?.name === 'string' && request.name ? request.name.slice(0, 120) : 'invalid_action',
           arguments: typeof request?.arguments === 'string' && request.arguments.length <= 1_000_000 ? request.arguments : '{}',
+          providerItemId: typeof request?.providerItemId === 'string' ? request.providerItemId.slice(0, 120) : null,
           invalidReason: !request?.id || !request?.name || typeof request?.arguments !== 'string' || request.arguments.length > 1_000_000
             ? 'Tool call id, name, or arguments are invalid.'
             : null

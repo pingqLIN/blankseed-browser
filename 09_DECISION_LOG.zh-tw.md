@@ -95,3 +95,20 @@ mapping 或部分驗證失敗時不得 mutation。Navigation、browser storage�
 configuration、credentials、events、Module files、Git state 與 external effects
 全部在 scope 外。若無法保證 hash validation、safety capture、atomic mapping
 replacement 或 owned-runtime stop，應停用 restore；擴大 scope 必須另立決策。
+
+## ADR-016 — 隔離 provider credential 並加入固定 GPT-5.6 Responses adapters
+
+Loopback adapter 無法呼叫 Hosted GPT-5.6，而 Electron `utilityProcess.fork()`
+若未指定 environment，會繼承 `process.env`；generated Node source 因此可能讀到
+provider key，且 stdout/stderr 會被保留。決定讓每個 generated utility process
+只取得 explicit operational environment allowlist，排除 provider credential。
+
+另新增 Main-Process-only OpenAI adapter，固定使用
+`https://api.openai.com/v1/responses` 與 `gpt-5.6-sol`、`gpt-5.6-terra`、
+`gpt-5.6-luna`。Redirect 與 secret-shaped payload field 一律拒絕，request 使用
+`store: false`、停用 parallel function call、明確指定 reasoning effort，event
+只保留 redacted egress/provider metadata。WP-12 loopback evaluation profile 仍
+分開治理。若 credential 出現在 Renderer state、generated environment、
+event/evidence、error detail、redirect 或非 allowlisted request，應停用所有
+Hosted adapter；新增 provider、endpoint、credential source、streaming 或 automatic
+hosted evaluation protocol 前必須 review。

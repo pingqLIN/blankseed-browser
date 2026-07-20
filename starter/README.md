@@ -63,6 +63,8 @@ Available baseline controls:
 - cancel active page/CDP broker executions;
 - perform provider-neutral model turns through `local.manual` or the
   credential-free `local.openai-compatible` loopback adapter.
+- compose a bounded Agent task and select Local Manual, Local OpenAI-compatible,
+  or an available OpenAI GPT-5.6 Sol/Terra/Luna adapter.
 - run a bounded provider-neutral model/tool evolution loop through the same raw
   broker, runtime, module and checkpoint services.
 
@@ -144,6 +146,23 @@ model: local-model
 Operators may set `BLANKSEED_LOCAL_MODEL_ENDPOINT` and
 `BLANKSEED_LOCAL_MODEL_NAME` before launch. The endpoint must remain HTTP(S)
 loopback (`127.0.0.1`, `localhost` or `::1`) and must not contain credentials.
+
+## Hosted OpenAI GPT-5.6 adapters
+
+When `OPENAI_API_KEY` is already present in the Electron Main Process
+environment, the Agent Console enables `gpt-5.6-sol`, `gpt-5.6-terra`, and
+`gpt-5.6-luna`. The dedicated transport uses the official OpenAI Responses API,
+explicit `reasoning.effort`, `store: false`, sequential function calls, and a
+fixed HTTPS endpoint. It does not accept credentials or editable hosted
+endpoints from Renderer IPC.
+
+The key remains Main-Process-only. Generated utility processes receive an
+explicit operational environment allowlist, so the provider key is not
+inherited by generated Node source, Module Test, or Module Invoke. Hosted use is
+separate from the credential-free WP-12 loopback evaluation profile.
+
+See the official [GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model)
+and [GPT-5.6 model catalog](https://developers.openai.com/api/docs/models).
 
 ## Automated evolution verification
 

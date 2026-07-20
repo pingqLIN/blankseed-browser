@@ -24,6 +24,7 @@ Protected assets include:
 - availability of the Node Runtime, Browser Target, and control console;
 - chronological execution, validation, activation, and recovery evidence;
 - local workspace and host resources reachable by generated Node code.
+- hosted model provider credentials held by the Main Process.
 
 The Main Process and local application source are trusted. The remote Target,
 generated source, model output, Module Candidate, and external page data are
@@ -74,6 +75,14 @@ receive Node integration, trusted UI objects, or direct access to IPC.
 Missing source hashes, request or execution identities, Test results, activation
 history, or environment identity can make a run irreproducible. Silent evidence
 loss is therefore a security and governance failure, not only a logging defect.
+
+### Hosted credential and egress risk
+
+A provider key inherited by generated Node code, accepted through Renderer IPC,
+written to an event, or sent to a non-allowlisted endpoint would cross the trust
+boundary. Redirects can also move an Authorization header outside its intended
+origin. Hosted context is an external data transfer and must remain bounded to
+the requested Agent operation.
 
 ## Control Mechanism
 
@@ -138,6 +147,17 @@ The Target `WebContentsView` uses `nodeIntegration: false`,
 world, and the Target does not receive the trusted preload API. Target
 `webContents` are explicitly destroyed with their owner.
 
+### Hosted provider boundary
+
+Hosted OpenAI requests are fixed to the official HTTPS Responses endpoint and
+one configured GPT-5.6 adapter identity. The Main Process injects
+`OPENAI_API_KEY` into the Authorization header; Renderer/model payloads reject
+secret-shaped fields. Redirects are denied, `store: false` is explicit, and
+events retain only provider/model/origin/response identity, usage, hashes, and
+redacted decision metadata. Generated utility processes receive an explicit
+environment allowlist that excludes provider keys and unrelated environment
+variables.
+
 ## Failure containment and recovery order
 
 Use the smallest applicable control first:
@@ -163,6 +183,8 @@ operator must verify both termination and the resulting active state.
 - Rollback cannot reverse external side effects.
 - Policy decisions remain operator/governance responsibilities outside model
   output.
+- Hosted transport does not itself provide a data-loss-prevention policy or
+  approve sending unrelated local content.
 
 ## Future Extension
 
@@ -205,3 +227,5 @@ build on, rather than bypass, Candidate isolation and immutable Commit identity.
 6. Stop, Rollback, and Checkpoint are distinct controls with distinct claims.
 7. Failed code, validation results, errors, and recovery actions remain
    inspectable.
+8. Hosted credentials remain Main-Process-only and never enter generated
+   Runtime environment, Renderer IPC payloads, or retained evidence.

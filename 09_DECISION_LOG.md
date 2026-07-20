@@ -640,6 +640,58 @@ new decision and dedicated recovery evidence.
 
 ---
 
+## ADR-016 — Isolate provider credentials and add fixed GPT-5.6 Responses adapters
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+The loopback adapter cannot call hosted GPT-5.6, while placing a provider key in
+the Electron environment would previously let generated utility processes
+inherit it. A generic non-loopback endpoint or Renderer-supplied key would also
+expand authority beyond the model adapter boundary.
+
+### Evidence
+
+Electron `utilityProcess.fork()` inherits `process.env` unless an explicit
+environment is supplied. Generated Node source can read `process.env` and its
+stdout/stderr are retained. Official OpenAI guidance identifies the Responses
+API and `gpt-5.6-sol`, `gpt-5.6-terra`, and `gpt-5.6-luna` for current GPT-5.6
+reasoning and function-calling workloads.
+
+### Alternatives
+
+- Continue with credential-free loopback models only.
+- Reuse the Chat Completions adapter with an editable remote endpoint and key.
+- Pass a provider key from Renderer options for each turn.
+
+### Decision
+
+Give every generated utility process an explicit operational environment
+allowlist that excludes provider credentials. Add dedicated Main-Process-only
+OpenAI adapters fixed to `https://api.openai.com/v1/responses` and the three
+GPT-5.6 model IDs. Reject redirects and secret-shaped payload fields, use
+`store: false`, disable parallel function calls, set reasoning effort
+explicitly, and retain only redacted egress/provider metadata. Keep the WP-12
+loopback evaluation profile separate.
+
+### Consequences
+
+- The Agent Console can use GPT-5.6 without exposing `OPENAI_API_KEY` to the
+  Renderer or generated Runtime.
+- Hosted context is still an external transfer and incurs provider cost.
+- A fixed endpoint/model allowlist narrows provider flexibility by design.
+
+### Rollback/review trigger
+
+Disable all hosted adapters if a credential appears in Renderer state, generated
+process environment, event/evidence artifacts, error details, redirects, or a
+non-allowlisted request. Review before supporting another provider, endpoint,
+credential source, streaming mode, or automatic hosted evaluation protocol.
+
+---
+
 ## ADR template
 
 ```markdown

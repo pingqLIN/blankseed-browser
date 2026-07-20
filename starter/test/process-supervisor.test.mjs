@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { ProcessSupervisor } = require('../src/main/process-supervisor.cjs');
+const { ProcessSupervisor, buildUtilityProcessEnvironment } = require('../src/main/process-supervisor.cjs');
 
 class MemoryEventStore {
   constructor() {
@@ -53,9 +53,11 @@ class FakeUtilityProcess {
   constructor(behavior) {
     this.behavior = behavior;
     this.children = [];
+    this.forkCalls = [];
   }
 
-  fork() {
+  fork(entry, args, options) {
+    this.forkCalls.push({ entry, args, options });
     const child = new FakeUtilityChild({
       pid: 4400 + this.children.length,
       behavior: this.behavior
@@ -127,6 +129,33 @@ test('ProcessSupervisor returns node.execute envelope and records streams', asyn
       'node.execution.completed'
     ]);
     assert.equal(harness.utilityProcessApi.children[0].messages[0].source, 'return { ok: true };');
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('ProcessSupervisor gives generated runtimes an explicit secret-free environment allowlist', async () => {
+  const environment = buildUtilityProcessEnvironment({
+    PATH: 'C:\\fixture-bin',
+    TEMP: 'C:\\fixture-temp',
+    OPENAI_API_KEY: 'must-not-cross-boundary',
+    BLANKSEED_PRIVATE_SENTINEL: 'must-not-cross-boundary'
+  });
+  const harness = withSupervisor((child) => {
+    setImmediate(() => {
+      child.emit('message', { type: 'result', status: 'ok', result: { ok: true } });
+      child.emit('exit', 0);
+    });
+  }, { runtimeEnvironment: environment });
+  try {
+    const result = await harness.supervisor.execute({ source: 'return { ok: true };' });
+    assert.equal(result.status, 'ok');
+    const forkEnvironment = harness.utilityProcessApi.forkCalls[0].options.env;
+    assert.equal(forkEnvironment.PATH, 'C:\\fixture-bin');
+    assert.equal(forkEnvironment.BLANKSEED_GENERATED_RUNTIME, '1');
+    assert.equal(forkEnvironment.OPENAI_API_KEY, undefined);
+    assert.equal(forkEnvironment.BLANKSEED_PRIVATE_SENTINEL, undefined);
+    assert.equal(JSON.stringify(harness.eventStore.events).includes('must-not-cross-boundary'), false);
   } finally {
     harness.cleanup();
   }

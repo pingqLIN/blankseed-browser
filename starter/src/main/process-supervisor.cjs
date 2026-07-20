@@ -17,6 +17,18 @@ const {
 const DEFAULT_TIMEOUT_MS = 10000;
 const DEFAULT_MAX_LOG_BYTES = 256 * 1024;
 const DEFAULT_KILL_GRACE_MS = 3000;
+const UTILITY_ENV_ALLOWLIST = Object.freeze([
+  'ComSpec', 'LANG', 'LC_ALL', 'PATH', 'PATHEXT', 'SystemRoot',
+  'TEMP', 'TMP', 'TMPDIR', 'WINDIR'
+]);
+
+function buildUtilityProcessEnvironment(source = process.env) {
+  const environment = { BLANKSEED_GENERATED_RUNTIME: '1' };
+  for (const key of UTILITY_ENV_ALLOWLIST) {
+    if (typeof source[key] === 'string' && source[key]) environment[key] = source[key];
+  }
+  return environment;
+}
 
 function isInside(parent, child) {
   const relative = path.relative(parent, child);
@@ -90,7 +102,8 @@ class ProcessSupervisor {
     killProcessTree = defaultKillProcessTree,
     defaultTimeoutMs = DEFAULT_TIMEOUT_MS,
     maxLogBytes = DEFAULT_MAX_LOG_BYTES,
-    killGraceMs = DEFAULT_KILL_GRACE_MS
+    killGraceMs = DEFAULT_KILL_GRACE_MS,
+    runtimeEnvironment = buildUtilityProcessEnvironment()
   }) {
     this.eventStore = eventStore;
     this.workspaceRoot = path.resolve(workspaceRoot);
@@ -101,6 +114,7 @@ class ProcessSupervisor {
     this.defaultTimeoutMs = defaultTimeoutMs;
     this.maxLogBytes = maxLogBytes;
     this.killGraceMs = killGraceMs;
+    this.runtimeEnvironment = { ...runtimeEnvironment };
     this.active = new Map();
     fs.mkdirSync(this.experimentsRoot, { recursive: true });
   }
@@ -180,6 +194,7 @@ class ProcessSupervisor {
     try {
       const child = this.utilityProcess.fork(this.runtimeEntry, [], {
         cwd: resolvedCwd,
+        env: { ...this.runtimeEnvironment },
         stdio: 'pipe',
         serviceName: 'BlankSeed Generated Runtime'
       });
@@ -473,6 +488,8 @@ class ProcessSupervisor {
 
 module.exports = {
   ProcessSupervisor,
+  UTILITY_ENV_ALLOWLIST,
+  buildUtilityProcessEnvironment,
   defaultKillProcessTree,
   hydrateError
 };

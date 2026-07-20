@@ -86,6 +86,21 @@ stop or kill handling. Process separation improves observability and recovery;
 it does not prevent generated Node code from affecting the host resources it
 can reach.
 
+Generated utility processes receive an explicit operational environment
+allowlist rather than inheriting the Main Process environment. Provider
+credentials such as `OPENAI_API_KEY` therefore remain outside generated code,
+Module Test, Module Invoke, retained stdout/stderr, and experiment artifacts.
+
+### Model provider boundary
+
+`ModelTurnManager` keeps a provider-neutral turn contract. Local transports use
+the in-process manual adapter or credential-free loopback Chat Completions. The
+Hosted OpenAI adapters are fixed to the official HTTPS Responses API and the
+`gpt-5.6-sol`, `gpt-5.6-terra`, or `gpt-5.6-luna` model identity. The API key is
+injected only in the Main Process; redirects fail closed; requests use
+`store: false`; function calls return to the same bounded raw-tool dispatcher.
+The Renderer receives only redacted adapter metadata.
+
 ### Browser target boundary
 
 Arbitrary remote content is hosted in a separate `WebContentsView` with
@@ -138,7 +153,10 @@ safe:
 - Page, CDP, process, Module, and Checkpoint operations remain observable
   through the broker or shared event pipeline.
 - Generated Node code executes outside the Main Process under a supervisor,
-  with timeouts and stop/kill controls.
+  with timeouts, stop/kill controls, and an explicit secret-free environment
+  allowlist.
+- Hosted provider credentials remain Main-Process-only and are never accepted
+  in Renderer/model payload fields.
 - A Candidate remains inactive until it passes Test, completes Commit as an
   immutable Module version, and is explicitly selected through Activate.
 - Module Rollback changes the active mapping to a selected earlier committed

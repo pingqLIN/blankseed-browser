@@ -10,7 +10,7 @@ const { CheckpointStore } = require('./checkpoint-store.cjs');
 const { TargetViewController } = require('./target-view.cjs');
 const { ProcessSupervisor } = require('./process-supervisor.cjs');
 const { ModuleStore } = require('./module-store.cjs');
-const { LocalOpenAICompatibleAdapter, ModelTurnManager } = require('./model-adapter.cjs');
+const { HostedOpenAIResponsesAdapter, LocalOpenAICompatibleAdapter, ModelTurnManager } = require('./model-adapter.cjs');
 const { EvolutionRunManager, RawCapabilityDispatcher } = require('./evolution-loop.cjs');
 const { registerIpc } = require('./ipc-router.cjs');
 
@@ -114,6 +114,24 @@ function createWindow() {
       'local.openai-compatible': new LocalOpenAICompatibleAdapter({
         endpoint: config.localModelEndpoint,
         model: config.localModelName
+      }),
+      'openai.gpt-5.6-sol': new HostedOpenAIResponsesAdapter({
+        id: 'openai.gpt-5.6-sol',
+        label: 'OpenAI GPT-5.6 Sol',
+        model: 'gpt-5.6-sol',
+        apiKey: process.env.OPENAI_API_KEY
+      }),
+      'openai.gpt-5.6-terra': new HostedOpenAIResponsesAdapter({
+        id: 'openai.gpt-5.6-terra',
+        label: 'OpenAI GPT-5.6 Terra',
+        model: 'gpt-5.6-terra',
+        apiKey: process.env.OPENAI_API_KEY
+      }),
+      'openai.gpt-5.6-luna': new HostedOpenAIResponsesAdapter({
+        id: 'openai.gpt-5.6-luna',
+        label: 'OpenAI GPT-5.6 Luna',
+        model: 'gpt-5.6-luna',
+        apiKey: process.env.OPENAI_API_KEY
       })
     },
     defaultTimeoutMs: config.modelTurnTimeoutMs,

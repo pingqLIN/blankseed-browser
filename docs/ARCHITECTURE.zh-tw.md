@@ -65,6 +65,12 @@ Main Process 建立 window、Target、Event Store、Checkpoint Store、Process S
 
 Generated Node source，以及以 Node 執行的 Module Test 或 Invoke，均在受監督的 `utilityProcess` 內運作。Process Supervisor 分配 execution identity、擷取 result/error 與保留的 output、套用 timeout，並持有 stop/kill handling。Process separation 改善 observability 與 recovery，但不會阻止 generated Node code 影響其可存取的 host resource。
 
+Generated utility process 使用 explicit operational environment allowlist，不繼承 Main Process 的完整 environment。因此 `OPENAI_API_KEY` 等 provider credential 不會進入 generated code、Module Test、Module Invoke、保留的 stdout/stderr 或 experiment artifact。
+
+### Model provider boundary
+
+`ModelTurnManager` 維持 provider-neutral turn contract。本機 transport 使用 in-process manual adapter 或無 credential 的 loopback Chat Completions。Hosted OpenAI adapter 固定連接官方 HTTPS Responses API，model identity 只允許 `gpt-5.6-sol`、`gpt-5.6-terra` 或 `gpt-5.6-luna`。API key 只在 Main Process 注入；redirect fail closed；request 使用 `store: false`；function call 仍回到同一個 bounded raw-tool dispatcher。Renderer 只接收 redacted adapter metadata。
+
 ### Browser target boundary
 
 任意 remote content 位於獨立 `WebContentsView`，設定為 `nodeIntegration: false`、`contextIsolation: true`、`sandbox: true`。Page source 在專用 isolated world 執行；raw CDP 與 Page 操作由 Main Process broker 發出，Target lifecycle event 則寫入 Event Store。擁有它的 window 關閉時，會明確銷毀 Target `webContents`。
@@ -98,7 +104,8 @@ Service 透過 IPC 回傳 structured value 或 normalized error。UI 顯示最�
 
 - Remote page 不會取得 Node integration 或 trusted console 的直接 access。
 - Page、CDP、process、Module 與 Checkpoint 操作均保留在 broker 或 shared event pipeline 內，維持 observability。
-- Generated Node code 在 Main Process 外由 supervisor 執行，並受 timeout 與 stop/kill control 管理。
+- Generated Node code 在 Main Process 外由 supervisor 執行，並受 timeout、stop/kill control 與 explicit secret-free environment allowlist 管理。
+- Hosted provider credential 只留在 Main Process，Renderer/model payload field 不接受 credential。
 - Candidate 必須通過 Test、以 immutable Module version 完成 Commit，並明確 Activate 後才會成為 active。
 - Module Rollback 會將 active mapping 切換到指定的舊 committed version，並記錄 transition。
 - Checkpoint creation 會在高風險 transition 前記錄目前 Runtime state 與 integrity hash。operator-confirmed Checkpoint restore 會停止 owned work、驗證 referenced committed Module 與 source hash、建立 safety Checkpoint，再以 atomic compare-and-swap 只還原 `modules.active`。Target navigation、browser user data/storage、configuration、credentials、events、Module files、Git state 與 external effects 均明確排除。

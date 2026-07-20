@@ -51,6 +51,7 @@ npm run verify:wp12:preflight
 - 取消進行中的 page/CDP broker 執行；
 - 透過 `local.manual` 或無憑證 `local.openai-compatible` loopback adapter 執行 provider-neutral model turn；
 - 透過同一組 raw broker、runtime、module 與 checkpoint 服務，執行 bounded 的 provider-neutral model/tool evolution loop。
+- 在 Agent Console 組合 bounded Task，並選擇 Local Manual、Local OpenAI-compatible，或可用的 OpenAI GPT-5.6 Sol/Terra/Luna adapter。
 
 ## 重要
 
@@ -114,6 +115,14 @@ model: local-model
 
 啟動前可設定 `BLANKSEED_LOCAL_MODEL_ENDPOINT` 與
 `BLANKSEED_LOCAL_MODEL_NAME`。endpoint 必須維持 HTTP(S) loopback（`127.0.0.1`、`localhost` 或 `::1`），不得包含 credentials。
+
+## Hosted OpenAI GPT-5.6 adapters
+
+若 Electron Main Process environment 已有 `OPENAI_API_KEY`，Agent Console 會啟用 `gpt-5.6-sol`、`gpt-5.6-terra` 與 `gpt-5.6-luna`。專用 transport 使用官方 OpenAI Responses API、明確的 `reasoning.effort`、`store: false`、sequential function call 與固定 HTTPS endpoint；Renderer IPC 不接受 credential 或可編輯 hosted endpoint。
+
+Key 只留在 Main Process。Generated utility process 使用 explicit operational environment allowlist，因此 generated Node source、Module Test 與 Module Invoke 都不會繼承 provider key。Hosted use 與無 credential 的 WP-12 loopback evaluation profile 分開治理。
+
+請參考官方 [GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model) 與 [GPT-5.6 model catalog](https://developers.openai.com/api/docs/models)。
 
 ## 自動演化驗證
 
