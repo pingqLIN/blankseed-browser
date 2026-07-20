@@ -24,13 +24,15 @@ test('renderer presents a complete Traditional Chinese control surface', async (
     'Activate 版本',
     'Invoke Module',
     'Rollback 版本',
-    'Agent Runtime 任務',
-    '啟動 Agent Run',
-    '取消 Agent Run',
-    'Multi-Agent Governance',
+    'Agent 訊息',
+    '給 Agent 的指令',
+    '>執行<',
+    '>停止<',
+    '執行設定',
+    'Governance 治理',
     '啟動 Governed Review',
-    '確認並 Apply Decision',
-    '取消 Multi-Agent Run',
+    '確認並套用 Decision',
+    '取消 Review',
     '建立 Checkpoint',
     'Restore Checkpoint',
     '全部停止',
@@ -58,6 +60,23 @@ test('renderer presents a complete Traditional Chinese control surface', async (
   }
 
   assert.match(app, /moduleStatusLabel\(manifest\.status\)/);
+});
+
+test('renderer separates the Agent transcript from the user instruction composer', async () => {
+  const [html, app] = await Promise.all([
+    readFile(resolve(starterRoot, 'src/renderer/index.html'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/renderer/app.js'), 'utf8')
+  ]);
+
+  assert.match(html, /<section class="agent-transcript" aria-labelledby="agent-messages-title">/);
+  assert.match(html, /id="agent-messages" class="agent-messages" role="log"/);
+  assert.match(html, /<section class="agent-composer" aria-labelledby="agent-composer-title">/);
+  assert.match(html, /<label id="agent-composer-title" for="agent-task">給 Agent 的指令<\/label>/);
+  assert.match(html, /id="agent-task"[^>]+maxlength="12000"/);
+  assert.match(app, /addAgentMessage\('user', task/);
+  assert.match(app, /addAgentMessage\('agent', output/);
+  assert.match(app, /event\.ctrlKey \|\| event\.metaKey/);
+  assert.match(app, /event\.key === 'Enter'/);
 });
 
 test('renderer tabs expose keyboard and ARIA state without translating protocol identifiers', async () => {

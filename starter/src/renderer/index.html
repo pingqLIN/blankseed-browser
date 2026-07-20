@@ -14,7 +14,13 @@
         <h1>BlankSeed Browser</h1>
         <p>本機研究控制台</p>
       </div>
+      <div class="console-head-actions">
+        <div class="console-target-state" title="目前 Target 狀態">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="console-target-state">Target 載入中</span>
+        </div>
         <button id="refresh-all" class="icon-btn" title="重新整理" aria-label="重新整理所有面板">↻</button>
+      </div>
     </header>
 
     <section class="status-grid" aria-label="狀態">
@@ -36,7 +42,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section id="target-panel" class="panel">
       <div class="panel-head">
         <h2>Target 目標頁</h2>
         <div class="toolbar">
@@ -73,60 +79,98 @@
       <button id="execute-page">執行 Isolated JS</button>
     </section>
 
-    <section id="tab-agent" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-agent" tabindex="0" hidden>
-      <div class="panel-head">
-        <h2>Agent Runtime 任務</h2>
-        <button id="agent-cancel">取消 Agent Run</button>
-      </div>
-      <label class="field-label" for="agent-task">Task 任務</label>
-      <textarea id="agent-task" spellcheck="false">觀察目前 Target，說明頁面內容與可安全執行的下一步。</textarea>
-      <div class="agent-grid">
-        <label>Model Adapter
-          <select id="agent-adapter" aria-label="Model Adapter"></select>
-        </label>
-        <label>Reasoning effort
-          <select id="agent-reasoning" aria-label="Reasoning effort">
-            <option value="medium" selected>medium</option>
-            <option value="none">none</option>
-            <option value="low">low</option>
-            <option value="high">high</option>
-            <option value="xhigh">xhigh</option>
-            <option value="max">max</option>
-          </select>
-        </label>
-        <label>Max turns
-          <input id="agent-max-turns" type="number" min="1" max="24" value="6">
-        </label>
-        <label>Max actions
-          <input id="agent-max-actions" type="number" min="1" max="64" value="12">
-        </label>
-      </div>
-      <button id="agent-run">啟動 Agent Run</button>
-      <div id="agent-run-status" class="micro-output" role="status" aria-live="polite">Agent 待命。</div>
-      <hr class="section-rule">
-      <div class="panel-head">
-        <h2>Multi-Agent Governance</h2>
-        <button id="multi-agent-cancel">取消 Multi-Agent Run</button>
-      </div>
-      <div class="agent-grid">
-        <label>Reviewer Adapter
-          <select id="reviewer-adapter" aria-label="Reviewer Adapter"></select>
-        </label>
-        <label>Governance Decision
-          <input id="governance-decision-id" placeholder="gov_..." spellcheck="false">
-        </label>
-        <label>Activation Module（可選）
-          <input id="governance-module-id" placeholder="generated.example" spellcheck="false">
-        </label>
-        <label>Activation Version（可選）
-          <input id="governance-module-version" placeholder="0.1.0" spellcheck="false">
-        </label>
-      </div>
-      <div class="button-grid">
-        <button id="multi-agent-run">啟動 Governed Review</button>
-        <button id="governance-apply">確認並 Apply Decision</button>
-      </div>
-      <div id="multi-agent-status" class="micro-output" role="status" aria-live="polite">Multi-Agent 待命。</div>
+    <section id="tab-agent" class="agent-workspace tab-panel" role="tabpanel" aria-labelledby="tab-button-agent" tabindex="0" hidden>
+      <section class="agent-transcript" aria-labelledby="agent-messages-title">
+        <div class="agent-section-head">
+          <div>
+            <h2 id="agent-messages-title">Agent 訊息</h2>
+            <p>指令、回覆與 Governed Review 都會依序保留在這個工作階段。</p>
+          </div>
+          <button id="agent-clear-messages" class="quiet-btn" type="button">清除</button>
+        </div>
+        <div id="agent-messages" class="agent-messages" role="log" aria-live="polite" aria-relevant="additions text"></div>
+      </section>
+
+      <section class="agent-composer" aria-labelledby="agent-composer-title">
+        <div class="composer-heading">
+          <label id="agent-composer-title" for="agent-task">給 Agent 的指令</label>
+          <span>支援自然語言與多步驟任務描述</span>
+        </div>
+        <textarea id="agent-task" spellcheck="false" maxlength="12000" placeholder="輸入你想讓 Agent 執行的工作…">觀察目前 Target，說明頁面內容與可安全執行的下一步。</textarea>
+        <div class="composer-footer">
+          <span id="agent-task-count" class="character-count">0 / 12000</span>
+          <div class="composer-actions">
+            <button id="agent-cancel" class="danger-btn" type="button">停止</button>
+            <button id="agent-run" class="primary-btn" type="button">執行</button>
+          </div>
+        </div>
+        <div id="agent-run-status" class="run-status" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>Agent 待命。</span>
+        </div>
+      </section>
+
+      <details class="agent-disclosure" open>
+        <summary>
+          <span>執行設定</span>
+          <span class="summary-hint">Model 與執行上限</span>
+        </summary>
+        <div class="agent-grid disclosure-body">
+          <label>Model Adapter
+            <select id="agent-adapter" aria-label="Model Adapter"></select>
+          </label>
+          <label>Reasoning effort
+            <select id="agent-reasoning" aria-label="Reasoning effort">
+              <option value="medium" selected>medium</option>
+              <option value="none">none</option>
+              <option value="low">low</option>
+              <option value="high">high</option>
+              <option value="xhigh">xhigh</option>
+              <option value="max">max</option>
+            </select>
+          </label>
+          <label>Max turns
+            <input id="agent-max-turns" type="number" min="1" max="24" value="6">
+          </label>
+          <label>Max actions
+            <input id="agent-max-actions" type="number" min="1" max="64" value="12">
+          </label>
+        </div>
+      </details>
+
+      <details class="agent-disclosure governance-disclosure" open>
+        <summary>
+          <span>Governance 治理</span>
+          <span class="summary-hint">獨立 Reviewer 與人工套用</span>
+        </summary>
+        <div class="disclosure-body">
+          <div class="agent-grid">
+            <label>Reviewer Adapter
+              <select id="reviewer-adapter" aria-label="Reviewer Adapter"></select>
+            </label>
+            <label>Decision ID
+              <input id="governance-decision-id" placeholder="gov_..." spellcheck="false">
+            </label>
+            <label>Activation Module（可選）
+              <input id="governance-module-id" placeholder="generated.example" spellcheck="false">
+            </label>
+            <label>Activation Version（可選）
+              <input id="governance-module-version" placeholder="0.1.0" spellcheck="false">
+            </label>
+          </div>
+          <div class="button-grid governance-actions">
+            <button id="multi-agent-run" class="governance-btn" type="button">啟動 Governed Review</button>
+            <button id="governance-apply" class="governance-btn" type="button">確認並套用 Decision</button>
+          </div>
+          <div class="governance-status-row">
+            <div id="multi-agent-status" class="run-status" role="status" aria-live="polite">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span>Multi-Agent 待命。</span>
+            </div>
+            <button id="multi-agent-cancel" class="quiet-btn" type="button">取消 Review</button>
+          </div>
+        </div>
+      </details>
     </section>
 
     <section id="tab-cdp" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-cdp" tabindex="0" hidden>

@@ -3,6 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const result = $('result');
 const timeline = $('timeline');
+const agentTask = $('agent-task');
 
 const moduleStatusLabels = Object.freeze({
   candidate: '候選',
@@ -16,8 +17,9 @@ const state = {
   checkpoints: [],
   modules: { active: {}, modules: [], candidates: [] },
   status: null,
-  agent: { running: false, evolutionRunId: null, label: 'Agent 待命。' },
-  multiAgent: { running: false, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent 待命。' },
+  agent: { running: false, evolutionRunId: null, label: 'Agent 待命。', status: 'idle' },
+  agentMessages: [],
+  multiAgent: { running: false, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent 待命。', status: 'idle' },
   stop: { state: 'idle', label: '待命' }
 };
 
@@ -100,8 +102,71 @@ function renderAll() {
   renderStopState();
   renderModules();
   renderAgent();
+  renderAgentMessages();
   renderCheckpoints();
   renderTimeline();
+}
+
+function addAgentMessage(role, content, { label, detail, status = 'ok' } = {}) {
+  const text = typeof content === 'string' ? content.trim() : JSON.stringify(content, null, 2);
+  if (!text) return;
+  state.agentMessages.push({
+    id: `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+    role,
+    label: label || role,
+    content: text,
+    detail: detail || '',
+    status,
+    timestamp: new Date().toISOString()
+  });
+  state.agentMessages = state.agentMessages.slice(-100);
+  renderAgentMessages({ scrollToEnd: true });
+}
+
+function renderAgentMessages({ scrollToEnd = false } = {}) {
+  const messages = $('agent-messages');
+  messages.replaceChildren();
+  if (state.agentMessages.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'agent-message-empty';
+    empty.append(
+      makeText('strong', '尚無 Agent 訊息'),
+      makeText('span', '在下方輸入指令；Agent 回覆與 Governed Review 會集中顯示在這裡。')
+    );
+    messages.append(empty);
+    return;
+  }
+  for (const message of state.agentMessages) {
+    const row = document.createElement('article');
+    row.className = `agent-message ${message.role} ${message.status === 'error' ? 'error' : ''}`;
+    const role = document.createElement('div');
+    role.className = 'message-role';
+    role.append(makeText('strong', message.label));
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    const meta = document.createElement('div');
+    meta.className = 'message-meta';
+    meta.append(
+      makeText('span', message.detail || 'BlankSeed Runtime'),
+      makeText('time', formatTime(message.timestamp))
+    );
+    const body = makeText('p', message.content);
+    body.className = 'message-body';
+    content.append(meta, body);
+    row.append(role, content);
+    messages.append(row);
+  }
+  if (scrollToEnd) messages.scrollTop = messages.scrollHeight;
+}
+
+function updateRunStatus(element, label, status) {
+  element.className = `run-status ${status || 'idle'}`;
+  const labelElement = element.querySelector('span:last-child');
+  if (labelElement) labelElement.textContent = label;
+}
+
+function updateTaskCount() {
+  $('agent-task-count').textContent = `${agentTask.value.length} / ${agentTask.maxLength}`;
 }
 
 function renderAgent() {
@@ -130,7 +195,7 @@ function renderAgent() {
   }
   $('agent-run').disabled = state.agent.running || !$('agent-adapter').selectedOptions[0] || $('agent-adapter').selectedOptions[0].disabled;
   $('agent-cancel').disabled = !state.agent.running;
-  $('agent-run-status').textContent = state.agent.label;
+  updateRunStatus($('agent-run-status'), state.agent.label, state.agent.status);
   $('multi-agent-run').disabled = state.multiAgent.running
     || !$('agent-adapter').selectedOptions[0]
     || $('agent-adapter').selectedOptions[0].disabled
@@ -138,7 +203,8 @@ function renderAgent() {
     || $('reviewer-adapter').selectedOptions[0].disabled;
   $('multi-agent-cancel').disabled = !state.multiAgent.running;
   $('governance-apply').disabled = !state.multiAgent.decisionId && !$('governance-decision-id').value.trim();
-  $('multi-agent-status').textContent = state.multiAgent.label;
+  updateRunStatus($('multi-agent-status'), state.multiAgent.label, state.multiAgent.status);
+  updateTaskCount();
 }
 
 function renderStatus() {
@@ -150,6 +216,9 @@ function renderStatus() {
     : `t${status.target.targetId}/g${status.target.documentGeneration}`;
   $('stat-runtime').textContent = status.config?.generatedNodeRuntimeEnabled ? 'Node 已啟用' : 'Node 未啟用';
   $('stat-modules').textContent = `${activeCount} 個啟用`;
+  const compactTarget = $('console-target-state');
+  compactTarget.textContent = status.target?.title || status.target?.url || '尚無 Target';
+  compactTarget.parentElement.classList.toggle('connected', Boolean(status.target?.url));
   $('target-summary').textContent = status.target?.url
     ? `${status.target.url} | ${status.target.title || '無標題'}`
     : status.error || '等待 Target';
@@ -294,6 +363,7 @@ function makeText(tag, text) {
 
 function setTab(tab) {
   state.activeTab = tab;
+  document.body.classList.toggle('agent-mode', tab === 'agent');
   for (const button of document.querySelectorAll('.tab')) {
     const isActive = button.dataset.tab === tab;
     button.classList.toggle('active', isActive);
@@ -406,12 +476,13 @@ $('module-invoke').addEventListener('click', () => run(() => window.blankseed.mo
 })));
 $('module-rollback').addEventListener('click', () => run(() => window.blankseed.modules.rollback($('module-id').value, $('module-version').value, { requestId: requestId('module_rollback') })));
 $('agent-run').addEventListener('click', async () => {
-  const task = $('agent-task').value.trim();
+  const task = agentTask.value.trim();
   if (!task) {
     showError({ code: 'INVALID_REQUEST', message: 'Task 任務不得為空。' });
     return;
   }
-  state.agent = { running: true, evolutionRunId: null, label: 'Agent Run 執行中…' };
+  addAgentMessage('user', task, { label: 'USER', detail: '使用者指令' });
+  state.agent = { running: true, evolutionRunId: null, label: 'Agent Run 執行中…', status: 'running' };
   renderAgent();
   try {
     const value = await window.blankseed.evolution.run([{ role: 'user', content: task }], {
@@ -424,29 +495,38 @@ $('agent-run').addEventListener('click', async () => {
     state.agent = {
       running: false,
       evolutionRunId: value.evolutionRunId || null,
-      label: `Agent Run ${value.status === 'ok' ? '已完成' : '已停止'} · ${short(value.evolutionRunId, 18)}`
+      label: `Agent Run ${value.status === 'ok' ? '已完成' : '已停止'} · ${short(value.evolutionRunId, 18)}`,
+      status: value.status === 'ok' ? 'success' : 'error'
     };
+    const output = value.output?.content || value.error?.message || `Agent Run ${value.status === 'ok' ? '已完成。' : '未完成。'}`;
+    addAgentMessage('agent', output, {
+      label: 'AGENT',
+      detail: `Turns ${value.metrics?.turns ?? 0} · Actions ${value.metrics?.actions ?? 0}`,
+      status: value.status === 'ok' ? 'ok' : 'error'
+    });
     show(value);
   } catch (error) {
-    state.agent = { running: false, evolutionRunId: null, label: `Agent Run 失敗：${error.message}` };
+    state.agent = { running: false, evolutionRunId: null, label: `Agent Run 失敗：${error.message}`, status: 'error' };
+    addAgentMessage('agent', error.message, { label: 'AGENT', detail: '執行失敗', status: 'error' });
     showError(error);
   }
   await refreshAll();
 });
 $('agent-cancel').addEventListener('click', () => run(async () => {
   const value = await window.blankseed.evolution.cancel(state.agent.evolutionRunId, { requestId: requestId('agent_cancel') });
-  state.agent = { running: false, evolutionRunId: null, label: `已要求取消 Agent Run · ${value.cancelled || 0}` };
+  state.agent = { running: false, evolutionRunId: null, label: `已要求取消 Agent Run · ${value.cancelled || 0}`, status: 'idle' };
   return value;
 }));
 $('multi-agent-run').addEventListener('click', async () => {
-  const task = $('agent-task').value.trim();
+  const task = agentTask.value.trim();
   if (!task) {
     showError({ code: 'INVALID_REQUEST', message: 'Task 任務不得為空。' });
     return;
   }
   const moduleId = $('governance-module-id').value.trim();
   const version = $('governance-module-version').value.trim();
-  state.multiAgent = { running: true, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent Review 執行中…' };
+  addAgentMessage('user', task, { label: 'USER', detail: 'Governed Review 指令' });
+  state.multiAgent = { running: true, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent Review 執行中…', status: 'running' };
   renderAgent();
   try {
     const value = await window.blankseed.multiAgent.run(task, {
@@ -465,18 +545,36 @@ $('multi-agent-run').addEventListener('click', async () => {
       decisionId,
       label: value.status === 'ok'
         ? `Governed Review 已完成 · ${value.decision.review.verdict} · ${short(decisionId, 18)}`
-        : `Multi-Agent Review 失敗：${value.error?.message || 'unknown'}`
+        : `Multi-Agent Review 失敗：${value.error?.message || 'unknown'}`,
+      status: value.status === 'ok' ? 'success' : 'error'
     };
+    if (value.status === 'ok') {
+      addAgentMessage('agent', value.decision.proposal.content, {
+        label: 'PROPOSER',
+        detail: short(value.decision.proposal.evolutionRunId, 22)
+      });
+      addAgentMessage('reviewer', value.decision.review.reason, {
+        label: 'REVIEWER',
+        detail: `${value.decision.review.verdict.toUpperCase()} · ${short(decisionId, 20)}`
+      });
+    } else {
+      addAgentMessage('reviewer', value.error?.message || 'Governed Review 未完成。', {
+        label: 'REVIEWER',
+        detail: 'Review 失敗',
+        status: 'error'
+      });
+    }
     show(value);
   } catch (error) {
-    state.multiAgent = { running: false, multiAgentRunId: null, decisionId: null, label: `Multi-Agent Review 失敗：${error.message}` };
+    state.multiAgent = { running: false, multiAgentRunId: null, decisionId: null, label: `Multi-Agent Review 失敗：${error.message}`, status: 'error' };
+    addAgentMessage('reviewer', error.message, { label: 'REVIEWER', detail: 'Review 失敗', status: 'error' });
     showError(error);
   }
   await refreshAll();
 });
 $('multi-agent-cancel').addEventListener('click', () => run(async () => {
   const value = await window.blankseed.multiAgent.cancel(state.multiAgent.multiAgentRunId, { requestId: requestId('multi_agent_cancel') });
-  state.multiAgent = { running: false, multiAgentRunId: null, decisionId: state.multiAgent.decisionId, label: `已要求取消 Multi-Agent Run · ${value.cancelled || 0}` };
+  state.multiAgent = { running: false, multiAgentRunId: null, decisionId: state.multiAgent.decisionId, label: `已要求取消 Multi-Agent Run · ${value.cancelled || 0}`, status: 'idle' };
   return value;
 }));
 $('governance-apply').addEventListener('click', () => {
@@ -491,7 +589,11 @@ $('governance-apply').addEventListener('click', () => {
       requestId: requestId('governance_apply'),
       confirmed: true
     });
-    state.multiAgent = { running: false, multiAgentRunId: value.multiAgentRunId, decisionId, label: `Governance Decision 已套用 · ${short(decisionId, 18)}` };
+    state.multiAgent = { running: false, multiAgentRunId: value.multiAgentRunId, decisionId, label: `Governance Decision 已套用 · ${short(decisionId, 18)}`, status: 'success' };
+    addAgentMessage('governance', `Decision ${decisionId} 已由使用者確認並套用。`, {
+      label: 'GOVERNANCE',
+      detail: short(value.multiAgentRunId, 22)
+    });
     return value;
   });
 });
@@ -500,6 +602,17 @@ $('governance-decision-id').addEventListener('input', () => {
 });
 $('refresh-events').addEventListener('click', () => refreshAll());
 $('clear-result').addEventListener('click', () => { result.textContent = '已就緒。'; });
+$('agent-clear-messages').addEventListener('click', () => {
+  state.agentMessages = [];
+  renderAgentMessages();
+});
+agentTask.addEventListener('input', updateTaskCount);
+agentTask.addEventListener('keydown', (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    event.preventDefault();
+    if (!$('agent-run').disabled) $('agent-run').click();
+  }
+});
 
 window.blankseed.events.subscribe(() => {
   refreshEvents().then(renderAll);
