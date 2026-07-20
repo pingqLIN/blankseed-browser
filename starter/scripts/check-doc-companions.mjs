@@ -26,6 +26,7 @@ const authoritativeFiles = [
   'starter/reports/phase-1-completion-assessment.md',
   'starter/reports/wp-10-operational-hardening.md',
   'starter/reports/wp-11-automated-evolution-loop.md',
+  'starter/reports/sandbox-ten-task-agent-auto-apply.md',
   'starter/reports/wp-12-preflight-foundation.md'
 ];
 

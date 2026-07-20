@@ -175,6 +175,16 @@ different Agent identities, evidence hashes, committed `sourceHash`, and the
 expected active Module version; creates a safety Checkpoint; and uses
 compare-and-swap activation. Any stale or inconsistent state fails closed.
 
+An explicit ephemeral research profile is the only exception to operator
+confirmation. It is enabled by `BLANKSEED_SANDBOX_AGENT_AUTO_APPLY=1` only when
+workspace and data roots are under one dedicated
+`%TEMP%/blankseed-sandbox-*` root and model egress is HTTP loopback. A separate
+`agent-sandbox-policy` authority may then apply an approved, same-session,
+hash-anchored decision through the identical verification, Checkpoint, and
+compare-and-swap path. Requests fail before model execution if this policy is
+unavailable. The profile reports `hostFilesystem: not-isolated` and
+`securitySandbox: false`; it is not a host containment claim.
+
 ## Failure containment and recovery order
 
 Use the smallest applicable control first:
@@ -211,6 +221,9 @@ operator must verify both termination and the resulting active state.
 - Persisted governance JSON is evidence, not authority by itself. The
   same-session memory anchor deliberately does not survive an application
   restart.
+- The ephemeral auto-Apply profile constrains roots and model egress but does
+  not isolate generated Node code from the host filesystem, process namespace,
+  or operating system.
 
 ## Future Extension
 
@@ -256,6 +269,7 @@ immutable Commit identity, and the operator gate.
    inspectable.
 8. Hosted credentials remain Main-Process-only and never enter generated
    Runtime environment, Renderer IPC payloads, or retained evidence.
-9. Multi-Agent verdicts remain advisory until operator Apply revalidates the
-   same-session Main Process anchor, hash-bound evidence, and current active
-   state.
+9. Multi-Agent verdicts remain advisory until an Apply authority revalidates
+   the same-session Main Process anchor, hash-bound evidence, and current active
+   state. The normal authority is an operator; only the explicit ephemeral
+   research profile may use `agent-sandbox-policy`.

@@ -160,6 +160,22 @@ source identity, self-review, malformed verdict, or hash mismatch fails closed.
 This path is currently sequential. It does not claim parallel orchestration,
 independent-provider quorum, or autonomous policy authority.
 
+#### Ephemeral sandbox policy exception
+
+The normal Runtime continues to require Operator Apply. A separate research
+profile may request Agent auto-Apply only with
+`BLANKSEED_SANDBOX_AGENT_AUTO_APPLY=1`. The Main Process enables it only when
+workspace and data roots are inside the same dedicated
+`%TEMP%/blankseed-sandbox-*` tree and the model endpoint is HTTP loopback.
+Outside that profile, an auto-Apply request fails before either Agent runs.
+
+Inside the profile, Reviewer approval still does not itself mutate state. A
+separate `agent-sandbox-policy` authority validates the approved same-session
+anchor and then invokes the same immutable-source, safety-Checkpoint,
+expected-version, and compare-and-swap Apply implementation. This exception is
+governance/lifecycle isolation for deterministic research. It is not an OS
+security sandbox, and it grants no authority to the normal Runtime.
+
 ## Invoke
 
 Invoke resolves the active version for a Module `id`, verifies its stored source
@@ -214,8 +230,10 @@ procedure.
 5. Invoke resolves only the active version and verifies its source hash.
 6. Rollback targets an existing committed version and remains observable.
 7. No lifecycle step erases failed source, Test results, or transition events.
-8. Multi-Agent approval cannot bypass same-session Main Process anchoring,
-   operator Apply, or immutable Module identity checks.
+8. Multi-Agent approval cannot bypass same-session Main Process anchoring or
+   immutable Module identity checks. Normal Runtime requires operator Apply;
+   only the explicit ephemeral sandbox policy may supply a distinct recorded
+   Apply authority.
 
 ## Relationship to future registries
 

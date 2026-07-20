@@ -1,0 +1,66 @@
+{
+  "schema": "blankseed-sandbox-task-suite/0.1",
+  "language": "zh-Hant-TW",
+  "tasks": [
+    {
+      "id": "TASK-01",
+      "title": "擷取目前頁面快照",
+      "prompt": "擷取目前 Target 的 page snapshot，確認標題與 URL，完成後回報。",
+      "expected": "page_snapshot 經 broker 回傳 Fixture Page 的標題與 loopback URL。"
+    },
+    {
+      "id": "TASK-02",
+      "title": "在 isolated world 擷取頁面結構",
+      "prompt": "使用 page_execute 擷取 h1 與連結數量，不修改遠端頁面。",
+      "expected": "page_execute 回傳 h1=Fixture Page 且 links=0。"
+    },
+    {
+      "id": "TASK-03",
+      "title": "讀取 CDP 導覽歷史",
+      "prompt": "使用 raw CDP 讀取目前 Target 的導覽歷史並回報 entry 數量。",
+      "expected": "cdp_send Page.getNavigationHistory 成功並保留 command evidence。"
+    },
+    {
+      "id": "TASK-04",
+      "title": "執行受監督 Node 計算",
+      "prompt": "在 supervised Node runtime 計算 6 乘 7，回傳結構化結果。",
+      "expected": "node_execute 回傳 answer=42，程序正常結束。"
+    },
+    {
+      "id": "TASK-05",
+      "title": "盤點 Module Store",
+      "prompt": "列出目前 committed、candidate 與 active Module 狀態。",
+      "expected": "module_list 成功且初始 committed 與 active 皆為空。"
+    },
+    {
+      "id": "TASK-06",
+      "title": "建立並提交基礎 Module",
+      "prompt": "建立 generated.sandbox.counter@1.0.0 Candidate，測試通過後 Commit；不要 Activate。",
+      "expected": "Candidate 經 Test 後形成 immutable committed 1.0.0，active mapping 不變。"
+    },
+    {
+      "id": "TASK-07",
+      "title": "建立下一版 Module",
+      "prompt": "建立 generated.sandbox.counter@1.1.0 Candidate，測試通過後 Commit；不要 Activate。",
+      "expected": "第二個 immutable committed 版本 1.1.0 存在，active mapping 仍不變。"
+    },
+    {
+      "id": "TASK-08",
+      "title": "啟用並呼叫基礎 Module",
+      "prompt": "Activate generated.sandbox.counter@1.0.0，接著以 value=40 Invoke 並驗證結果。",
+      "expected": "active mapping 指向 1.0.0，Invoke 回傳 value=41。"
+    },
+    {
+      "id": "TASK-09",
+      "title": "觀察失敗並修正",
+      "prompt": "先執行一段可觀察失敗的 Node source，再根據 error evidence 修正並重跑成功。",
+      "expected": "第一個 node_execute 為 error，第二個回傳 recovered=true，run 記錄一個 failed action。"
+    },
+    {
+      "id": "TASK-10",
+      "title": "沙盒 Multi-Agent 核准並自動套用",
+      "prompt": "由不同 Proposer 與 Reviewer 審查 generated.sandbox.counter@1.1.0；Reviewer 核准後由 sandbox Agent policy 自動 Apply，再 Invoke 驗證。",
+      "expected": "hash-bound decision 以 agent-sandbox-policy authority 變成 applied，active mapping 指向 1.1.0，Invoke 回傳 value=42。"
+    }
+  ]
+}

@@ -13,6 +13,7 @@ const { ModuleStore } = require('./module-store.cjs');
 const { HostedOpenAIResponsesAdapter, LocalOpenAICompatibleAdapter, ModelTurnManager } = require('./model-adapter.cjs');
 const { EvolutionRunManager, RawCapabilityDispatcher } = require('./evolution-loop.cjs');
 const { MultiAgentRuntime } = require('./multi-agent-runtime.cjs');
+const { createSandboxAutoApplyPolicy } = require('./sandbox-auto-apply-policy.cjs');
 const { registerIpc } = require('./ipc-router.cjs');
 
 const packageJson = require('../../package.json');
@@ -35,10 +36,18 @@ let eventStore = null;
 const sessionId = `ses_${crypto.randomUUID()}`;
 
 function createWindow() {
-  const dataRoot = path.join(app.getPath('userData'), 'blankseed-data');
+  const dataRoot = process.env.BLANKSEED_DATA_ROOT
+    ? path.resolve(process.env.BLANKSEED_DATA_ROOT)
+    : path.join(app.getPath('userData'), 'blankseed-data');
   const workspaceRoot = process.env.BLANKSEED_WORKSPACE_ROOT
     ? path.resolve(process.env.BLANKSEED_WORKSPACE_ROOT)
     : path.join(app.getAppPath(), 'workspace');
+  const sandboxAutoApplyPolicy = createSandboxAutoApplyPolicy({
+    requested: process.env.BLANKSEED_SANDBOX_AGENT_AUTO_APPLY === '1',
+    workspaceRoot,
+    dataRoot,
+    localModelEndpoint: config.localModelEndpoint
+  });
   fs.mkdirSync(dataRoot, { recursive: true });
   fs.mkdirSync(workspaceRoot, { recursive: true });
   eventStore = new EventStore(dataRoot, { sessionId });
@@ -95,7 +104,10 @@ function createWindow() {
     node: process.versions.node,
     sessionId,
     dataRoot,
-    config,
+    config: {
+      ...config,
+      sandboxAgentAutoApply: sandboxAutoApplyPolicy?.metadata ?? { enabled: false }
+    },
     modelAdapters: modelTurnManager?.getCatalog() || [],
     multiAgentActive: multiAgentRuntime?.getActiveCount() || 0,
     modules: moduleStore.getState(),
@@ -163,7 +175,8 @@ function createWindow() {
     evolutionRunManager,
     checkpointStore,
     moduleStore,
-    workspaceRoot
+    workspaceRoot,
+    sandboxAutoApplyPolicy
   });
 
   cleanupIpc = registerIpc({

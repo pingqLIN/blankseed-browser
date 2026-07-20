@@ -757,6 +757,70 @@ quorum, remote governance services, or broader tool profiles.
 
 ---
 
+## ADR-018 — Permit Agent auto-Apply only in an explicit ephemeral governance sandbox profile
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+ADR-017 keeps Reviewer approval advisory and requires operator Apply in the
+normal Runtime. A bounded research task also needs to prove that distinct Agents
+can approve and apply a committed Module without weakening the default product
+authority boundary or pretending that generated Node execution is securely
+sandboxed.
+
+### Evidence
+
+The existing decision anchor, immutable Module `sourceHash`, safety Checkpoint,
+and compare-and-swap activation path already fail closed. A deterministic
+10-task Electron/CDP suite exercised Page, CDP, supervised Node, Candidate,
+Test, Commit, Activate, Invoke, failure correction, and governed Agent
+auto-Apply. The final Module `generated.sandbox.counter@1.1.0` returned `42`.
+
+### Alternatives
+
+- Let every approved Reviewer verdict Activate a Module.
+- Add a UI-only switch that bypasses Main Process governance.
+- Wait for an OS/container/VM security sandbox before testing delegated policy.
+
+### Decision
+
+Keep ADR-017 unchanged for the normal Runtime. Permit automatic Apply only when
+`BLANKSEED_SANDBOX_AGENT_AUTO_APPLY=1` and a Main Process policy verifies that
+both workspace and data roots are descendants of the same dedicated
+`%TEMP%/blankseed-sandbox-*` root and the model endpoint is HTTP loopback. The
+policy authorizes only an already approved, same-session, hash-anchored decision
+with distinct Proposer and Reviewer identities. Auto-Apply must reuse the same
+source verification, safety Checkpoint, expected-active-version check, and
+compare-and-swap path as operator Apply. Evidence identifies the authority as
+`agent-sandbox-policy`; it must never synthesize an operator identity.
+
+The profile metadata must state `hostFilesystem: not-isolated` and
+`securitySandbox: false`. The UI control remains disabled outside this profile,
+and an API request for auto-Apply fails before model execution when the profile
+is unavailable.
+
+### Consequences
+
+- Normal use still requires explicit operator Apply.
+- The research profile can test delegated Agent authority without granting a
+  general autonomous activation capability.
+- Successful runs retain workspace/data evidence outside the deleted temporary
+  runtime; failed runs preserve their temporary root for diagnosis.
+- This is governance and lifecycle isolation, not an OS security boundary.
+
+### Rollback/review trigger
+
+Remove the profile and UI control if roots can escape the owned temporary tree,
+non-loopback model egress is accepted, auto-Apply runs without an approved
+same-session anchor, any integrity/checkpoint/compare-and-swap check is skipped,
+or evidence misrepresents the authority or isolation claim. Re-review before
+allowing additional tools, persistent roots, hosted providers, or production
+use.
+
+---
+
 ## ADR template
 
 ```markdown

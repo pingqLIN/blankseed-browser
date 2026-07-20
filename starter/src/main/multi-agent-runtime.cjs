@@ -65,11 +65,12 @@ function parseReview(content, proposalHash) {
 }
 
 class MultiAgentRuntime {
-  constructor({ eventStore, evolutionRunManager, checkpointStore, moduleStore, workspaceRoot }) {
+  constructor({ eventStore, evolutionRunManager, checkpointStore, moduleStore, workspaceRoot, sandboxAutoApplyPolicy = null }) {
     this.eventStore = eventStore;
     this.evolutionRunManager = evolutionRunManager;
     this.checkpointStore = checkpointStore;
     this.moduleStore = moduleStore;
+    this.sandboxAutoApplyPolicy = sandboxAutoApplyPolicy;
     this.root = path.join(path.resolve(workspaceRoot), 'multi-agent-runs');
     this.decisionsRoot = path.join(path.resolve(workspaceRoot), 'governance', 'decisions');
     this.active = new Map();
@@ -83,6 +84,7 @@ class MultiAgentRuntime {
     const proposerAdapter = assertString(payload.proposerAdapter || 'local.manual', 'proposerAdapter', { max: 120 });
     const reviewerAdapter = assertString(payload.reviewerAdapter || proposerAdapter, 'reviewerAdapter', { max: 120 });
     const activation = this.#normalizeActivation(payload.activation);
+    const autoApplyRequested = payload.autoApply === true;
     const multiAgentRunId = `mar_${crypto.randomUUID()}`;
     const proposerAgentId = `agt_${crypto.randomUUID()}`;
     const reviewerAgentId = `agt_${crypto.randomUUID()}`;
@@ -104,6 +106,11 @@ class MultiAgentRuntime {
         { agentId: reviewerAgentId, role: 'reviewer', adapter: reviewerAdapter, allowedTools: GOVERNED_TOOLS }
       ],
       activation,
+      autoApply: {
+        requested: autoApplyRequested,
+        policy: this.sandboxAutoApplyPolicy?.metadata ?? null,
+        result: null
+      },
       proposalRun: null,
       handoff: null,
       reviewRun: null,
@@ -119,10 +126,14 @@ class MultiAgentRuntime {
       proposerAdapter,
       reviewerAdapter,
       activation,
+      autoApplyRequested,
       evidencePath
     }, runContext);
 
     try {
+      if (autoApplyRequested && !this.sandboxAutoApplyPolicy) {
+        throw createProtocolError(errorCodes.invalidRequest, 'Sandbox Agent auto-apply is not enabled for this Main Process profile.');
+      }
       const proposalRun = await this.evolutionRunManager.run({
         adapter: proposerAdapter,
         allowedTools: [...GOVERNED_TOOLS],
@@ -219,23 +230,36 @@ class MultiAgentRuntime {
         review,
         activation
       }, runContext);
-      evidence.decision = decision;
+      let finalDecision = decision;
+      if (autoApplyRequested) {
+        const authority = this.sandboxAutoApplyPolicy.authorize(decision);
+        finalDecision = this.#applyAnchoredDecision(decision.decisionId, authority, runContext);
+        evidence.autoApply.result = {
+          status: finalDecision.status,
+          authorityKind: authority.kind,
+          authorityId: authority.authorityId,
+          safetyCheckpointId: finalDecision.safetyCheckpointId
+        };
+      }
+      evidence.decision = finalDecision;
       evidence.status = 'ok';
       evidence.finishedAt = new Date().toISOString();
       writeJsonAtomic(evidencePath, evidence);
       this.eventStore.append('multi_agent.run.completed', {
         multiAgentRunId,
-        governanceDecisionId: decision.decisionId,
+        governanceDecisionId: finalDecision.decisionId,
         verdict: review.verdict,
-        decisionStatus: decision.status,
+        decisionStatus: finalDecision.status,
+        autoApplyRequested,
         evidencePath
-      }, { ...runContext, governanceDecisionId: decision.decisionId });
+      }, { ...runContext, governanceDecisionId: finalDecision.decisionId });
       return {
         multiAgentRunId,
         status: 'ok',
         evidencePath,
         handoff,
-        decision
+        decision: finalDecision,
+        autoApply: evidence.autoApply
       };
     } catch (error) {
       evidence.status = 'error';
@@ -279,6 +303,16 @@ class MultiAgentRuntime {
   }
 
   apply(decisionId, { confirmed = false, operatorId = 'operator.local' } = {}, context = {}) {
+    if (!confirmed) throw createProtocolError(errorCodes.invalidRequest, 'Governance apply requires explicit operator confirmation.');
+    const authority = {
+      kind: 'operator',
+      authorityId: assertString(operatorId, 'operatorId', { max: 120 }),
+      authorizedAt: new Date().toISOString()
+    };
+    return this.#applyAnchoredDecision(decisionId, authority, context);
+  }
+
+  #applyAnchoredDecision(decisionId, authority, context = {}) {
     const governanceDecisionId = assertIdentifier(decisionId, 'governanceDecisionId', 'gov');
     const anchor = this.pending.get(governanceDecisionId);
     if (!anchor) {
@@ -296,7 +330,6 @@ class MultiAgentRuntime {
       });
     }
     const decision = anchor.decision;
-    if (!confirmed) throw createProtocolError(errorCodes.invalidRequest, 'Governance apply requires explicit operator confirmation.');
     if (decision.status !== 'awaiting_operator') {
       throw createProtocolError(errorCodes.invalidRequest, 'Governance decision is not awaiting operator confirmation.', {
         governanceDecisionId,
@@ -333,7 +366,10 @@ class MultiAgentRuntime {
     const applying = {
       ...decision,
       status: 'applying',
-      operator: { operatorId: assertString(operatorId, 'operatorId', { max: 120 }), confirmedAt: new Date().toISOString() }
+      authority,
+      ...(authority.kind === 'operator'
+        ? { operator: { operatorId: authority.authorityId, confirmedAt: authority.authorizedAt } }
+        : {})
     };
     writeJsonAtomic(this.#decisionPath(governanceDecisionId), applying);
     let activationAttempted = false;
@@ -365,7 +401,9 @@ class MultiAgentRuntime {
         version: decision.activation.version,
         sourceHash: decision.activation.sourceHash,
         safetyCheckpointId: safetyCheckpoint.id,
-        operatorId
+        authorityKind: authority.kind,
+        authorityId: authority.authorityId,
+        operatorId: authority.kind === 'operator' ? authority.authorityId : null
       }, { ...context, governanceDecisionId, multiAgentRunId: decision.multiAgentRunId });
       return applied;
     } catch (error) {
@@ -380,7 +418,8 @@ class MultiAgentRuntime {
           error: serializeError(error),
           activationAttempted,
           observedActiveVersion: activeAfterFailure
-        }
+        },
+        lastApplyAuthority: authority
       };
       writeJsonAtomic(this.#decisionPath(governanceDecisionId), failed);
       if (activationStateUnknown) this.pending.delete(governanceDecisionId);

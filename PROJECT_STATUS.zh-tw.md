@@ -1,15 +1,16 @@
 # BlankSeed Browser 專案狀態
 
-> 本檔為 `PROJECT_STATUS.md` 的繁體中文 companion；英文原檔為權威來源。狀態日期：2026-07-18（Asia/Taipei）。
+> 本檔為 `PROJECT_STATUS.md` 的繁體中文 companion；英文原檔為權威來源。狀態日期：2026-07-20（Asia/Taipei）。
 
 ## 快照
 
-- 穩定分支為 `main`；目前 UI 繁中化工作建立於 WP-11 baseline commit `59a0da3`。
+- 穩定分支為 `main`；Agent workspace 重新設計已記錄於 commit `79ab5ee`。
 - WP-00 至 WP-11 均已在 `starter/reports/` 留下證據報告。
 - WP-09 candidate branch 只保留作本機證據，刻意未合併至 `main`。
 - Trusted control surface 的使用者介面採用繁中，並有英文權威的 operator guide 與 `.zh-tw.md` companion。
 - WP-12 真實本機模型評估協定已核准；目前尚未執行 WP-12 real-model trial。
 - WP-12A fail-closed preflight/evidence foundation 已實作並通過測試；目前結果仍是 `PRE-FLIGHT HOLD / NOT RUN`，未啟動 trial。
+- Deterministic 10-task Electron/CDP sandbox suite 已證明 raw Page/CDP/Node operation、Module Candidate/Test/Commit/Activate/Invoke、失敗修正與 policy-gated Multi-Agent auto-Apply。這是 fixture evidence，不是 WP-12 real-model result。
 - 專案仍是 Windows-first 的本機研究環境，不是可發布的瀏覽器產品。
 
 ## 階段判定
@@ -32,6 +33,7 @@
 - 可發布技術文件以英文為權威來源，重要文件明確維護 `.zh-tw.md` companion。
 - Protocol 與 manifest 的 status 原值維持英文，renderer 面向使用者時才映射為繁中。
 - 在評估 hosted credentials、multi-target expansion 或自動接受 source change 前，先以專用 `workspace-research-loopback-only` profile 執行 WP-12。
+- 一般啟動必須停用 Agent auto-Apply。此能力只允許明確的 ephemeral `%TEMP%/blankseed-sandbox-*` profile、HTTP loopback model egress，並以 `agent-sandbox-policy` 記錄 authority。
 
 ## 剩餘風險
 
@@ -42,6 +44,7 @@
 - Evolution cancellation 會阻止後續 dispatch 並可取消 active model request，但不保證立即停止 Chromium 已開始的 JavaScript。
 - Source evolution 尚未證明 dependency change、merge conflict 與多個 concurrent candidate。
 - CI 驗證 syntax、configuration、文件 companion 與 unit test；Electron smoke 仍是 Windows runtime workflow。
+- Ephemeral governance sandbox 不是 OS security sandbox；generated Node code 在受監督 process 中仍可影響 host。
 
 ## 驗證指令
 
@@ -51,5 +54,6 @@
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:sandbox:ten-tasks
 npm run verify:wp12:preflight
 ```

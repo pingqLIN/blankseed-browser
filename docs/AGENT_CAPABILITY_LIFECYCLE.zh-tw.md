@@ -115,6 +115,12 @@ Approve 只是 advisory，不會直接 Activate Module。若包含 activation ta
 
 目前此 path 是 sequential；不代表 parallel orchestration、independent-provider quorum 或 autonomous policy authority。
 
+#### Ephemeral sandbox policy 例外
+
+一般 Runtime 仍要求 Operator Apply。只有另行設定 `BLANKSEED_SANDBOX_AGENT_AUTO_APPLY=1` 的 research profile 可要求 Agent auto-Apply；Main Process 還必須驗證 workspace 與 data root 都位於同一個專用 `%TEMP%/blankseed-sandbox-*` tree 內，且 model endpoint 是 HTTP loopback。Profile 以外的 auto-Apply request 會在任一 Agent 執行前 fail closed。
+
+在此 profile 內，Reviewer approve 本身仍不直接改變 state。獨立的 `agent-sandbox-policy` authority 先驗證 approved same-session anchor，再呼叫與 operator Apply 相同的 immutable-source、safety-Checkpoint、expected-version 與 compare-and-swap 實作。此例外只用於 deterministic research 的 governance/lifecycle isolation；它不是 OS security sandbox，也不授予一般 Runtime authority。
+
 ## Invoke
 
 Invoke 會解析 Module `id` 的 active version、以 `sourceHash` 驗證 stored source，然後把 source 與指定 environment、timeout 送至受監督的 Node Runtime。
@@ -152,7 +158,7 @@ Checkpoint restore 是需 operator confirmation 的 recovery operation，不是 
 5. Invoke 只能解析 active version，並驗證 source hash。
 6. Rollback 指向既有 committed version，且過程保持 observable。
 7. 任何 lifecycle step 都不會清除 failed source、Test result 或 transition event。
-8. Multi-Agent approve 不得繞過同一 session 的 Main Process anchor、operator Apply 或 immutable Module identity check。
+8. Multi-Agent approve 不得繞過同一 session 的 Main Process anchor 或 immutable Module identity check。一般 Runtime 需要 operator Apply；只有明確的 ephemeral sandbox policy 可以提供另一種會被記錄的 Apply authority。
 
 ## 與未來 registry 的關係
 

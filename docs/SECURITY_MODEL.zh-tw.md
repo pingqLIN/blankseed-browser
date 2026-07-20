@@ -98,6 +98,8 @@ Hosted OpenAI request 固定使用官方 HTTPS Responses endpoint 與一個已�
 
 Reviewer verdict 不等於 activation authority。Approve 後的 activation 仍維持 `awaiting_operator`，直到 operator 另行確認。Apply 會再驗證不同的 Agent identity、evidence hash、committed `sourceHash` 與 expected active Module version，建立 safety Checkpoint，再以 compare-and-swap Activate。任何 stale 或 inconsistent state 都會 fail closed。
 
+只有明確的 ephemeral research profile 可例外不使用 operator confirmation。它必須設定 `BLANKSEED_SANDBOX_AGENT_AUTO_APPLY=1`，workspace 與 data root 必須同在一個專用 `%TEMP%/blankseed-sandbox-*` root 之下，model egress 也必須是 HTTP loopback。此時獨立的 `agent-sandbox-policy` authority 才能透過完全相同的 verification、Checkpoint 與 compare-and-swap path，套用 approved、same-session、hash-anchored decision。Policy 不可用時，request 會在 model execution 前 fail closed。Profile 明示 `hostFilesystem: not-isolated` 與 `securitySandbox: false`，不構成 host containment claim。
+
 ## Failure containment 與 recovery order
 
 優先使用影響最小且適用的 control：
@@ -125,6 +127,7 @@ Reviewer verdict 不等於 activation authority。Approve 後的 activation 仍�
 - Hosted transport 本身不等於 data-loss-prevention policy，也不授權傳送與 task 無關的 local content。
 - Multi-Agent execution 目前是 sequential，不是 parallel scheduler 或 quorum system；不同的 `agt_*` identity 也不代表不同 human、organization、provider 或 failure domain。
 - Persisted governance JSON 本身是 evidence，不是 authority；同一 session 的 memory anchor 刻意不跨 app restart。
+- Ephemeral auto-Apply profile 只限制 root 與 model egress；它不會把 generated Node code 與 host filesystem、process namespace 或 operating system 隔離。
 
 ## Future Extension
 
@@ -154,4 +157,4 @@ Skill Registry、Capability Marketplace 與更完整的 Multi-Agent Governance �
 6. Stop、Rollback 與 Checkpoint 是三種 claim 不同的 control。
 7. Failed code、validation result、error 與 recovery action 維持可檢視。
 8. Hosted credential 只留在 Main Process，不進入 generated Runtime environment、Renderer IPC payload 或 retained evidence。
-9. Multi-Agent verdict 維持 advisory，直到 operator Apply 重新驗證同一 session 的 Main Process anchor、hash-bound evidence 與目前 active state。
+9. Multi-Agent verdict 維持 advisory，直到 Apply authority 重新驗證同一 session 的 Main Process anchor、hash-bound evidence 與目前 active state。一般 authority 是 operator；只有明確的 ephemeral research profile 可使用 `agent-sandbox-policy`。

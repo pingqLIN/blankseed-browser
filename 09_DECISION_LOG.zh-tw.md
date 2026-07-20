@@ -147,3 +147,39 @@ Module Commit 已提供 immutable `id`、`version` 與 `sourceHash`；Checkpoint
 ### Rollback/review trigger
 
 若 persisted evidence 能取代同一 session 的 memory anchor、Reviewer 能取得 mutating tool、model verdict 可在沒有 operator confirmation 時 Activate，或 active-state compare-and-swap 被繞過，應停用 governed Apply。加入 parallel orchestration、delegated policy authority、independent-provider quorum、remote governance service 或更廣 tool profile 前，必須重新 review。
+
+## ADR-018 — 只在明確的 ephemeral governance sandbox profile 允許 Agent auto-Apply
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+ADR-017 規定一般 Runtime 中 Reviewer approve 只具 advisory 性質，仍需 operator Apply。本次研究另需證明不同 Agent 能在受限情境核准並套用 committed Module，但不得弱化預設產品 authority boundary，也不能把 generated Node execution 誤稱為 secure sandbox。
+
+### Evidence
+
+既有 decision anchor、immutable Module `sourceHash`、safety Checkpoint 與 compare-and-swap activation path 已具 fail-closed 行為。Deterministic 10-task Electron/CDP suite 實際涵蓋 Page、CDP、受監督 Node、Candidate、Test、Commit、Activate、Invoke、失敗修正及 governed Agent auto-Apply；最終 `generated.sandbox.counter@1.1.0` 回傳 `42`。
+
+### Alternatives
+
+- 讓所有 Reviewer approve 直接 Activate Module。
+- 只加 UI switch，繞過 Main Process governance。
+- 等到具備 OS/container/VM security sandbox 後才測試 delegated policy。
+
+### Decision
+
+一般 Runtime 維持 ADR-017 不變。只有設定 `BLANKSEED_SANDBOX_AGENT_AUTO_APPLY=1`，且 Main Process policy 驗證 workspace 與 data root 都位於同一個專用 `%TEMP%/blankseed-sandbox-*` root 之下、model endpoint 為 HTTP loopback 時，才允許 automatic Apply。Policy 只能授權已 approve、同一 session 內以 hash anchor 綁定、且 Proposer 與 Reviewer identity 不同的 decision。Auto-Apply 必須重用 operator Apply 的 source verification、safety Checkpoint、expected-active-version check 與 compare-and-swap path。Evidence 以 `agent-sandbox-policy` 記錄 authority，不得偽造 operator identity。
+
+Profile metadata 必須明示 `hostFilesystem: not-isolated` 與 `securitySandbox: false`。Profile 未啟用時，UI control 維持 disabled；API 若要求 auto-Apply，必須在 model execution 前 fail closed。
+
+### Consequences
+
+- 一般使用仍需明確 operator Apply。
+- Research profile 可測試 delegated Agent authority，但不建立通用 autonomous activation capability。
+- 成功執行會在刪除 temporary runtime 前另存 workspace/data evidence；失敗執行則保留 temporary root 供診斷。
+- 這是 governance 與 lifecycle isolation，不是 OS security boundary。
+
+### Rollback/review trigger
+
+若 root 可逃出 owned temporary tree、接受非 loopback model egress、auto-Apply 未具 approved same-session anchor、任何 integrity/checkpoint/compare-and-swap check 被略過，或 evidence 誤述 authority／isolation claim，應移除此 profile 與 UI control。擴大 tool、改用 persistent root、hosted provider 或 production use 前必須重新 review。

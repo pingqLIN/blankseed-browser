@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { MultiAgentRuntime, evidenceHash } = require('../src/main/multi-agent-runtime.cjs');
+const { createSandboxAutoApplyPolicy } = require('../src/main/sandbox-auto-apply-policy.cjs');
 const { createProtocolError, errorCodes, sha256 } = require('../src/shared/contracts.cjs');
 
 class MemoryEventStore {
@@ -84,7 +85,7 @@ class FixtureModuleStore {
 }
 
 function createHarness(options = {}) {
-  const root = mkdtempSync(join(tmpdir(), 'blankseed-multi-agent-'));
+  const root = mkdtempSync(join(tmpdir(), 'blankseed-sandbox-multi-agent-'));
   const eventStore = new MemoryEventStore();
   const evolutionRunManager = new FixtureEvolutionManager(options);
   const moduleStore = new FixtureModuleStore();
@@ -100,7 +101,15 @@ function createHarness(options = {}) {
     evolutionRunManager,
     checkpointStore,
     moduleStore,
-    workspaceRoot: join(root, 'workspace')
+    workspaceRoot: join(root, 'workspace'),
+    sandboxAutoApplyPolicy: options.sandboxAutoApply
+      ? createSandboxAutoApplyPolicy({
+        requested: true,
+        workspaceRoot: join(root, 'workspace'),
+        dataRoot: join(root, 'data'),
+        localModelEndpoint: 'http://127.0.0.1:1234/v1/chat/completions'
+      })
+      : null
   });
   return { root, eventStore, evolutionRunManager, moduleStore, runtime };
 }
@@ -129,6 +138,43 @@ test('MultiAgentRuntime anchors hash-bound handoff/review evidence and requires 
     assert.ok(harness.eventStore.events.some((event) => event.type === 'governance.decision.applied'));
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('MultiAgentRuntime auto-applies only through the ephemeral sandbox Agent policy', async () => {
+  const disabled = createHarness();
+  try {
+    const refused = await disabled.runtime.run({
+      task: 'Attempt sandbox Agent auto-apply without the sandbox profile.',
+      activation: { id: 'generated.governed', version: '1.0.0' },
+      autoApply: true
+    });
+    assert.equal(refused.status, 'error');
+    assert.match(refused.error.message, /not enabled/);
+    assert.equal(disabled.evolutionRunManager.calls.length, 0);
+    assert.equal(disabled.moduleStore.activations.length, 0);
+  } finally {
+    rmSync(disabled.root, { recursive: true, force: true });
+  }
+
+  const enabled = createHarness({ sandboxAutoApply: true });
+  try {
+    const applied = await enabled.runtime.run({
+      task: 'Approve and apply the committed fixture inside the ephemeral sandbox profile.',
+      activation: { id: 'generated.governed', version: '1.0.0' },
+      autoApply: true
+    }, { sessionId: 'ses_sandbox_12345678', requestId: 'req_sandbox_12345678' });
+    assert.equal(applied.status, 'ok');
+    assert.equal(applied.decision.status, 'applied');
+    assert.equal(applied.decision.authority.kind, 'agent-sandbox-policy');
+    assert.equal(applied.decision.activationResult.active['generated.governed'], '1.0.0');
+    assert.equal(applied.autoApply.result.status, 'applied');
+    assert.equal(enabled.moduleStore.activations.length, 1);
+    const event = enabled.eventStore.events.find((entry) => entry.type === 'governance.decision.applied');
+    assert.equal(event.data.authorityKind, 'agent-sandbox-policy');
+    assert.equal(event.data.operatorId, null);
+  } finally {
+    rmSync(enabled.root, { recursive: true, force: true });
   }
 });
 

@@ -19,7 +19,7 @@ const state = {
   status: null,
   agent: { running: false, evolutionRunId: null, label: 'Agent 待命。', status: 'idle' },
   agentMessages: [],
-  multiAgent: { running: false, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent 待命。', status: 'idle' },
+  multiAgent: { running: false, multiAgentRunId: null, decisionId: null, applyAvailable: false, label: 'Multi-Agent 待命。', status: 'idle' },
   stop: { state: 'idle', label: '待命' }
 };
 
@@ -202,7 +202,12 @@ function renderAgent() {
     || !$('reviewer-adapter').selectedOptions[0]
     || $('reviewer-adapter').selectedOptions[0].disabled;
   $('multi-agent-cancel').disabled = !state.multiAgent.running;
-  $('governance-apply').disabled = !state.multiAgent.decisionId && !$('governance-decision-id').value.trim();
+  $('governance-apply').disabled = !state.multiAgent.applyAvailable;
+  const sandboxAutoApplyEnabled = state.status?.config?.sandboxAgentAutoApply?.enabled === true;
+  $('sandbox-auto-apply').disabled = !sandboxAutoApplyEnabled || state.multiAgent.running;
+  $('sandbox-auto-apply-help').textContent = sandboxAutoApplyEnabled
+    ? '已啟用：Reviewer 核准後會在暫存 profile 自動套用'
+    : '一般 Runtime 維持人工確認';
   updateRunStatus($('multi-agent-status'), state.multiAgent.label, state.multiAgent.status);
   updateTaskCount();
 }
@@ -526,7 +531,7 @@ $('multi-agent-run').addEventListener('click', async () => {
   const moduleId = $('governance-module-id').value.trim();
   const version = $('governance-module-version').value.trim();
   addAgentMessage('user', task, { label: 'USER', detail: 'Governed Review 指令' });
-  state.multiAgent = { running: true, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent Review 執行中…', status: 'running' };
+  state.multiAgent = { running: true, multiAgentRunId: null, decisionId: null, applyAvailable: false, label: 'Multi-Agent Review 執行中…', status: 'running' };
   renderAgent();
   try {
     const value = await window.blankseed.multiAgent.run(task, {
@@ -535,6 +540,7 @@ $('multi-agent-run').addEventListener('click', async () => {
       activation: moduleId || version ? { id: moduleId, version } : null,
       maxTurns: Number($('agent-max-turns').value),
       maxActions: Number($('agent-max-actions').value),
+      autoApply: $('sandbox-auto-apply').checked && !$('sandbox-auto-apply').disabled,
       options: { reasoningEffort: $('agent-reasoning').value }
     }, { requestId: requestId('multi_agent_run') });
     const decisionId = value.decision?.decisionId || null;
@@ -543,8 +549,9 @@ $('multi-agent-run').addEventListener('click', async () => {
       running: false,
       multiAgentRunId: value.multiAgentRunId || null,
       decisionId,
+      applyAvailable: value.decision?.status === 'awaiting_operator',
       label: value.status === 'ok'
-        ? `Governed Review 已完成 · ${value.decision.review.verdict} · ${short(decisionId, 18)}`
+        ? `Governed Review 已完成 · ${value.decision.review.verdict}${value.decision.status === 'applied' ? ' · 已自動套用' : ''} · ${short(decisionId, 18)}`
         : `Multi-Agent Review 失敗：${value.error?.message || 'unknown'}`,
       status: value.status === 'ok' ? 'success' : 'error'
     };
@@ -557,6 +564,12 @@ $('multi-agent-run').addEventListener('click', async () => {
         label: 'REVIEWER',
         detail: `${value.decision.review.verdict.toUpperCase()} · ${short(decisionId, 20)}`
       });
+      if (value.decision.status === 'applied') {
+        addAgentMessage('governance', `Decision ${decisionId} 已由沙盒 Agent policy 自動套用。`, {
+          label: 'GOVERNANCE',
+          detail: value.autoApply?.result?.authorityId || 'sandbox auto-apply'
+        });
+      }
     } else {
       addAgentMessage('reviewer', value.error?.message || 'Governed Review 未完成。', {
         label: 'REVIEWER',
@@ -566,7 +579,7 @@ $('multi-agent-run').addEventListener('click', async () => {
     }
     show(value);
   } catch (error) {
-    state.multiAgent = { running: false, multiAgentRunId: null, decisionId: null, label: `Multi-Agent Review 失敗：${error.message}`, status: 'error' };
+    state.multiAgent = { running: false, multiAgentRunId: null, decisionId: null, applyAvailable: false, label: `Multi-Agent Review 失敗：${error.message}`, status: 'error' };
     addAgentMessage('reviewer', error.message, { label: 'REVIEWER', detail: 'Review 失敗', status: 'error' });
     showError(error);
   }
@@ -574,7 +587,7 @@ $('multi-agent-run').addEventListener('click', async () => {
 });
 $('multi-agent-cancel').addEventListener('click', () => run(async () => {
   const value = await window.blankseed.multiAgent.cancel(state.multiAgent.multiAgentRunId, { requestId: requestId('multi_agent_cancel') });
-  state.multiAgent = { running: false, multiAgentRunId: null, decisionId: state.multiAgent.decisionId, label: `已要求取消 Multi-Agent Run · ${value.cancelled || 0}`, status: 'idle' };
+  state.multiAgent = { running: false, multiAgentRunId: null, decisionId: state.multiAgent.decisionId, applyAvailable: state.multiAgent.applyAvailable, label: `已要求取消 Multi-Agent Run · ${value.cancelled || 0}`, status: 'idle' };
   return value;
 }));
 $('governance-apply').addEventListener('click', () => {
@@ -589,7 +602,7 @@ $('governance-apply').addEventListener('click', () => {
       requestId: requestId('governance_apply'),
       confirmed: true
     });
-    state.multiAgent = { running: false, multiAgentRunId: value.multiAgentRunId, decisionId, label: `Governance Decision 已套用 · ${short(decisionId, 18)}`, status: 'success' };
+    state.multiAgent = { running: false, multiAgentRunId: value.multiAgentRunId, decisionId, applyAvailable: false, label: `Governance Decision 已套用 · ${short(decisionId, 18)}`, status: 'success' };
     addAgentMessage('governance', `Decision ${decisionId} 已由使用者確認並套用。`, {
       label: 'GOVERNANCE',
       detail: short(value.multiAgentRunId, 22)
@@ -598,7 +611,8 @@ $('governance-apply').addEventListener('click', () => {
   });
 });
 $('governance-decision-id').addEventListener('input', () => {
-  $('governance-apply').disabled = !$('governance-decision-id').value.trim();
+  state.multiAgent.applyAvailable = Boolean($('governance-decision-id').value.trim());
+  $('governance-apply').disabled = !state.multiAgent.applyAvailable;
 });
 $('refresh-events').addEventListener('click', () => refreshAll());
 $('clear-result').addEventListener('click', () => { result.textContent = '已就緒。'; });

@@ -26,10 +26,11 @@ npm start
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:sandbox:ten-tasks
 npm run verify:wp12:preflight
 ```
 
-`verify` 會執行 syntax、configuration、document companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke；`verify:wp11` 驗證 deterministic automated evolution loop，是 WP-12 preflight，不是真實模型證據。`verify:wp12:preflight` 驗證 fail-closed WP-12A 基礎；未提供 operator 管理的 trial input 或外部 egress evidence 時，會記錄 `PRE-FLIGHT HOLD / NOT RUN`，且不會啟動 Electron 或聯絡模型。
+`verify` 會執行 syntax、configuration、document companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke；`verify:wp11` 驗證 deterministic automated evolution loop，是 WP-12 preflight，不是真實模型證據。`verify:sandbox:ten-tasks` 會啟動 isolated Electron/CDP 與無憑證 loopback model fixture，驗證十項 raw capability／governance task，包含 policy-gated Agent auto-Apply。`verify:wp12:preflight` 驗證 fail-closed WP-12A 基礎；未提供 operator 管理的 trial input 或外部 egress evidence 時，會記錄 `PRE-FLIGHT HOLD / NOT RUN`，且不會啟動 Electron 或聯絡模型。
 
 ## 目前 UI 與能力
 
@@ -134,6 +135,8 @@ Key 只留在 Main Process。Generated utility process 使用 explicit operation
 Agent 分頁可執行 sequential Proposer-to-Reviewer handoff。每個 role 都有不同且 immutable 的 Agent identity，並且只能使用 read-only 的 `page_snapshot` 與 `module_list` tool。Reviewer 必須讓 verdict 指向 Proposal hash。若指定 committed Module target，approve 只會建立 `awaiting_operator` decision，不會直接 Activate。
 
 Operator Apply 會依同一 session 的 Main Process memory anchor，重新驗證 evidence hash、committed source identity 與 expected active version，建立 safety Checkpoint，再以 compare-and-swap 執行 Activate。Persisted decision JSON 只是 evidence，app restart 後不可 Apply。這是具有 human gate 的 review workflow，不是 parallel 或 autonomous Multi-Agent policy authority。
+
+只有 deterministic research 使用的 `verify:sandbox:ten-tasks` 會啟動明確的 ephemeral profile：workspace 與 data root 都位於同一個專用 `%TEMP%/blankseed-sandbox-*` tree，model endpoint 僅限 HTTP loopback。此 profile 中，Agent UI 才會提供 auto-Apply control，並由獨立的 `agent-sandbox-policy` authority 透過相同的 Checkpoint、source-integrity 與 compare-and-swap path 套用 approved same-session decision。一般啟動時 control 維持 disabled，仍需 Operator Apply。此 profile 不是 OS security sandbox，也不會把 generated Node code 與 host filesystem 隔離。
 
 ## 自動演化驗證
 

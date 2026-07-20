@@ -30,6 +30,8 @@ test('renderer presents a complete Traditional Chinese control surface', async (
     '>停止<',
     '執行設定',
     'Governance 治理',
+    '沙盒 Agent 自動套用',
+    '一般 Runtime 維持人工確認',
     '啟動 Governed Review',
     '確認並套用 Decision',
     '取消 Review',

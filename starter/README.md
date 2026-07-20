@@ -30,6 +30,7 @@ One-command verification:
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:sandbox:ten-tasks
 npm run verify:wp12:preflight
 ```
 
@@ -37,6 +38,9 @@ npm run verify:wp12:preflight
 `verify:runtime` additionally runs the scoped Windows Electron hardening smoke.
 `verify:wp11` additionally proves the deterministic automated evolution loop;
 it is a WP-12 preflight, not real-model evidence.
+`verify:sandbox:ten-tasks` launches an isolated Electron/CDP run against a
+credential-free loopback model fixture and verifies ten raw-capability and
+governance tasks, including policy-gated Agent auto-Apply.
 `verify:wp12:preflight` verifies the fail-closed WP-12A foundation. With no
 operator-owned trial input or external egress evidence it records
 `PRE-FLIGHT HOLD / NOT RUN` and does not launch Electron or contact a model.
@@ -190,6 +194,16 @@ creates a safety Checkpoint, and performs a compare-and-swap Activate. Persisted
 decision JSON is evidence only and cannot be applied after restart. This is a
 human-gated review workflow, not parallel or autonomous Multi-Agent policy
 authority.
+
+For deterministic research only, `verify:sandbox:ten-tasks` launches an
+explicit ephemeral profile with workspace and data roots under one dedicated
+`%TEMP%/blankseed-sandbox-*` tree and an HTTP loopback model endpoint. In that
+profile, the Agent UI exposes an auto-Apply control and a distinct
+`agent-sandbox-policy` authority may apply an approved same-session decision
+through the same Checkpoint, source-integrity, and compare-and-swap path.
+Normal launches keep this control disabled and still require Operator Apply.
+The profile is not an OS security sandbox and does not isolate generated Node
+code from the host filesystem.
 
 ## Automated evolution verification
 
