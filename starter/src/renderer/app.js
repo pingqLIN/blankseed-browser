@@ -13,6 +13,7 @@ const moduleStatusLabels = Object.freeze({
 const state = {
   activeTab: 'page',
   events: [],
+  checkpoints: [],
   modules: { active: {}, modules: [], candidates: [] },
   status: null,
   agent: { running: false, evolutionRunId: null, label: 'Agent 待命。' },
@@ -56,7 +57,7 @@ async function run(operation, { skipRefresh = false } = {}) {
 }
 
 async function refreshAll() {
-  await Promise.all([refreshStatus(), refreshModules(), refreshEvents()]);
+  await Promise.all([refreshStatus(), refreshModules(), refreshCheckpoints(), refreshEvents()]);
   renderAll();
 }
 
@@ -82,6 +83,14 @@ async function refreshEvents() {
     state.events = await window.blankseed.events.tail();
   } catch (error) {
     state.events = [{ type: 'events.failed', timestamp: new Date().toISOString(), data: { message: error.message } }];
+  }
+}
+
+async function refreshCheckpoints() {
+  try {
+    state.checkpoints = await window.blankseed.checkpoint.list();
+  } catch {
+    state.checkpoints = [];
   }
 }
 
@@ -195,18 +204,21 @@ function fillModule(manifest) {
 function renderCheckpoints() {
   const browser = $('checkpoint-browser');
   browser.replaceChildren();
-  const checkpoints = state.events.filter((event) => event.type === 'checkpoint.created').slice(-8).reverse();
+  const checkpoints = state.checkpoints.slice(0, 8);
   if (checkpoints.length === 0) {
     browser.textContent = '尚無 Checkpoint。';
     return;
   }
-  for (const event of checkpoints) {
-    const row = document.createElement('div');
+  for (const checkpoint of checkpoints) {
+    const row = document.createElement('button');
+    row.type = 'button';
     row.className = 'browser-row';
+    row.disabled = checkpoint.restorable === false;
+    row.addEventListener('click', () => { $('checkpoint-id').value = checkpoint.id; });
     row.append(
-      makeText('strong', event.data?.label || 'checkpoint'),
-      makeText('span', short(event.data?.id, 14)),
-      makeText('small', `#${event.sequence}`)
+      makeText('strong', checkpoint.label || 'checkpoint'),
+      makeText('span', short(checkpoint.id, 18)),
+      makeText('small', `${checkpoint.schema}${checkpoint.restorable ? '' : ' · capture only'}`)
     );
     browser.append(row);
   }
@@ -331,6 +343,18 @@ $('send-cdp').addEventListener('click', () => run(() => {
   return window.blankseed.cdp.send($('cdp-method').value, params, { requestId: requestId('cdp') });
 }));
 $('checkpoint').addEventListener('click', () => run(() => window.blankseed.checkpoint.create($('checkpoint-label').value, { requestId: requestId('checkpoint') })));
+$('checkpoint-restore').addEventListener('click', () => {
+  const checkpointId = $('checkpoint-id').value.trim();
+  if (!checkpointId) {
+    showError({ code: 'INVALID_REQUEST', message: '請先選擇 Checkpoint。' });
+    return;
+  }
+  if (!window.confirm('Restore 只會還原 committed Module 的 active mapping；不會還原頁面、儲存空間、設定、credential 或 external side effects。確定繼續？')) return;
+  run(() => window.blankseed.checkpoint.restore(checkpointId, {
+    requestId: requestId('checkpoint_restore'),
+    confirmed: true
+  }));
+});
 $('utility-ping').addEventListener('click', () => run(() => window.blankseed.utility.ping({ requestId: requestId('ping') })));
 $('utility-execute').addEventListener('click', () => run(() => window.blankseed.utility.execute($('utility-source').value, { requestId: requestId('node') })));
 $('utility-stop').addEventListener('click', () => run(() => window.blankseed.utility.stop({ requestId: requestId('node_stop') })));

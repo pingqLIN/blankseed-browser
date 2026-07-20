@@ -464,6 +464,10 @@ class ModelTurnManager {
     return { cancelled: active.length };
   }
 
+  getActiveCount() {
+    return this.active.size;
+  }
+
   #result({ adapterId, contextHash, contextPackage, context, error = null, inputHash, messages, output, startedAt, status, turnId }) {
     const finishedAt = new Date().toISOString();
     return {

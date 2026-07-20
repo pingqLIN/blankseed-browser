@@ -80,3 +80,18 @@ Agent loop 原本能觀察／執行目前 Target，也能 Activate Module，卻�
 才不會被誤判為 stale。Module Rollback 仍只改變 active mapping，不宣稱能
 反轉 external side effect；若任一 tool 繞過 URL/version validation、遺失
 event evidence，或未完成導航便更新 identity，應立即移除並 review。
+
+## ADR-015 — 將 Checkpoint restore 限制為 atomic active-Module mapping
+
+Checkpoint 原本只擷取 status，若把它稱為完整 backup 會誇大 recovery 能力。
+Committed Module 已有 immutable identity 與 `sourceHash`，active selection 則是
+可完整驗證與 atomic replacement 的小型 mapping。決定建立含 state hash、明確
+restore scope 與 exclusions 的 versioned Checkpoint。
+
+Restore 需要 operator confirmation、owned Runtime 已 idle、app version 與
+Checkpoint hash 相符，且所有 committed Module source hash 通過驗證。系統先建立
+safety Checkpoint，再以 compare-and-swap 只替換完整 `modules.active`；stale
+mapping 或部分驗證失敗時不得 mutation。Navigation、browser storage、
+configuration、credentials、events、Module files、Git state 與 external effects
+全部在 scope 外。若無法保證 hash validation、safety capture、atomic mapping
+replacement 或 owned-runtime stop，應停用 restore；擴大 scope 必須另立決策。

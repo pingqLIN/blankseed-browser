@@ -42,7 +42,7 @@ npm run verify:wp12:preflight
 - 取得基本 page snapshot；
 - 在 isolated world `1001` 執行 JavaScript；
 - 傳送 raw CDP method 與參數；
-- 建立 file checkpoint；
+- 建立具 integrity check 的 file checkpoint，並在明確確認後還原其 active Module mapping；
 - ping utility process；
 - 在 supervised utility process 執行 generated Node.js source；
 - 停止進行中的 generated Node.js execution；

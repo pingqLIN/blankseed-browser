@@ -47,6 +47,27 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
     return Object.keys(expected).length > 0 ? expected : null;
   };
 
+  const waitForRestoreIdle = async (context) => {
+    evolutionRunManager.cancel({}, context);
+    modelTurnManager.cancel(context);
+    const targetCancellation = target.cancelExecutions({}, context);
+    const runtime = await processSupervisor.stop(context);
+    const deadline = Date.now() + 2000;
+    while (Date.now() < deadline && (evolutionRunManager.getActiveCount() > 0 || modelTurnManager.getActiveCount() > 0)) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    const active = {
+      evolutionRuns: evolutionRunManager.getActiveCount(),
+      modelTurns: modelTurnManager.getActiveCount(),
+      nodeExecutions: processSupervisor.getActiveCount(),
+      pageExecutions: targetCancellation.remaining
+    };
+    if (Object.values(active).some((count) => count > 0)) {
+      throw createProtocolError(errorCodes.checkpointFailed, 'Runtime did not reach an idle state before Checkpoint restore.', { active }, true);
+    }
+    return { active, stopped: runtime.stopped, cancelledPageExecutions: targetCancellation.cancelled };
+  };
+
   const handle = (channel, kind, fn, { evented = true } = {}) => {
     const wrapped = async (event, payload) => {
       let requestId = null;
@@ -130,6 +151,21 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
   handle(channels.checkpointCreate, 'checkpoint.create', async (payload = {}, context) => {
     if (payload !== undefined) assertPlainObject(payload, 'payload');
     return checkpointStore.create(payload.label ?? 'manual checkpoint', context);
+  });
+  handle(channels.checkpointList, 'checkpoint.list', async () => checkpointStore.list(), { evented: false });
+  handle(channels.checkpointRead, 'checkpoint.read', async (payload) => {
+    assertPlainObject(payload, 'payload');
+    return checkpointStore.read(assertIdentifier(payload.checkpointId, 'checkpointId', 'chk'));
+  }, { evented: false });
+  handle(channels.checkpointRestore, 'checkpoint.restore', async (payload, context) => {
+    assertPlainObject(payload, 'payload');
+    if (payload.confirmed !== true) {
+      throw createProtocolError(errorCodes.invalidRequest, 'Checkpoint restore requires explicit operator confirmation.');
+    }
+    const checkpointId = assertIdentifier(payload.checkpointId, 'checkpointId', 'chk');
+    const stopped = await waitForRestoreIdle(context);
+    const restored = checkpointStore.restore(checkpointId, { confirmed: true }, context);
+    return { ...restored, stopped };
   });
   handle(channels.eventsTail, 'events.tail', async () => eventStore.tail(config.eventTailLimit), { evented: false });
   handle(channels.utilityPing, 'utility.ping', async (_payload, context) => processSupervisor.ping(context));

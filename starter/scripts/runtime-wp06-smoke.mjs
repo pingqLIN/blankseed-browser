@@ -110,7 +110,7 @@ try {
   const readResult = () => JSON.parse(document.getElementById('result').textContent);
   const moduleId = 'generated.wp06.console.' + Date.now();
 
-  await waitFor(() => window.blankseedConsoleReady && document.querySelectorAll('.tab').length === 4, 'console ready');
+  await waitFor(() => window.blankseedConsoleReady && document.querySelectorAll('.tab').length === 5, 'console ready');
   document.querySelector('[data-tab="module"]').click();
   document.getElementById('module-id').value = moduleId;
   document.getElementById('module-version').value = '0.1.0';
@@ -133,8 +133,15 @@ try {
 
   document.getElementById('checkpoint-label').value = 'wp06 console smoke';
   document.getElementById('checkpoint').click();
-  await waitFor(() => readResult().schema === 'blankseed-checkpoint/0.1', 'checkpoint create');
+  await waitFor(() => readResult().schema === 'blankseed-checkpoint/0.2', 'checkpoint create');
   const checkpointResult = readResult();
+
+  await window.blankseed.modules.deactivate(moduleId, { requestId: 'req_wp06_deactivate' });
+  document.getElementById('checkpoint-id').value = checkpointResult.id;
+  window.confirm = () => true;
+  document.getElementById('checkpoint-restore').click();
+  await waitFor(() => readResult().active?.[moduleId] === '0.1.0', 'checkpoint restore');
+  const restoreResult = readResult();
 
   document.getElementById('stop-all').click();
   await waitFor(() => document.getElementById('stop-state').classList.contains('confirmed'), 'stop all');
@@ -149,6 +156,7 @@ try {
     targetSummary: document.getElementById('target-summary').textContent,
     invokeResult,
     checkpointId: checkpointResult.id,
+    restoreResult,
     stopText: document.getElementById('stop-state').textContent.trim(),
     moduleRows: document.querySelectorAll('#module-browser .browser-row').length,
     checkpointRows: document.querySelectorAll('#checkpoint-browser .browser-row').length,
@@ -169,7 +177,9 @@ try {
   assert(value.activeTab === 'module', 'module tab was not active');
   assert(value.invokeResult.status === 'ok' && value.invokeResult.result.value === 42, 'module invoke did not complete through console UI');
   assert(value.checkpointId?.startsWith('chk_'), 'checkpoint browser workflow did not create a checkpoint');
-  assert(value.stopText.includes('confirmed'), 'stop-all state was not confirmed');
+  assert(value.restoreResult.active?.[value.moduleId] === '0.1.0', 'checkpoint restore did not restore the active Module mapping');
+  assert(value.restoreResult.restoreScope?.[0] === 'modules.active', 'checkpoint restore scope was not explicit');
+  assert(value.stopText.includes('已確認'), 'stop-all state was not confirmed');
   assert(value.moduleRows >= 1, 'module browser did not render module rows');
   assert(value.checkpointRows >= 1, 'checkpoint browser did not render checkpoint rows');
   assert(value.timelineRows >= 8 && value.hasModuleTimeline, 'timeline did not render module events');

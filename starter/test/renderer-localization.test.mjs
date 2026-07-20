@@ -28,6 +28,7 @@ test('renderer presents a complete Traditional Chinese control surface', async (
     '啟動 Agent Run',
     '取消 Agent Run',
     '建立 Checkpoint',
+    'Restore Checkpoint',
     '全部停止',
     '事件時間軸'
   ]) {

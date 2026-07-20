@@ -15,6 +15,9 @@ const channels = Object.freeze({
   cdpSend: 'blankseed:cdp:send',
   executionCancel: 'blankseed:execution:cancel',
   checkpointCreate: 'blankseed:checkpoint:create',
+  checkpointList: 'blankseed:checkpoint:list',
+  checkpointRead: 'blankseed:checkpoint:read',
+  checkpointRestore: 'blankseed:checkpoint:restore',
   eventsTail: 'blankseed:events:tail',
   utilityPing: 'blankseed:utility:ping',
   utilityExecute: 'blankseed:utility:execute',
@@ -84,7 +87,10 @@ contextBridge.exposeInMainWorld('blankseed', {
     )
   },
   checkpoint: {
-    create: (label, options) => invoke(channels.checkpointCreate, withOptions({ label }, options))
+    create: (label, options) => invoke(channels.checkpointCreate, withOptions({ label }, options)),
+    list: (options) => invoke(channels.checkpointList, withOptions({}, options)),
+    read: (checkpointId, options) => invoke(channels.checkpointRead, withOptions({ checkpointId }, options)),
+    restore: (checkpointId, options) => invoke(channels.checkpointRestore, withOptions({ checkpointId, confirmed: options?.confirmed === true }, options))
   },
   events: {
     tail: (options) => invoke(channels.eventsTail, withOptions({}, options)),

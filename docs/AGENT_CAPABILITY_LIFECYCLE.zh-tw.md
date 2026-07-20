@@ -109,7 +109,7 @@ Rollback 有明確限制：
 - 它不同於 Checkpoint restore；
 - 它也不同於 application source 的 Git/worktree rollback。
 
-Checkpoint evidence 可協助 recovery decision，但目前 Checkpoint Store 只擷取 state，沒有提供通用 automatic restore API。Application source recovery 仍屬於另行治理的 Git/workspace procedure。
+Checkpoint restore 是需 operator confirmation 的 recovery operation，不是 Module 可自行選擇的 lifecycle transition。它會驗證 Checkpoint integrity、application version、committed Module manifest 與 source hash，建立 pre-restore safety Checkpoint，再以 atomic operation 只還原完整 active Module mapping。它不還原 navigation、browser storage、configuration、credentials、events、Module files、Git state 或 external effects。Application source recovery 仍屬於另行治理的 Git/workspace procedure。
 
 ## Failure transitions
 

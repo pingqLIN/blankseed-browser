@@ -59,7 +59,7 @@ evolution-run artifacts, not in hidden Main Process branches.
 | Capability Broker | Run Page snapshots, isolated Page source, and raw CDP commands with identities, limits, and events | All Target operations pass through the observable broker |
 | Node Runtime | Execute generated Node source under `ProcessSupervisor` | Separate Electron `utilityProcess`; observable and terminable, but not a security sandbox |
 | Module System | Store Candidate source, Test results, immutable committed versions, active mappings, and Rollback transitions | Generated workspace separated from Kernel source |
-| Recovery records | Persist events and Checkpoints and support version-oriented recovery decisions | Evidence and recovery inputs; current Checkpoints are state captures, not an automatic restore API |
+| Recovery records | Persist events and Checkpoints and support version-oriented recovery decisions | Integrity-checked state captures plus an operator-confirmed restore limited to the active Module mapping |
 
 ## Process Model
 
@@ -143,10 +143,12 @@ safe:
   immutable Module version, and is explicitly selected through Activate.
 - Module Rollback changes the active mapping to a selected earlier committed
   version and records the transition.
-- Checkpoint creation records current Runtime state before risky transitions.
-  The current implementation does not provide a general Checkpoint restore API;
-  recovery still requires the applicable Module Rollback, process restart, or
-  governed Git/workspace procedure.
+- Checkpoint creation records current Runtime state and an integrity hash before
+  risky transitions. Operator-confirmed Checkpoint restore stops owned work,
+  validates referenced committed Modules and source hashes, creates a safety
+  Checkpoint, and atomically compare-and-swaps only `modules.active`. Target
+  navigation, browser user data/storage, configuration, credentials, events,
+  Module files, Git state, and external effects are explicitly excluded.
 
 The detailed threat and control model is defined in
 [`SECURITY_MODEL.md`](SECURITY_MODEL.md).
@@ -202,6 +204,7 @@ content isolation, immutable version identity, and explicit recovery evidence.
 3. Raw primitives remain behind the broker or shared event pipeline.
 4. Generated behavior and its evidence remain inspectable.
 5. Activation and Rollback refer to explicit immutable Module versions.
-6. Checkpoint evidence must not be described as automatic restoration.
+6. Checkpoint restore must be described as an operator-confirmed, active-Module
+   mapping restore rather than general or automatic state reversal.
 7. New platform planes must extend this architecture without silently moving
    generated authority into the fixed Kernel.

@@ -102,7 +102,8 @@ function createWindow() {
   const checkpointStore = new CheckpointStore(dataRoot, {
     appVersion: packageJson.version,
     eventStore,
-    getState: getStatus
+    getState: getStatus,
+    moduleStore
   });
   modelTurnManager = new ModelTurnManager({
     eventStore,

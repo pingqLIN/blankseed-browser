@@ -162,9 +162,11 @@ return {
         <div class="toolbar">
           <button id="stop-all">全部停止</button>
           <button id="checkpoint">建立 Checkpoint</button>
+          <button id="checkpoint-restore">Restore Checkpoint</button>
         </div>
       </div>
       <input id="checkpoint-label" value="手動 checkpoint" aria-label="Checkpoint label 標籤">
+      <input id="checkpoint-id" placeholder="chk_..." spellcheck="false" aria-label="Checkpoint 識別碼">
       <div id="stop-state" class="stop-state idle">
         <span>停止狀態</span>
         <strong>待命</strong>

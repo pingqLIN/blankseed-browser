@@ -171,3 +171,35 @@ test('ModuleStore activates a newer version and rolls back to an older version',
     harness.cleanup();
   }
 });
+
+test('ModuleStore restores a fully validated active mapping with compare-and-swap', async () => {
+  const harness = createHarness();
+  try {
+    for (const version of ['0.1.0', '0.2.0']) {
+      const candidate = harness.store.createCandidate({
+        manifest: manifest(version),
+        source: `return { version: ${JSON.stringify(version)} };`
+      });
+      await harness.store.testCandidate(candidate.candidateId);
+      harness.store.commitCandidate(candidate.candidateId);
+    }
+    harness.store.activate({ id: 'generated.wp05', version: '0.2.0' });
+    const expectedActive = harness.store.getState().active;
+    const restored = harness.store.restoreActive({
+      active: { 'generated.wp05': '0.1.0' },
+      expectedActive
+    });
+    assert.deepEqual(restored.active, { 'generated.wp05': '0.1.0' });
+    assert.equal(harness.recreateStore().getState().active['generated.wp05'], '0.1.0');
+
+    const staleExpected = { ...restored.active };
+    harness.store.activate({ id: 'generated.wp05', version: '0.2.0' });
+    assert.throws(() => harness.store.restoreActive({
+      active: { 'generated.wp05': '0.1.0' },
+      expectedActive: staleExpected
+    }), /changed before restore/);
+    assert.equal(harness.store.getState().active['generated.wp05'], '0.2.0');
+  } finally {
+    harness.cleanup();
+  }
+});

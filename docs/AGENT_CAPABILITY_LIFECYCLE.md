@@ -148,9 +148,14 @@ Rollback has precise limits:
 - it is distinct from Checkpoint restore;
 - it is distinct from Git/worktree rollback for application source.
 
-Checkpoint evidence can guide recovery, but the current Checkpoint Store only
-captures state and does not expose a general automatic restore API. Application
-source recovery remains a separately governed Git/workspace procedure.
+Checkpoint restore is an operator-confirmed recovery operation, not a lifecycle
+transition automatically selected by a Module. It validates Checkpoint
+integrity, the application version, committed Module manifests, and source
+hashes; creates a pre-restore safety Checkpoint; and atomically restores only
+the complete active Module mapping. It does not restore navigation, browser
+storage, configuration, credentials, events, Module files, Git state, or
+external effects. Application source recovery remains a separately governed
+Git/workspace procedure.
 
 ## Failure transitions
 

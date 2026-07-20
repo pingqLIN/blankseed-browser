@@ -53,7 +53,8 @@ Available baseline controls:
 - inspect a basic page snapshot;
 - execute JavaScript in isolated world `1001`;
 - send a raw CDP method and parameters;
-- create a file checkpoint;
+- create an integrity-checked file checkpoint and explicitly restore its active
+  Module mapping;
 - ping a utility process;
 - execute generated Node.js source in a supervised utility process;
 - stop active generated Node.js execution;

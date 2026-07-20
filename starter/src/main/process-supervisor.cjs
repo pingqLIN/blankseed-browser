@@ -225,6 +225,10 @@ class ProcessSupervisor {
     return { stopped: records.length, remaining: this.active.size };
   }
 
+  getActiveCount() {
+    return this.active.size;
+  }
+
   shutdown(context = {}) {
     this.eventStore.append('node.runtime.shutdown.requested', {
       active: this.active.size

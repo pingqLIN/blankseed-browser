@@ -312,7 +312,7 @@ try {
   assert(value.ui.title === 'BlankSeed Browser 控制台', 'localized control surface title is missing');
   assert(JSON.stringify(value.ui.keyboardTabs) === JSON.stringify({
     afterRight: 'cdp',
-    afterEnd: 'module',
+    afterEnd: 'agent',
     afterLeft: 'node',
     afterHome: 'page'
   }), 'keyboard tab navigation did not follow Arrow/Home/End behavior');

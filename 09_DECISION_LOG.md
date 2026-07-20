@@ -591,6 +591,55 @@ or causes target identity to be refreshed without a completed navigation.
 
 ---
 
+## ADR-015 — Limit Checkpoint restore to an atomic active-Module mapping
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+Checkpoints previously captured status but exposed no restore operation. Calling
+that capture a backup would overstate recovery because it contains neither
+browser storage nor immutable copies of Module files or external state.
+
+### Evidence
+
+Committed Module versions already carry immutable identity and `sourceHash`, and
+the active selection is a small JSON mapping. This is the captured state that
+can be validated and replaced atomically without inventing reversal for remote
+or operating-system effects.
+
+### Alternatives
+
+- Keep Checkpoints capture-only.
+- Restore the Target URL and Electron profile/storage automatically.
+- Copy or overwrite Module source and Git state from a Checkpoint.
+
+### Decision
+
+Create versioned Checkpoints with a state hash, explicit restore scope, and
+explicit exclusions. Restore requires operator confirmation, an idle owned
+Runtime, matching app version and Checkpoint hash, and valid committed Module
+source hashes. It creates a safety Checkpoint, then atomically compare-and-swaps
+only the complete `modules.active` mapping. Stale mappings or partial validation
+fail before mutation.
+
+### Consequences
+
+- Recovery can select a previously captured set of committed capabilities.
+- A failed restore preserves the current mapping and an inspectable failure
+  event.
+- Navigation, browser storage, configuration, credentials, events, Module files,
+  Git state, and external effects remain outside restore scope.
+
+### Rollback/review trigger
+
+Disable restore if hash validation, safety capture, atomic mapping replacement,
+or owned-runtime stop cannot be guaranteed. Any wider state restore requires a
+new decision and dedicated recovery evidence.
+
+---
+
 ## ADR template
 
 ```markdown

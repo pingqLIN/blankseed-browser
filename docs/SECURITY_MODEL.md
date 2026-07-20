@@ -106,9 +106,13 @@ Target state, configuration, and version identity available through Runtime
 status. Evolution runs create a pre-run Checkpoint and retain its identity in
 run evidence.
 
-The current Checkpoint Store does not implement a general restore API.
-Checkpoint is therefore recovery evidence and a decision boundary, not a claim
-of automatic state reversal.
+The Checkpoint Store implements a deliberately narrow restore API. An operator
+must confirm the restore; owned work must stop; the state hash, application
+version, committed manifests, and Module source hashes must validate; and a
+safety Checkpoint is created first. Restore then atomically compare-and-swaps
+only the complete active Module mapping. It does not claim that application
+source, Target navigation, browser storage, configuration, credentials, events,
+operating-system state, or external effects are reversed.
 
 ### Rollback
 
@@ -154,7 +158,7 @@ operator must verify both termination and the resulting active state.
 - Generated Node execution is not a capability sandbox.
 - Candidate Test is not a comprehensive security review.
 - Module growth has no quota, review quorum, or garbage-collection policy.
-- Checkpoint restore is not implemented as a general Runtime API.
+- Checkpoint restore is limited to an integrity-checked active Module mapping.
 - Module versions are locally hashed but not signed or publisher-authenticated.
 - Rollback cannot reverse external side effects.
 - Policy decisions remain operator/governance responsibilities outside model

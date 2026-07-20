@@ -26,6 +26,18 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
+function writeJsonAtomic(filePath, value) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const temporary = `${filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
+  fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  fs.renameSync(temporary, filePath);
+}
+
+function activeMappingHash(value) {
+  const normalized = Object.fromEntries(Object.entries(value || {}).sort(([left], [right]) => left.localeCompare(right)));
+  return sha256(JSON.stringify(normalized));
+}
+
 function assertPattern(value, name, pattern) {
   if (!pattern.test(value)) {
     throw createProtocolError(errorCodes.invalidRequest, `${name} has an invalid format.`, { [name]: value });
@@ -210,6 +222,58 @@ class ModuleStore {
     return { moduleId, fromVersion: previousVersion, toVersion: targetVersion, active: { ...this.active } };
   }
 
+  planActiveRestore(activeInput) {
+    const requested = asObject(activeInput, 'active');
+    const targetActive = {};
+    const modules = [];
+    for (const [id, version] of Object.entries(requested)) {
+      const moduleId = this.#assertModuleId(id);
+      const targetVersion = this.#assertVersion(version);
+      const committed = this.#readCommitted(moduleId, targetVersion);
+      this.#assertSourceHash(committed.manifest, committed.source);
+      targetActive[moduleId] = targetVersion;
+      modules.push({ moduleId, version: targetVersion, sourceHash: committed.manifest.sourceHash });
+    }
+    return {
+      currentActive: { ...this.active },
+      currentActiveHash: activeMappingHash(this.active),
+      targetActive,
+      targetActiveHash: activeMappingHash(targetActive),
+      modules
+    };
+  }
+
+  restoreActive({ active, expectedActive }, context = {}) {
+    const plan = this.planActiveRestore(active);
+    const expected = asObject(expectedActive, 'expectedActive');
+    const expectedHash = activeMappingHash(expected);
+    const currentHash = activeMappingHash(this.active);
+    const persisted = readJson(this.activeFile, {});
+    const persistedHash = activeMappingHash(persisted);
+    if (currentHash !== expectedHash || persistedHash !== expectedHash) {
+      throw createProtocolError(errorCodes.moduleVersionConflict, 'Active Module mapping changed before restore.', {
+        expectedHash,
+        currentHash,
+        persistedHash
+      }, true);
+    }
+    writeJsonAtomic(this.activeFile, plan.targetActive);
+    this.active = { ...plan.targetActive };
+    this.eventStore.append('module.active.restore.completed', {
+      previousActiveHash: expectedHash,
+      activeHash: plan.targetActiveHash,
+      moduleCount: plan.modules.length,
+      modules: plan.modules
+    }, context);
+    return {
+      previousActive: { ...expected },
+      active: { ...this.active },
+      previousActiveHash: expectedHash,
+      activeHash: plan.targetActiveHash,
+      modules: plan.modules
+    };
+  }
+
   async invoke({ id, environment = {}, timeoutMs = this.defaultTimeoutMs }, context = {}) {
     const moduleId = this.#assertModuleId(id);
     const version = this.active[moduleId];
@@ -335,7 +399,7 @@ class ModuleStore {
   }
 
   #writeActive() {
-    writeJson(this.activeFile, this.active);
+    writeJsonAtomic(this.activeFile, this.active);
   }
 
   #listCandidates() {
@@ -370,6 +434,7 @@ class ModuleStore {
 }
 
 module.exports = {
+  activeMappingHash,
   MODULE_SCHEMA,
   ModuleStore
 };

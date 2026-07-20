@@ -49,7 +49,7 @@ Runtime Services
 | Capability Broker | 以 identity、limit 與 event 執行 Page snapshot、isolated Page source 與 raw CDP command | 所有 Target 操作均通過 observable broker |
 | Node Runtime | 在 `ProcessSupervisor` 下執行 generated Node source | 獨立 Electron `utilityProcess`；可觀察、可終止，但不是 security sandbox |
 | Module System | 儲存 Candidate source、Test result、immutable committed version、active mapping 與 Rollback transition | Generated workspace 與 Kernel source 分離 |
-| Recovery records | 持久化 event 與 Checkpoint，提供 version-oriented recovery decision 所需資訊 | Evidence 與 recovery input；目前 Checkpoint 是 state capture，不是自動 restore API |
+| Recovery records | 持久化 event 與 Checkpoint，提供 version-oriented recovery decision 所需資訊 | 具 integrity check 的 state capture，以及需 operator confirmation、僅限 active Module mapping 的 restore |
 
 ## Process Model
 
@@ -101,7 +101,7 @@ Service 透過 IPC 回傳 structured value 或 normalized error。UI 顯示最�
 - Generated Node code 在 Main Process 外由 supervisor 執行，並受 timeout 與 stop/kill control 管理。
 - Candidate 必須通過 Test、以 immutable Module version 完成 Commit，並明確 Activate 後才會成為 active。
 - Module Rollback 會將 active mapping 切換到指定的舊 committed version，並記錄 transition。
-- Checkpoint creation 會在高風險 transition 前記錄目前 Runtime state。現有實作沒有通用 Checkpoint restore API；recovery 仍需使用適用的 Module Rollback、process restart，或受治理的 Git/workspace procedure。
+- Checkpoint creation 會在高風險 transition 前記錄目前 Runtime state 與 integrity hash。operator-confirmed Checkpoint restore 會停止 owned work、驗證 referenced committed Module 與 source hash、建立 safety Checkpoint，再以 atomic compare-and-swap 只還原 `modules.active`。Target navigation、browser user data/storage、configuration、credentials、events、Module files、Git state 與 external effects 均明確排除。
 
 完整 threat 與 control model 定義於 [`SECURITY_MODEL.zh-tw.md`](SECURITY_MODEL.zh-tw.md)。
 
@@ -147,5 +147,5 @@ Knowledge Plane、Agent Memory、Skill Registry、Capability Marketplace 與 Mul
 3. Raw primitives 保留在 broker 或 shared event pipeline 後方。
 4. Generated behavior 與其 evidence 維持可檢視。
 5. Activation 與 Rollback 指向明確的 immutable Module version。
-6. 不得把 Checkpoint evidence 描述成自動 restoration。
+6. Checkpoint restore 必須描述為需 operator confirmation 的 active-Module mapping restore，不得描述為 general 或 automatic state reversal。
 7. 新 platform plane 必須延伸本架構，不得把 generated authority 靜默移入固定 Kernel。

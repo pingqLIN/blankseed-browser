@@ -67,7 +67,7 @@ Committed Module version 具有穩定 Module `id`、semantic `version` 與 `sour
 
 Checkpoint creation 會擷取目前 application state、active Module metadata、Target state、configuration，以及 Runtime status 可取得的 version identity。Evolution run 會建立 pre-run Checkpoint，並在 run evidence 中保留其 identity。
 
-目前 Checkpoint Store 沒有實作通用 restore API。因此 Checkpoint 是 recovery evidence 與 decision boundary，不代表 automatic state reversal。
+Checkpoint Store 實作的是刻意收斂的 restore API。operator 必須確認 restore；owned work 必須先停止；state hash、application version、committed manifest 與 Module source hash 都必須通過驗證；並先建立 safety Checkpoint。Restore 之後以 atomic compare-and-swap 只還原完整 active Module mapping，不宣稱能反轉 application source、Target navigation、browser storage、configuration、credentials、events、operating-system state 或 external effects。
 
 ### Rollback
 
@@ -102,7 +102,7 @@ Target `WebContentsView` 使用 `nodeIntegration: false`、`contextIsolation: tr
 - Generated Node execution 不是 capability sandbox。
 - Candidate Test 不是完整 security review。
 - Module growth 尚無 quota、review quorum 或 garbage-collection policy。
-- 通用 Runtime API 尚未實作 Checkpoint restore。
+- Checkpoint restore 僅限通過 integrity check 的 active Module mapping。
 - Module version 具有 local hash，但沒有 signature 或 publisher authentication。
 - Rollback 無法逆轉 external side effect。
 - Policy decision 仍屬於 model output 之外的 operator/governance responsibility。

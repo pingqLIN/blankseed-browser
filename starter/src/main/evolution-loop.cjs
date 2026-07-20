@@ -538,6 +538,10 @@ class EvolutionRunManager {
     return { cancelled: active.length };
   }
 
+  getActiveCount() {
+    return this.active.size;
+  }
+
   #finish(evidence, evidencePath, context, status) {
     evidence.status = status;
     evidence.finishedAt = new Date().toISOString();
