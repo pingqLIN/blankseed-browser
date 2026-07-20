@@ -194,6 +194,15 @@ function encodeOpenAIMessages(messages, contextPackage) {
 class LocalManualAdapter {
   constructor({ id = 'local.manual' } = {}) {
     this.id = id;
+    this.publicMetadata = Object.freeze({
+      id,
+      label: 'Local Manual',
+      provider: 'local',
+      model: 'deterministic-manual',
+      transport: 'in-process',
+      available: true,
+      hosted: false
+    });
   }
 
   async run({ messages, contextPackage, signal, options = {} }) {
@@ -230,6 +239,15 @@ class LocalOpenAICompatibleAdapter {
     if (!this.model) {
       throw createProtocolError(errorCodes.invalidRequest, 'Local model name must not be empty.');
     }
+    this.publicMetadata = Object.freeze({
+      id,
+      label: 'Local OpenAI-compatible',
+      provider: 'local',
+      model: this.model,
+      transport: 'loopback',
+      available: true,
+      hosted: false
+    });
   }
 
   async run({ messages, contextPackage, signal, options = {}, tools = [] }) {
@@ -317,6 +335,18 @@ class ModelTurnManager {
     this.defaultTimeoutMs = defaultTimeoutMs;
     this.eventLimit = eventLimit;
     this.active = new Map();
+  }
+
+  getCatalog() {
+    return [...this.adapters.entries()].map(([id, adapter]) => ({
+      id,
+      label: adapter.publicMetadata?.label || id,
+      provider: adapter.publicMetadata?.provider || 'unknown',
+      model: adapter.publicMetadata?.model || null,
+      transport: adapter.publicMetadata?.transport || 'unknown',
+      available: adapter.publicMetadata?.available !== false,
+      hosted: Boolean(adapter.publicMetadata?.hosted)
+    }));
   }
 
   async turn(payload = {}, context = {}, runtime = {}) {

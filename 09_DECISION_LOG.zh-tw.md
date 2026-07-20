@@ -53,3 +53,17 @@ WP-11 loopback fixture 已實際完成 snapshot、建立故意回傳 BigInt 的 
 WP-11 已用 deterministic fixture 關閉 Phase 5 protocol gap，但無法證明真實模型的 task quality、evidence-driven correction 或 prompt-injection robustness。決定採用 `11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md`：固定一個無憑證本機模型，以四個 scenario family、每類三個獨立 trials 執行；每次使用隔離狀態、synthetic canary、完整 manifest 與明確 pass/hold/stop gates。
 
 WP-12 採專用 `workspace-research-loopback-only` profile，先縮小高風險試驗的 network 與 data exposure，但不新增 semantic task whitelist，也不改變 Kernel raw-tool catalog 或人工 source acceptance boundary。Series 若失敗或 HOLD，仍是不可刪除的研究證據；WP-12 通過也不授權 hosted credentials、自動接受 source change 或更廣 host access。若無法維持 evidence、process cleanup 或 loopback-only control，立即停止並回復 pre-run checkpoint；更換 provider、network profile、scenario matrix、Kernel tools 或 protected-data boundary 前必須重新 review。
+
+## ADR-013 — 以 redacted adapter catalog 提供 Agent Console
+
+Kernel 已有 `evolution.run`，但 trusted control renderer 原本沒有 Task composer
+與 model selection，operator 必須手動呼叫 preload API。決定在既有控制台新增
+Agent Console，且只投影 adapter ID、label、provider、model、transport class、
+availability 與 hosted/local 分類。Task、turn/action budget 與非 secret options
+仍使用既有 `evolution.run`；endpoint 與 credential 僅留在 main process。
+
+此設計讓 operator 可直接啟動與取消有界 Agent Run，也為日後列出 Hosted
+adapter 保留安全介面。Catalog availability 只代表 configuration，不代表
+provider health 或 model quality。若 renderer 可讀到 credential、unrestricted
+endpoint 或其他 secret-bearing configuration，應移除此投影；在 renderer IPC
+加入可編輯 endpoint／credential 前必須重新 review。

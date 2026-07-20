@@ -94,6 +94,7 @@ function createWindow() {
     sessionId,
     dataRoot,
     config,
+    modelAdapters: modelTurnManager?.getCatalog() || [],
     modules: moduleStore.getState(),
     target: target.getState()
   });

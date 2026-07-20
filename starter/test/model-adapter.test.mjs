@@ -183,6 +183,22 @@ test('ModelTurnManager returns deterministic local adapter result and events', a
   ]);
 });
 
+test('ModelTurnManager exposes a credential-free renderer catalog', () => {
+  const { manager } = createManager();
+  const catalog = manager.getCatalog();
+  assert.deepEqual(catalog, [{
+    id: 'local.manual',
+    label: 'Local Manual',
+    provider: 'local',
+    model: 'deterministic-manual',
+    transport: 'in-process',
+    available: true,
+    hosted: false
+  }]);
+  assert.equal(JSON.stringify(catalog).includes('endpoint'), false);
+  assert.equal(JSON.stringify(catalog).toLowerCase().includes('apikey'), false);
+});
+
 test('ModelTurnManager supports cancellation', async () => {
   const { eventStore, manager } = createManager();
   const pending = manager.turn({

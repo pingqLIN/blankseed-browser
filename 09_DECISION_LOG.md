@@ -496,6 +496,54 @@ source-acceptance gate or protected data boundary.
 
 ---
 
+## ADR-013 — Expose an Agent Console through a redacted adapter catalog
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+The Kernel already accepts `evolution.run`, but the trusted control renderer had
+no task composer or model selection surface. Operators had to call the preload
+API manually and could not discover the configured adapter identities.
+
+### Evidence
+
+`ModelTurnManager` already owns the adapter registry, while credentials and
+transport configuration remain in the main process. The renderer is trusted for
+control but must not receive provider credentials or unrestricted endpoints.
+
+### Alternatives
+
+- Keep `evolution.run` as a developer-console-only API.
+- Send the complete adapter configuration through status IPC.
+- Add a separate orchestration service outside the Electron application.
+
+### Decision
+
+Add an Agent Console to the existing trusted renderer and expose only a redacted
+adapter catalog containing adapter ID, label, provider, model, transport class,
+availability and hosted/local classification. Task text, bounded turn/action
+budgets and non-secret model options continue through the existing
+`evolution.run` contract. Endpoints and credentials remain main-process-only.
+
+### Consequences
+
+- Operators can start and cancel bounded Agent runs without browser developer
+  tools.
+- The UI can later list hosted adapters without receiving secret material.
+- Catalog availability describes configuration, not provider health or model
+  quality.
+
+### Rollback/review trigger
+
+Remove the Agent tab and catalog projection if renderer inspection reveals
+provider credentials, unrestricted endpoint details or another secret-bearing
+configuration value. Review before adding editable endpoint or credential
+fields to renderer IPC.
+
+---
+
 ## ADR template
 
 ```markdown

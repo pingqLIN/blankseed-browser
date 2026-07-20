@@ -100,7 +100,7 @@ p { margin-top: 3px; color: var(--muted); font-size: 12px; }
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--border);
@@ -125,12 +125,14 @@ p { margin-top: 3px; color: var(--muted); font-size: 12px; }
 
 input,
 textarea,
+select,
 button {
   font: 12px/1.35 Aptos, "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   min-width: 0;
   color: var(--text);
@@ -142,7 +144,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 2px rgba(132, 167, 200, 0.16);
 }
@@ -179,13 +182,19 @@ button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 }
 
 .module-grid,
-.button-grid {
+.button-grid,
+.agent-grid {
   display: grid;
   gap: 6px;
 }
 
 .module-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 0.74fr); }
 .button-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.agent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.agent-grid label,
+.field-label { color: var(--muted); font-size: 11px; }
+.agent-grid label { display: grid; gap: 4px; }
+button:disabled { cursor: not-allowed; opacity: 0.55; }
 
 .micro-output {
   margin-top: 7px;

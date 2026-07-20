@@ -15,6 +15,7 @@ const state = {
   events: [],
   modules: { active: {}, modules: [], candidates: [] },
   status: null,
+  agent: { running: false, evolutionRunId: null, label: 'Agent 待命。' },
   stop: { state: 'idle', label: '待命' }
 };
 
@@ -88,8 +89,29 @@ function renderAll() {
   renderStatus();
   renderStopState();
   renderModules();
+  renderAgent();
   renderCheckpoints();
   renderTimeline();
+}
+
+function renderAgent() {
+  const catalog = Array.isArray(state.status?.modelAdapters) ? state.status.modelAdapters : [];
+  const select = $('agent-adapter');
+  const selected = select.value;
+  select.replaceChildren();
+  for (const adapter of catalog) {
+    const option = document.createElement('option');
+    option.value = adapter.id;
+    option.textContent = `${adapter.label} · ${adapter.model || adapter.id}`;
+    option.disabled = adapter.available === false;
+    select.append(option);
+  }
+  if ([...select.options].some((option) => option.value === selected && !option.disabled)) {
+    select.value = selected;
+  }
+  $('agent-run').disabled = state.agent.running || select.options.length === 0;
+  $('agent-cancel').disabled = !state.agent.running;
+  $('agent-run-status').textContent = state.agent.label;
 }
 
 function renderStatus() {
@@ -340,6 +362,39 @@ $('module-invoke').addEventListener('click', () => run(() => window.blankseed.mo
   timeoutMs: 5000
 })));
 $('module-rollback').addEventListener('click', () => run(() => window.blankseed.modules.rollback($('module-id').value, $('module-version').value, { requestId: requestId('module_rollback') })));
+$('agent-run').addEventListener('click', async () => {
+  const task = $('agent-task').value.trim();
+  if (!task) {
+    showError({ code: 'INVALID_REQUEST', message: 'Task 任務不得為空。' });
+    return;
+  }
+  state.agent = { running: true, evolutionRunId: null, label: 'Agent Run 執行中…' };
+  renderAgent();
+  try {
+    const value = await window.blankseed.evolution.run([{ role: 'user', content: task }], {
+      requestId: requestId('agent_run'),
+      adapter: $('agent-adapter').value,
+      maxTurns: Number($('agent-max-turns').value),
+      maxActions: Number($('agent-max-actions').value),
+      options: { reasoningEffort: $('agent-reasoning').value }
+    });
+    state.agent = {
+      running: false,
+      evolutionRunId: value.evolutionRunId || null,
+      label: `Agent Run ${value.status === 'ok' ? '已完成' : '已停止'} · ${short(value.evolutionRunId, 18)}`
+    };
+    show(value);
+  } catch (error) {
+    state.agent = { running: false, evolutionRunId: null, label: `Agent Run 失敗：${error.message}` };
+    showError(error);
+  }
+  await refreshAll();
+});
+$('agent-cancel').addEventListener('click', () => run(async () => {
+  const value = await window.blankseed.evolution.cancel(state.agent.evolutionRunId, { requestId: requestId('agent_cancel') });
+  state.agent = { running: false, evolutionRunId: null, label: `已要求取消 Agent Run · ${value.cancelled || 0}` };
+  return value;
+}));
 $('refresh-events').addEventListener('click', () => refreshAll());
 $('clear-result').addEventListener('click', () => { result.textContent = '已就緒。'; });
 

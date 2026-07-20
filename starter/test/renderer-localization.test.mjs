@@ -24,6 +24,9 @@ test('renderer presents a complete Traditional Chinese control surface', async (
     'Activate 版本',
     'Invoke Module',
     'Rollback 版本',
+    'Agent Runtime 任務',
+    '啟動 Agent Run',
+    '取消 Agent Run',
     '建立 Checkpoint',
     '全部停止',
     '事件時間軸'
@@ -58,8 +61,8 @@ test('renderer tabs expose keyboard and ARIA state without translating protocol 
   ]);
 
   assert.match(html, /role="tablist"/);
-  assert.equal((html.match(/role="tab"/g) || []).length, 4);
-  assert.equal((html.match(/role="tabpanel"/g) || []).length, 4);
+  assert.equal((html.match(/role="tab"/g) || []).length, 5);
+  assert.equal((html.match(/role="tabpanel"/g) || []).length, 5);
   assert.match(app, /button\.setAttribute\('aria-selected', String\(isActive\)\)/);
   assert.match(app, /event\.key === 'ArrowRight'/);
   assert.match(app, /event\.key === 'ArrowLeft'/);

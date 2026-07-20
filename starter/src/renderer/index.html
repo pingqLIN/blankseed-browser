@@ -57,6 +57,7 @@
       <button id="tab-button-cdp" class="tab" data-tab="cdp" role="tab" aria-controls="tab-cdp" aria-selected="false" tabindex="-1">CDP</button>
       <button id="tab-button-node" class="tab" data-tab="node" role="tab" aria-controls="tab-node" aria-selected="false" tabindex="-1">Node</button>
       <button id="tab-button-module" class="tab" data-tab="module" role="tab" aria-controls="tab-module" aria-selected="false" tabindex="-1">Module 模組</button>
+      <button id="tab-button-agent" class="tab" data-tab="agent" role="tab" aria-controls="tab-agent" aria-selected="false" tabindex="-1">Agent</button>
     </nav>
 
     <section id="tab-page" class="panel tab-panel active" role="tabpanel" aria-labelledby="tab-button-page" tabindex="0">
@@ -70,6 +71,35 @@
   headings: [...document.querySelectorAll('h1,h2')].map((el) => el.textContent)
 };</textarea>
       <button id="execute-page">執行 Isolated JS</button>
+    </section>
+
+    <section id="tab-agent" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-agent" tabindex="0" hidden>
+      <div class="panel-head">
+        <h2>Agent Runtime 任務</h2>
+        <button id="agent-cancel">取消 Agent Run</button>
+      </div>
+      <label class="field-label" for="agent-task">Task 任務</label>
+      <textarea id="agent-task" spellcheck="false">觀察目前 Target，說明頁面內容與可安全執行的下一步。</textarea>
+      <div class="agent-grid">
+        <label>Model Adapter
+          <select id="agent-adapter" aria-label="Model Adapter"></select>
+        </label>
+        <label>Reasoning effort
+          <select id="agent-reasoning" aria-label="Reasoning effort">
+            <option value="medium" selected>medium</option>
+            <option value="low">low</option>
+            <option value="high">high</option>
+          </select>
+        </label>
+        <label>Max turns
+          <input id="agent-max-turns" type="number" min="1" max="24" value="6">
+        </label>
+        <label>Max actions
+          <input id="agent-max-actions" type="number" min="1" max="64" value="12">
+        </label>
+      </div>
+      <button id="agent-run">啟動 Agent Run</button>
+      <div id="agent-run-status" class="micro-output" role="status" aria-live="polite">Agent 待命。</div>
     </section>
 
     <section id="tab-cdp" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-cdp" tabindex="0" hidden>
