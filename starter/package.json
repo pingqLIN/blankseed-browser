@@ -6,6 +6,7 @@
   "main": "src/main/main.cjs",
   "scripts": {
     "start": "electron .",
+    "tutorial": "node scripts/serve-tutorial.mjs",
     "check": "node scripts/check-project.mjs && node scripts/check-doc-companions.mjs",
     "test": "node --test",
     "verify": "npm run check && npm test",

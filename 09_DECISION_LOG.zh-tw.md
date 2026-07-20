@@ -183,3 +183,69 @@ Profile metadata 必須明示 `hostFilesystem: not-isolated` 與 `securitySandbo
 ### Rollback/review trigger
 
 若 root 可逃出 owned temporary tree、接受非 loopback model egress、auto-Apply 未具 approved same-session anchor、任何 integrity/checkpoint/compare-and-swap check 被略過，或 evidence 誤述 authority／isolation claim，應移除此 profile 與 UI control。擴大 tool、改用 persistent root、hosted provider 或 production use 前必須重新 review。
+
+## ADR-019 — 允許從受信任控制面板提供只存於記憶體的 OpenAI 憑證
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+ADR-016 原本只允許 Main Process 環境變數提供憑證。操作員現在需要直接在可見的 Agent 面板設定既有的本機與 OpenAI 介接器，同時不能把供應者機密寫入版本庫或產生的 Runtime。
+
+### Evidence
+
+控制 Renderer 已隔離，並且只公開明確的 preload 呼叫。IPC 只記錄通道資料，不記錄 payload 值。`ModelTurnManager` 可在沒有進行中模型回合時替換介接器目錄；產生的 utility process 也已使用明確的環境允許清單，排除供應者憑證。
+
+### Alternatives
+
+- 維持只能透過環境變數設定。
+- 使用 Electron `safeStorage` 持久化加密金鑰。
+- 開放可編輯的遠端供應者端點與逐回合憑證。
+
+### Decision
+
+新增專用模型設定 IPC。密碼欄位送出後立即清空。面板提供的 OpenAI 金鑰只保留於本次程式執行的 Main Process 記憶體，而且不得出現在狀態、事件、錯誤或結果。環境變數憑證仍是替代來源。託管模型仍只允許固定的 OpenAI Responses 端點與模型。本機端點只接受本機回環，並拒絕憑證、查詢參數與片段。模型回合進行中不得替換介接器。
+
+### Consequences
+
+- 操作員可直接從 Agent 面板接入本機與 OpenAI 模型。
+- 受信任的控制 Renderer 會在清空欄位前短暫處理輸入的憑證，因此控制 Renderer 遭入侵仍屬風險範圍。
+- 重新啟動會清除面板提供的憑證；本次不新增持久化機密儲存。
+
+### Rollback/review trigger
+
+若任何金鑰進入持久化狀態、日誌、事件、錯誤、結果、產生程序的環境或非允許清單的對外連線，應移除面板憑證輸入。新增持久化、其他供應者、可編輯託管端點或背景憑證更新前，必須重新審查。
+
+## ADR-020 — 模組建立預設使用具操作員關卡的自動化流程
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+模組面板原本把每個生命週期動作分開，導致一般的「建立候選 → 測試 → 提交 → 啟用 → 呼叫」流程需要重複操作。自動化不得靜默跨越不可變提交或作用中版本對應的邊界。
+
+### Evidence
+
+既有 IPC 已驗證每個生命週期轉換。建立候選與測試是可逆的準備；提交會建立不可變版本身分；啟用會變更作用中對應；呼叫可立即提供結果證據。
+
+### Alternatives
+
+- 只保留逐項手動按鈕。
+- 不經確認直接執行完整生命週期。
+- 每次本機模組迭代都要求受控多代理決策。
+
+### Decision
+
+將一鍵流程設為預設介面。系統自動建立並測試候選，接著在提交前顯示 YES／NO 視窗，啟用前再次顯示 YES／NO 視窗。使用者允許啟用後，自動呼叫一次進行驗證。選擇 NO 會停在已測試候選或已提交版本，不執行回復。所有逐項控制仍保留於「手動操作（進階）」中。
+
+### Consequences
+
+- 一般模組迭代只需一次啟動與兩次重大決定。
+- 既有 API、證據、版本身分、回復與治理路徑維持不變。
+- 自動化流程只是介面協調，不是新的 Runtime 權限。
+
+### Rollback/review trigger
+
+若自動流程可略過任一確認視窗、在選擇 NO 後繼續、隱藏失敗的生命週期結果，或移除逐項復原控制，應停用此流程。自動提交、自動啟用或政策式核准前，必須重新審查。

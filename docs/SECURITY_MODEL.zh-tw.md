@@ -90,7 +90,7 @@ Target `WebContentsView` 使用 `nodeIntegration: false`、`contextIsolation: tr
 
 ### Hosted provider boundary
 
-Hosted OpenAI request 固定使用官方 HTTPS Responses endpoint 與一個已設定的 GPT-5.6 adapter identity。Main Process 把 `OPENAI_API_KEY` 注入 Authorization header；Renderer/model payload 會拒絕 secret-shaped field。Redirect 一律拒絕，明確使用 `store: false`，event 只保留 provider/model/origin/response identity、usage、hash 與 redacted decision metadata。Generated utility process 使用 explicit environment allowlist，排除 provider key 與無關 environment variable。
+託管 OpenAI 請求固定使用官方 HTTPS Responses 端點與一個已設定的 GPT-5.6 介接器身分。Main Process 會把選定的憑證放入 Authorization 標頭。專用設定通道可從受信任的控制 Renderer 接收暫時金鑰，但模型回合的 payload 仍拒絕任何疑似機密欄位。金鑰送出後會清空密碼輸入框，而且只保留於 Main Process 記憶體；設定回應、狀態、事件與錯誤只會顯示是否有憑證及其來源。重新導向一律拒絕，並明確使用 `store: false`；事件只保留供應者、模型、來源、回應身分、用量、雜湊與已遮蔽的決策資料。產生的 utility process 使用明確的環境允許清單，排除供應者金鑰與無關環境變數。
 
 ### Governed Multi-Agent review
 

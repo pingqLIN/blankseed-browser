@@ -87,6 +87,7 @@ test('model adapter validation rejects secret-shaped payloads and bad messages',
   assert.doesNotThrow(() => assertNoSecrets({ options: { maxTokens: 64 } }));
   assert.throws(() => normalizeMessages([{ role: 'user', content: '' }]), /invalid/);
   assert.throws(() => normalizeLoopbackEndpoint('https://example.com/v1/chat/completions'), /loopback/);
+  assert.throws(() => normalizeLoopbackEndpoint('http://127.0.0.1:1234/v1/chat/completions?api_key=blocked'), /query parameters/);
 });
 
 test('LocalOpenAICompatibleAdapter performs a credential-free loopback model turn', async (context) => {
@@ -316,6 +317,12 @@ test('ModelTurnManager exposes a credential-free renderer catalog', () => {
   }]);
   assert.equal(JSON.stringify(catalog).includes('endpoint'), false);
   assert.equal(JSON.stringify(catalog).toLowerCase().includes('apikey'), false);
+});
+
+test('ModelTurnManager replaces adapters only while idle and preserves local manual fallback', () => {
+  const { manager } = createManager();
+  const catalog = manager.replaceAdapters({});
+  assert.deepEqual(catalog.map((adapter) => adapter.id), ['local.manual']);
 });
 
 test('ModelTurnManager supports cancellation', async () => {

@@ -152,6 +152,7 @@ await new Promise((resolveListen, rejectListen) => {
 });
 const serverOrigin = `http://127.0.0.1:${server.address().port}`;
 const electron = spawn(electronPath, [
+  '--disable-gpu',
   `--remote-debugging-port=${cdpPort}`,
   `--user-data-dir=${userDataDirectory}`,
   '.'
@@ -183,6 +184,60 @@ try {
   await cdp.send('Runtime.enable');
   await cdp.send('Log.enable');
   await cdp.send('Page.enable');
+  const railResult = await cdp.send('Runtime.evaluate', {
+    expression: `
+      (async () => {
+        const deadline = Date.now() + 15000;
+        while (!window.blankseedConsoleReady && Date.now() < deadline) {
+          await new Promise((resolveWait) => setTimeout(resolveWait, 100));
+        }
+        if (!window.blankseedConsoleReady) throw new Error('Timed out waiting for console readiness');
+        const main = document.querySelector('main');
+        const initialRect = main.getBoundingClientRect();
+        const initial = {
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          width: initialRect.width,
+          right: initialRect.right,
+          clientHeight: main.clientHeight,
+          scrollHeight: main.scrollHeight,
+          overflowY: getComputedStyle(main).overflowY
+        };
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          main.scrollTop = main.scrollHeight;
+          await new Promise((resolveWait) => setTimeout(resolveWait, 150));
+        }
+        await new Promise((resolveFrame) => requestAnimationFrame(() => requestAnimationFrame(resolveFrame)));
+        const finalPanel = main.lastElementChild.getBoundingClientRect();
+        const mainRect = main.getBoundingClientRect();
+        const scrolled = {
+          scrollTop: main.scrollTop,
+          maxScroll: main.scrollHeight - main.clientHeight,
+          finalPanelVisible: finalPanel.bottom <= mainRect.bottom + 1,
+          mainTop: mainRect.top,
+          mainBottom: mainRect.bottom,
+          finalPanelTop: finalPanel.top,
+          finalPanelBottom: finalPanel.bottom
+        };
+        main.scrollTop = 0;
+        return { initial, scrolled };
+      })()
+    `,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  if (railResult.exceptionDetails) throw new Error(JSON.stringify(railResult.exceptionDetails));
+  const rail = railResult.result.value;
+  assert(rail.initial.viewportWidth > 430);
+  assert(rail.initial.width <= 430);
+  assert(rail.initial.right <= 430);
+  assert.equal(rail.initial.clientHeight, rail.initial.viewportHeight);
+  assert.equal(rail.initial.overflowY, 'auto');
+  assert(rail.initial.scrollHeight > rail.initial.clientHeight);
+  assert(rail.scrolled.maxScroll > 0);
+  assert(rail.scrolled.scrollTop > 0);
+  assert(rail.scrolled.scrollTop <= rail.scrolled.maxScroll);
+  assert.equal(rail.scrolled.finalPanelVisible, true, JSON.stringify(rail));
   await cdp.send('Emulation.setDeviceMetricsOverride', {
     width: 430,
     height: 920,
@@ -196,7 +251,7 @@ try {
       const waitUntil = async (predicate, label, timeoutMs = 15000) => {
         const deadline = Date.now() + timeoutMs;
         while (Date.now() < deadline) {
-          const value = predicate();
+          const value = await predicate();
           if (value) return value;
           await sleep(100);
         }
@@ -204,6 +259,37 @@ try {
       };
       await waitUntil(() => window.blankseedConsoleReady, 'console readiness');
       document.getElementById('tab-button-agent').click();
+      const syntheticCredential = 'fixture-openai-key-never-log';
+      const openAIKey = document.getElementById('model-openai-key');
+      openAIKey.value = syntheticCredential;
+      document.getElementById('model-openai-apply').click();
+      await waitUntil(async () => {
+        const status = await window.blankseed.status.get();
+        return status.modelConfiguration.openAI.credentialSource === 'session';
+      }, 'session OpenAI credential configuration');
+      if (openAIKey.value !== '') throw new Error('OpenAI credential input was not cleared.');
+      await waitUntil(() => !document.getElementById('model-openai-clear').disabled, 'OpenAI clear control');
+      document.getElementById('model-openai-clear').click();
+      await waitUntil(async () => {
+        const status = await window.blankseed.status.get();
+        return status.modelConfiguration.openAI.credentialSource !== 'session';
+      }, 'session OpenAI credential clearing');
+      const localModel = document.getElementById('model-local-name');
+      localModel.value = 'agent-ui-panel-fixture';
+      localModel.dispatchEvent(new Event('input', { bubbles: true }));
+      document.getElementById('model-local-apply').click();
+      await waitUntil(async () => {
+        const status = await window.blankseed.status.get();
+        return status.modelConfiguration.local.model === 'agent-ui-panel-fixture';
+      }, 'local model panel configuration');
+      const redactionProbe = JSON.stringify({
+        status: await window.blankseed.status.get(),
+        events: await window.blankseed.events.tail(),
+        result: document.getElementById('result').textContent
+      });
+      if (redactionProbe.includes(syntheticCredential)) {
+        throw new Error('Synthetic OpenAI credential escaped the Main Process boundary.');
+      }
       const adapter = document.getElementById('agent-adapter');
       adapter.value = 'local.openai-compatible';
       const task = document.getElementById('agent-task');
@@ -218,6 +304,63 @@ try {
         () => document.getElementById('agent-run-status').textContent.includes('已完成'),
         'Agent completion status'
       );
+      document.getElementById('tab-button-module').click();
+      const automationButton = document.getElementById('module-auto-run');
+      const confirmationDialog = document.getElementById('confirmation-dialog');
+      automationButton.click();
+      await waitUntil(() => confirmationDialog.open, 'Module Commit confirmation');
+      const automationControlsLocked = [
+        'module-id',
+        'module-version',
+        'module-description',
+        'module-source',
+        'module-auto-enabled',
+        'module-candidate',
+        'module-env',
+        'module-create',
+        'module-test',
+        'module-commit',
+        'module-activate',
+        'module-invoke',
+        'module-rollback'
+      ].every((id) => document.getElementById(id).disabled);
+      confirmationDialog.querySelector('button[value="no"]').click();
+      await waitUntil(
+        () => document.getElementById('module-auto-status').textContent.includes('流程停在已測試候選'),
+        'Module automation NO stop'
+      );
+      const noStatus = document.getElementById('module-auto-status').textContent.trim();
+      const stoppedModules = await window.blankseed.modules.list();
+      const stoppedAtTestedCandidate = stoppedModules.candidates.some((candidate) => (
+        candidate.id === 'generated.example'
+        && candidate.version === '0.1.0'
+        && candidate.status === 'tested'
+      )) && !stoppedModules.modules.some((module) => (
+        module.id === 'generated.example' && module.version === '0.1.0'
+      ));
+      automationButton.click();
+      await waitUntil(() => confirmationDialog.open, 'second Module Commit confirmation');
+      confirmationDialog.querySelector('button[value="yes"]').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '啟用版本？',
+        'Module Activate confirmation'
+      );
+      confirmationDialog.querySelector('button[value="yes"]').click();
+      await waitUntil(
+        () => document.getElementById('module-auto-status').textContent.includes('自動化流程已完成'),
+        'Module automation completion'
+      );
+      const completedStatus = document.getElementById('module-auto-status').textContent.trim();
+      const completedModules = await window.blankseed.modules.list();
+      const completedEvents = await window.blankseed.events.tail();
+      const committed = completedModules.modules.some((module) => (
+        module.id === 'generated.example'
+        && module.version === '0.1.0'
+        && module.status === 'committed'
+      ));
+      const active = completedModules.active['generated.example'] === '0.1.0';
+      const invoked = completedEvents.some((event) => event.type === 'module.invocation.completed');
+      document.getElementById('tab-button-agent').click();
       const transcript = document.querySelector('.agent-transcript');
       const composer = document.querySelector('.agent-composer');
       const transcriptRect = transcript.getBoundingClientRect();
@@ -245,6 +388,22 @@ try {
         regionsSeparated: transcriptRect.bottom <= composerRect.top,
         disclosureLabels: [...document.querySelectorAll('.agent-disclosure summary > span:first-child')]
           .map((element) => element.textContent),
+        modelConnection: {
+          localEndpoint: document.getElementById('model-local-endpoint').value,
+          localModel: document.getElementById('model-local-name').value,
+          openAIKeyType: document.getElementById('model-openai-key').type,
+          openAIStatus: document.getElementById('model-openai-badge').textContent,
+          configurationRoundTrip: true
+        },
+        moduleAutomation: {
+          automationControlsLocked,
+          stoppedAtTestedCandidate,
+          noStatus,
+          completedStatus,
+          committed,
+          active,
+          invoked
+        },
         horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > document.documentElement.clientWidth,
         overflowingControls: overflow
       };
@@ -258,6 +417,7 @@ try {
   });
   if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
   evidence = result.result.value;
+  evidence.leftRail = rail;
   assert.equal(evidence.title, 'BlankSeed Browser 控制台');
   assert.equal(evidence.agentMode, true);
   assert.deepEqual(evidence.hiddenGlobalRegions, { status: 'none', target: 'none' });
@@ -266,7 +426,19 @@ try {
   assert.match(evidence.messageText, /快捷執行可正常回傳/);
   assert.match(evidence.runStatus, /已完成/);
   assert.equal(evidence.regionsSeparated, true);
-  assert.deepEqual(evidence.disclosureLabels, ['執行設定', 'Governance 治理']);
+  assert.deepEqual(evidence.disclosureLabels, ['執行設定', 'AI 模型接入', 'Governance 治理']);
+  assert.equal(evidence.modelConnection.localEndpoint, `${serverOrigin}/v1/chat/completions`);
+  assert.equal(evidence.modelConnection.localModel, 'agent-ui-panel-fixture');
+  assert.equal(evidence.modelConnection.openAIKeyType, 'password');
+  assert.match(evidence.modelConnection.openAIStatus, /尚未接入|環境變數已接入/);
+  assert.equal(evidence.modelConnection.configurationRoundTrip, true);
+  assert.equal(evidence.moduleAutomation.automationControlsLocked, true);
+  assert.equal(evidence.moduleAutomation.stoppedAtTestedCandidate, true);
+  assert.match(evidence.moduleAutomation.noStatus, /流程停在已測試候選/);
+  assert.match(evidence.moduleAutomation.completedStatus, /自動化流程已完成/);
+  assert.equal(evidence.moduleAutomation.committed, true);
+  assert.equal(evidence.moduleAutomation.active, true);
+  assert.equal(evidence.moduleAutomation.invoked, true);
   assert.equal(evidence.horizontalOverflow, false);
   assert.deepEqual(evidence.overflowingControls, []);
   await saveScreenshot(cdp, desktopScreenshot);

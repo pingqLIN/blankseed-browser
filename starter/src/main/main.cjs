@@ -10,7 +10,8 @@ const { CheckpointStore } = require('./checkpoint-store.cjs');
 const { TargetViewController } = require('./target-view.cjs');
 const { ProcessSupervisor } = require('./process-supervisor.cjs');
 const { ModuleStore } = require('./module-store.cjs');
-const { HostedOpenAIResponsesAdapter, LocalOpenAICompatibleAdapter, ModelTurnManager } = require('./model-adapter.cjs');
+const { ModelTurnManager } = require('./model-adapter.cjs');
+const { ModelConfigurationController } = require('./model-configuration.cjs');
 const { EvolutionRunManager, RawCapabilityDispatcher } = require('./evolution-loop.cjs');
 const { MultiAgentRuntime } = require('./multi-agent-runtime.cjs');
 const { createSandboxAutoApplyPolicy } = require('./sandbox-auto-apply-policy.cjs');
@@ -30,6 +31,7 @@ let cleanupIpc = null;
 let processSupervisor = null;
 let moduleStore = null;
 let modelTurnManager = null;
+let modelConfiguration = null;
 let evolutionRunManager = null;
 let multiAgentRuntime = null;
 let eventStore = null;
@@ -109,6 +111,7 @@ function createWindow() {
       sandboxAgentAutoApply: sandboxAutoApplyPolicy?.metadata ?? { enabled: false }
     },
     modelAdapters: modelTurnManager?.getCatalog() || [],
+    modelConfiguration: modelConfiguration?.getPublicState() || null,
     multiAgentActive: multiAgentRuntime?.getActiveCount() || 0,
     modules: moduleStore.getState(),
     target: target.getState()
@@ -125,32 +128,16 @@ function createWindow() {
     getStatus,
     getEvents: (limit) => eventStore.tail(limit),
     getModules: () => moduleStore.list(),
-    adapters: {
-      'local.openai-compatible': new LocalOpenAICompatibleAdapter({
-        endpoint: config.localModelEndpoint,
-        model: config.localModelName
-      }),
-      'openai.gpt-5.6-sol': new HostedOpenAIResponsesAdapter({
-        id: 'openai.gpt-5.6-sol',
-        label: 'OpenAI GPT-5.6 Sol',
-        model: 'gpt-5.6-sol',
-        apiKey: process.env.OPENAI_API_KEY
-      }),
-      'openai.gpt-5.6-terra': new HostedOpenAIResponsesAdapter({
-        id: 'openai.gpt-5.6-terra',
-        label: 'OpenAI GPT-5.6 Terra',
-        model: 'gpt-5.6-terra',
-        apiKey: process.env.OPENAI_API_KEY
-      }),
-      'openai.gpt-5.6-luna': new HostedOpenAIResponsesAdapter({
-        id: 'openai.gpt-5.6-luna',
-        label: 'OpenAI GPT-5.6 Luna',
-        model: 'gpt-5.6-luna',
-        apiKey: process.env.OPENAI_API_KEY
-      })
-    },
+    adapters: {},
     defaultTimeoutMs: config.modelTurnTimeoutMs,
     eventLimit: config.modelContextEventLimit
+  });
+  modelConfiguration = new ModelConfigurationController({
+    eventStore,
+    modelTurnManager,
+    localEndpoint: config.localModelEndpoint,
+    localModel: config.localModelName,
+    environmentOpenAIApiKey: process.env.OPENAI_API_KEY
   });
   const rawCapabilityDispatcher = new RawCapabilityDispatcher({
     target,
@@ -163,6 +150,7 @@ function createWindow() {
   evolutionRunManager = new EvolutionRunManager({
     eventStore,
     modelTurnManager,
+    modelConfiguration,
     dispatcher: rawCapabilityDispatcher,
     checkpointStore,
     workspaceRoot,
@@ -187,6 +175,7 @@ function createWindow() {
     processSupervisor,
     moduleStore,
     modelTurnManager,
+    modelConfiguration,
     evolutionRunManager,
     multiAgentRuntime,
     sessionId,
@@ -217,6 +206,7 @@ function createWindow() {
     processSupervisor = null;
     moduleStore = null;
     modelTurnManager = null;
+    modelConfiguration = null;
     evolutionRunManager = null;
     multiAgentRuntime = null;
   });

@@ -150,9 +150,13 @@ world, and the Target does not receive the trusted preload API. Target
 ### Hosted provider boundary
 
 Hosted OpenAI requests are fixed to the official HTTPS Responses endpoint and
-one configured GPT-5.6 adapter identity. The Main Process injects
-`OPENAI_API_KEY` into the Authorization header; Renderer/model payloads reject
-secret-shaped fields. Redirects are denied, `store: false` is explicit, and
+one configured GPT-5.6 adapter identity. The Main Process injects the selected
+credential into the Authorization header. A dedicated configuration channel may
+accept a temporary key from the trusted control Renderer, but model-turn
+payloads still reject secret-shaped fields. The password input is cleared after
+dispatch; the key remains in Main Process memory only; configuration responses,
+status, events, and errors expose only credential presence and source. Redirects
+are denied, `store: false` is explicit, and
 events retain only provider/model/origin/response identity, usage, hashes, and
 redacted decision metadata. Generated utility processes receive an explicit
 environment allowlist that excludes provider keys and unrelated environment

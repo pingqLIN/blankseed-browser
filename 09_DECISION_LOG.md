@@ -70,7 +70,7 @@ Expose low-level page execution, CDP, file, process and module primitives. Allow
 
 ## ADR-004 — Separate remote renderer and generated Node runtime
 
-**Status:** Accepted  
+**Status:** Accepted
 **Date:** 2026-07-12
 
 ### Context
@@ -91,7 +91,7 @@ Keep arbitrary remote websites in sandboxed renderers with no Node integration. 
 
 ## ADR-005 — Use disposable per-execution utility runtimes
 
-**Status:** Accepted  
+**Status:** Accepted
 **Date:** 2026-07-13
 
 ### Context
@@ -818,6 +818,107 @@ same-session anchor, any integrity/checkpoint/compare-and-swap check is skipped,
 or evidence misrepresents the authority or isolation claim. Re-review before
 allowing additional tools, persistent roots, hosted providers, or production
 use.
+
+---
+
+## ADR-019 — Allow memory-only OpenAI credentials from the trusted control panel
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+ADR-016 allowed only Main-Process environment credentials. Operators now need
+the already-implemented local and OpenAI adapters to be configurable from the
+visible Agent panel without storing a provider secret in the repository or
+generated Runtime.
+
+### Evidence
+
+The control Renderer is isolated and exposes only explicit preload calls. IPC
+records channel metadata, not payload values. `ModelTurnManager` can replace an
+idle adapter catalog, and generated utility processes already use an explicit
+environment allowlist that excludes provider credentials.
+
+### Alternatives
+
+- Keep environment-variable configuration only.
+- Persist an encrypted key with Electron `safeStorage`.
+- Add editable remote provider endpoints and per-turn credentials.
+
+### Decision
+
+Add dedicated model-configuration IPC calls. The password field clears
+immediately after dispatch. A panel-supplied OpenAI key stays only in Main
+Process memory for the current application run and is never returned in status,
+events, errors, or results. Environment credentials remain a fallback. Hosted
+egress stays fixed to the allowlisted OpenAI Responses endpoint and models.
+Local endpoint edits remain loopback-only and reject credentials, query
+parameters, and fragments. Adapter replacement is rejected while a model turn
+is active.
+
+### Consequences
+
+- Operators can connect local and OpenAI models directly from the Agent panel.
+- The trusted control Renderer transiently handles a typed credential before
+  clearing the field, so control-renderer compromise remains in scope.
+- Restart clears panel-supplied credentials; no persistent secret store is
+  introduced.
+
+### Rollback/review trigger
+
+Remove panel credential entry if any key reaches persisted state, logs, events,
+errors, results, generated process environments, or non-allowlisted egress.
+Review before adding persistence, another provider, an editable hosted endpoint,
+or background credential refresh.
+
+---
+
+## ADR-020 — Default Module creation to an operator-gated automated sequence
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+The Module panel exposes each lifecycle action separately, which makes the
+normal Create Candidate → Test → Commit → Activate → Invoke path repetitive.
+Automation must not silently cross the immutable Commit or active-mapping
+boundaries.
+
+### Evidence
+
+Existing IPC operations already validate each lifecycle transition. Candidate
+creation and testing are reversible preparation; Commit creates immutable
+version identity; Activate changes the live mapping; Invoke provides immediate
+result evidence.
+
+### Alternatives
+
+- Keep only individual manual buttons.
+- Run the complete lifecycle with no confirmation.
+- Require a governed Multi-Agent decision for every local Module iteration.
+
+### Decision
+
+Make a one-click sequence the default UI. Automatically Create Candidate and
+Test, then show explicit YES/NO dialogs before Commit and again before Activate.
+After approved activation, Invoke once for verification. NO stops at the tested
+Candidate or committed version without rollback. Keep all individual controls
+under Manual operations (advanced).
+
+### Consequences
+
+- Routine Module iteration requires one start action and two material decisions.
+- Existing APIs, evidence, version identity, rollback, and governance paths stay
+  unchanged.
+- The automated sequence is UI orchestration, not new Runtime authority.
+
+### Rollback/review trigger
+
+Disable the automated sequence if it can bypass either dialog, advance after NO,
+hide a failed lifecycle result, or remove access to individual recovery controls.
+Review before automatic Commit, automatic Activate, or policy-based approval.
 
 ---
 

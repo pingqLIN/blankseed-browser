@@ -14,7 +14,7 @@ const {
   serializeError
 } = require('../shared/contracts.cjs');
 
-function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, processSupervisor, moduleStore, modelTurnManager, evolutionRunManager, multiAgentRuntime, sessionId, getStatus, config }) {
+function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, processSupervisor, moduleStore, modelTurnManager, modelConfiguration, evolutionRunManager, multiAgentRuntime, sessionId, getStatus, config }) {
   const handlers = [];
   const seenRequestIds = new Set();
   const payloadLimit = config.ipcPayloadLimitBytes;
@@ -242,6 +242,16 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
     return modelTurnManager.turn({ ...payload, timeoutMs }, context);
   });
   handle(channels.modelCancel, 'model.cancel', async (_payload, context) => modelTurnManager.cancel(context));
+  handle(channels.modelConfigurationGet, 'model.configuration.get', async () => modelConfiguration.getPublicState(), { evented: false });
+  handle(channels.modelConfigurationLocalUpdate, 'model.configuration.local.update', async (payload, context) => {
+    return modelConfiguration.updateLocal(payload, context);
+  });
+  handle(channels.modelConfigurationOpenAISet, 'model.configuration.openai.set', async (payload, context) => {
+    return modelConfiguration.setSessionOpenAICredential(payload, context);
+  });
+  handle(channels.modelConfigurationOpenAIClear, 'model.configuration.openai.clear', async (_payload, context) => {
+    return modelConfiguration.clearSessionOpenAICredential(context);
+  });
   handle(channels.evolutionRun, 'evolution.run', async (payload, context) => {
     assertPlainObject(payload, 'payload');
     const timeoutMs = payload.timeoutMs === undefined

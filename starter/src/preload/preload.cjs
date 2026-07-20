@@ -32,6 +32,10 @@ const channels = Object.freeze({
   moduleInvoke: 'blankseed:module:invoke',
   modelTurn: 'blankseed:model:turn',
   modelCancel: 'blankseed:model:cancel',
+  modelConfigurationGet: 'blankseed:model:configuration:get',
+  modelConfigurationLocalUpdate: 'blankseed:model:configuration:local:update',
+  modelConfigurationOpenAISet: 'blankseed:model:configuration:openai:set',
+  modelConfigurationOpenAIClear: 'blankseed:model:configuration:openai:clear',
   evolutionRun: 'blankseed:evolution:run',
   evolutionCancel: 'blankseed:evolution:cancel',
   multiAgentRun: 'blankseed:multi-agent:run',
@@ -121,7 +125,22 @@ contextBridge.exposeInMainWorld('blankseed', {
   },
   model: {
     turn: (messages, options) => invoke(channels.modelTurn, withOptions({ messages }, options)),
-    cancel: (options) => invoke(channels.modelCancel, withOptions({}, options))
+    cancel: (options) => invoke(channels.modelCancel, withOptions({}, options)),
+    configuration: {
+      get: (options) => invoke(channels.modelConfigurationGet, withOptions({}, options)),
+      updateLocal: (endpoint, model, options) => invoke(
+        channels.modelConfigurationLocalUpdate,
+        withOptions({ endpoint, model }, options)
+      ),
+      setOpenAICredential: (apiKey, options) => invoke(
+        channels.modelConfigurationOpenAISet,
+        withOptions({ apiKey }, options)
+      ),
+      clearOpenAICredential: (options) => invoke(
+        channels.modelConfigurationOpenAIClear,
+        withOptions({}, options)
+      )
+    }
   },
   evolution: {
     run: (messages, options) => invoke(channels.evolutionRun, withOptions({ messages }, options)),

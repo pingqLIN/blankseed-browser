@@ -15,9 +15,9 @@
         <p>本機研究控制台</p>
       </div>
       <div class="console-head-actions">
-        <div class="console-target-state" title="目前 Target 狀態">
+        <div class="console-target-state" title="目前目標頁狀態">
           <span class="status-dot" aria-hidden="true"></span>
-          <span id="console-target-state">Target 載入中</span>
+          <span id="console-target-state">目標頁載入中</span>
         </div>
         <button id="refresh-all" class="icon-btn" title="重新整理" aria-label="重新整理所有面板">↻</button>
       </div>
@@ -25,26 +25,26 @@
 
     <section class="status-grid" aria-label="狀態">
       <div class="status-cell">
-        <span>Session 工作階段</span>
+        <span>工作階段</span>
         <strong id="stat-session">載入中</strong>
       </div>
       <div class="status-cell">
-        <span>Target 目標頁</span>
+        <span>目標頁</span>
         <strong id="stat-target">載入中</strong>
       </div>
       <div class="status-cell">
-        <span>Node Runtime</span>
+        <span>Node 執行環境</span>
         <strong id="stat-runtime">載入中</strong>
       </div>
       <div class="status-cell">
-        <span>Module 模組</span>
+        <span>模組</span>
         <strong id="stat-modules">0 個啟用</strong>
       </div>
     </section>
 
     <section id="target-panel" class="panel">
       <div class="panel-head">
-        <h2>Target 目標頁</h2>
+        <h2>目標頁</h2>
         <div class="toolbar">
         <button id="back" class="icon-btn" title="上一頁" aria-label="上一頁">←</button>
         <button id="forward" class="icon-btn" title="下一頁" aria-label="下一頁">→</button>
@@ -55,28 +55,28 @@
         <input id="url" type="text" autocomplete="off" spellcheck="false" value="https://example.com/" aria-label="目標網址">
         <button type="submit">前往</button>
       </form>
-      <div id="target-summary" class="micro-output">等待 Target</div>
+      <div id="target-summary" class="micro-output">等待目標頁</div>
     </section>
 
     <nav class="tabs" aria-label="工作台" role="tablist">
-      <button id="tab-button-page" class="tab active" data-tab="page" role="tab" aria-controls="tab-page" aria-selected="true">Page 頁面</button>
+      <button id="tab-button-page" class="tab active" data-tab="page" role="tab" aria-controls="tab-page" aria-selected="true">頁面</button>
       <button id="tab-button-cdp" class="tab" data-tab="cdp" role="tab" aria-controls="tab-cdp" aria-selected="false" tabindex="-1">CDP</button>
       <button id="tab-button-node" class="tab" data-tab="node" role="tab" aria-controls="tab-node" aria-selected="false" tabindex="-1">Node</button>
-      <button id="tab-button-module" class="tab" data-tab="module" role="tab" aria-controls="tab-module" aria-selected="false" tabindex="-1">Module 模組</button>
+      <button id="tab-button-module" class="tab" data-tab="module" role="tab" aria-controls="tab-module" aria-selected="false" tabindex="-1">模組</button>
       <button id="tab-button-agent" class="tab" data-tab="agent" role="tab" aria-controls="tab-agent" aria-selected="false" tabindex="-1">Agent</button>
     </nav>
 
     <section id="tab-page" class="panel tab-panel active" role="tabpanel" aria-labelledby="tab-button-page" tabindex="0">
       <div class="panel-head">
-        <h2>Page 基本操作</h2>
-        <button id="snapshot">檢查 Snapshot</button>
+        <h2>頁面基本操作</h2>
+        <button id="snapshot">產生快照</button>
       </div>
       <textarea id="page-source" spellcheck="false">return {
   title: document.title,
   url: location.href,
   headings: [...document.querySelectorAll('h1,h2')].map((el) => el.textContent)
 };</textarea>
-      <button id="execute-page">執行 Isolated JS</button>
+      <button id="execute-page">執行隔離 JS</button>
     </section>
 
     <section id="tab-agent" class="agent-workspace tab-panel" role="tabpanel" aria-labelledby="tab-button-agent" tabindex="0" hidden>
@@ -93,10 +93,10 @@
 
       <section class="agent-composer" aria-labelledby="agent-composer-title">
         <div class="composer-heading">
-          <label id="agent-composer-title" for="agent-task">給 Agent 的指令</label>
+          <label id="agent-composer-title" for="agent-task">給 Agent 的任務</label>
           <span>支援自然語言與多步驟任務描述</span>
         </div>
-        <textarea id="agent-task" spellcheck="false" maxlength="12000" placeholder="輸入你想讓 Agent 執行的工作…">觀察目前 Target，說明頁面內容與可安全執行的下一步。</textarea>
+        <textarea id="agent-task" spellcheck="false" maxlength="12000" placeholder="輸入你想讓 Agent 執行的任務…">觀察目前目標頁，說明頁面內容與可安全執行的下一步。</textarea>
         <div class="composer-footer">
           <span id="agent-task-count" class="character-count">0 / 12000</span>
           <div class="composer-actions">
@@ -113,13 +113,13 @@
       <details class="agent-disclosure" open>
         <summary>
           <span>執行設定</span>
-          <span class="summary-hint">Model 與執行上限</span>
+          <span class="summary-hint">模型設定與執行上限</span>
         </summary>
         <div class="agent-grid disclosure-body">
-          <label>Model Adapter
+          <label>模型 Adapter
             <select id="agent-adapter" aria-label="Model Adapter"></select>
           </label>
-          <label>Reasoning effort
+          <label>推理等級
             <select id="agent-reasoning" aria-label="Reasoning effort">
               <option value="medium" selected>medium</option>
               <option value="none">none</option>
@@ -129,12 +129,60 @@
               <option value="max">max</option>
             </select>
           </label>
-          <label>Max turns
+          <label>最大回合
             <input id="agent-max-turns" type="number" min="1" max="24" value="6">
           </label>
-          <label>Max actions
+          <label>最大動作
             <input id="agent-max-actions" type="number" min="1" max="64" value="12">
           </label>
+        </div>
+      </details>
+
+      <details id="model-connection" class="agent-disclosure model-connection" open>
+        <summary>
+          <span>AI 模型接入</span>
+          <span class="summary-hint">預設提供本機與 OpenAI</span>
+        </summary>
+        <div class="model-provider-grid disclosure-body">
+          <section class="model-provider-card" aria-labelledby="model-local-title">
+            <div class="provider-heading">
+              <div>
+                <h3 id="model-local-title">本機模型</h3>
+                <p>使用 OpenAI 相容的 Chat Completions API。</p>
+              </div>
+              <span id="model-local-badge" class="provider-badge">已設定</span>
+            </div>
+            <label>本機端點
+              <input id="model-local-endpoint" type="url" spellcheck="false" autocomplete="off" value="http://127.0.0.1:1234/v1/chat/completions">
+            </label>
+            <label>模型 ID
+              <input id="model-local-name" spellcheck="false" autocomplete="off" value="local-model">
+            </label>
+            <p class="provider-note">只接受 loopback（本機回環）端點，不傳送授權標頭，也不接受含查詢參數、片段或憑證的網址。</p>
+            <button id="model-local-apply" type="button">套用本機設定</button>
+          </section>
+
+          <section class="model-provider-card hosted-provider" aria-labelledby="model-openai-title">
+            <div class="provider-heading">
+              <div>
+                <h3 id="model-openai-title">OpenAI</h3>
+                <p>固定使用官方 Responses API 與允許的模型。</p>
+              </div>
+              <span id="model-openai-badge" class="provider-badge unavailable">尚未接入</span>
+            </div>
+            <label>OpenAI API 金鑰
+              <input id="model-openai-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="只保留於本次程式執行">
+            </label>
+            <p class="provider-note">金鑰經受信任的 IPC 傳給 Main Process（主程序）後，會立即從輸入框清除；不寫入檔案、事件或結果。傳給 OpenAI 的任務內容屬於外部資料傳輸。</p>
+            <div class="button-grid">
+              <button id="model-openai-apply" type="button">接入 OpenAI</button>
+              <button id="model-openai-clear" class="quiet-btn" type="button">清除暫時金鑰</button>
+            </div>
+          </section>
+          <div id="model-configuration-status" class="run-status model-configuration-status" role="status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>模型設定載入中。</span>
+          </div>
         </div>
       </details>
 
@@ -145,16 +193,16 @@
         </summary>
         <div class="disclosure-body">
           <div class="agent-grid">
-            <label>Reviewer Adapter
-              <select id="reviewer-adapter" aria-label="Reviewer Adapter"></select>
-            </label>
+          <label>Reviewer Adapter
+            <select id="reviewer-adapter" aria-label="Reviewer Adapter"></select>
+          </label>
             <label>Decision ID
               <input id="governance-decision-id" placeholder="gov_..." spellcheck="false">
             </label>
-            <label>Activation Module（可選）
+            <label>啟用 Module（可選）
               <input id="governance-module-id" placeholder="generated.example" spellcheck="false">
             </label>
-            <label>Activation Version（可選）
+            <label>啟用版本（可選）
               <input id="governance-module-version" placeholder="0.1.0" spellcheck="false">
             </label>
             <label class="sandbox-auto-apply-option">
@@ -164,15 +212,15 @@
             </label>
           </div>
           <div class="button-grid governance-actions">
-            <button id="multi-agent-run" class="governance-btn" type="button">啟動 Governed Review</button>
-            <button id="governance-apply" class="governance-btn" type="button">確認並套用 Decision</button>
+            <button id="multi-agent-run" class="governance-btn" type="button">啟動受控審核</button>
+            <button id="governance-apply" class="governance-btn" type="button">確認並套用決策</button>
           </div>
           <div class="governance-status-row">
             <div id="multi-agent-status" class="run-status" role="status" aria-live="polite">
               <span class="status-dot" aria-hidden="true"></span>
-              <span>Multi-Agent 待命。</span>
+              <span>多代理待命。</span>
             </div>
-            <button id="multi-agent-cancel" class="quiet-btn" type="button">取消 Review</button>
+            <button id="multi-agent-cancel" class="quiet-btn" type="button">取消審核</button>
           </div>
         </div>
       </details>
@@ -180,7 +228,7 @@
 
     <section id="tab-cdp" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-cdp" tabindex="0" hidden>
       <div class="panel-head">
-        <h2>Raw CDP</h2>
+        <h2>CDP 原始操作</h2>
         <button id="send-cdp">傳送</button>
       </div>
       <input id="cdp-method" value="Page.getNavigationHistory" spellcheck="false" aria-label="CDP 方法">
@@ -189,9 +237,9 @@
 
     <section id="tab-node" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-node" tabindex="0" hidden>
       <div class="panel-head">
-        <h2>Generated Node 執行</h2>
+        <h2>Node 執行</h2>
         <div class="toolbar">
-          <button id="utility-ping" title="檢查 Node Runtime" aria-label="檢查 Node Runtime">Ping</button>
+          <button id="utility-ping" title="檢查 Node 執行環境" aria-label="檢查 Node 執行環境">Ping</button>
           <button id="utility-stop">停止</button>
         </div>
       </div>
@@ -200,12 +248,12 @@ return {
   platform: process.platform,
   cwd: process.cwd()
 };</textarea>
-      <button id="utility-execute">執行 Node Source</button>
+      <button id="utility-execute">執行 Node 程式</button>
     </section>
 
     <section id="tab-module" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-module" tabindex="0" hidden>
       <div class="panel-head">
-        <h2>Module 模組庫</h2>
+        <h2>模組庫</h2>
         <button id="module-refresh">重新整理</button>
       </div>
       <div class="module-grid">
@@ -217,42 +265,63 @@ return {
   module: environment.name || 'generated.example',
   value: Number(environment.value || 0) + 1
 };</textarea>
-      <div class="module-grid">
-        <input id="module-candidate" placeholder="cand_..." spellcheck="false" aria-label="Candidate 識別碼">
-        <input id="module-env" value="{&quot;value&quot;:41}" spellcheck="false" aria-label="Module environment JSON">
+      <label class="module-automation-option">
+        <input id="module-auto-enabled" type="checkbox" checked>
+        <span>預設使用自動化流程</span>
+        <small>自動建立並測試候選；提交與啟用前會顯示 YES／NO 確認視窗。</small>
+      </label>
+      <button id="module-auto-run" class="primary-btn" type="button">開始產生與測試模組</button>
+      <ol id="module-auto-steps" class="module-auto-steps" aria-label="模組自動化流程">
+        <li data-step="candidate">建立候選</li>
+        <li data-step="test">測試候選</li>
+        <li data-step="commit">提交版本</li>
+        <li data-step="activate">啟用版本</li>
+        <li data-step="invoke">呼叫驗證</li>
+      </ol>
+      <div id="module-auto-status" class="run-status" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>自動化流程待命。</span>
       </div>
-      <div class="button-grid">
-        <button id="module-create">建立 Candidate</button>
-        <button id="module-test">測試 Candidate</button>
-        <button id="module-commit">Commit 版本</button>
-        <button id="module-activate">Activate 版本</button>
-        <button id="module-invoke">Invoke Module</button>
-        <button id="module-rollback">Rollback 版本</button>
-      </div>
+
+      <details class="manual-module-actions">
+        <summary>手動操作（進階）</summary>
+        <div class="module-grid disclosure-body">
+          <input id="module-candidate" placeholder="cand_..." spellcheck="false" aria-label="Candidate 識別碼">
+          <input id="module-env" value="{&quot;value&quot;:41}" spellcheck="false" aria-label="Module environment JSON">
+        </div>
+        <div class="button-grid disclosure-body">
+          <button id="module-create">建立候選</button>
+          <button id="module-test">測試候選</button>
+          <button id="module-commit">提交版本</button>
+          <button id="module-activate">啟用版本</button>
+          <button id="module-invoke">呼叫 Module</button>
+          <button id="module-rollback">回復版本</button>
+        </div>
+      </details>
       <div id="module-browser" class="browser-list">尚無模組。</div>
     </section>
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Recovery 復原</h2>
+        <h2>復原</h2>
         <div class="toolbar">
           <button id="stop-all">全部停止</button>
-          <button id="checkpoint">建立 Checkpoint</button>
-          <button id="checkpoint-restore">Restore Checkpoint</button>
+          <button id="checkpoint">建立檢查點</button>
+          <button id="checkpoint-restore">還原檢查點</button>
         </div>
       </div>
-      <input id="checkpoint-label" value="手動 checkpoint" aria-label="Checkpoint label 標籤">
-      <input id="checkpoint-id" placeholder="chk_..." spellcheck="false" aria-label="Checkpoint 識別碼">
+        <input id="checkpoint-label" value="手動檢查點" aria-label="檢查點標籤">
+        <input id="checkpoint-id" placeholder="chk_..." spellcheck="false" aria-label="檢查點識別碼">
       <div id="stop-state" class="stop-state idle">
         <span>停止狀態</span>
         <strong>待命</strong>
       </div>
-      <div id="checkpoint-browser" class="browser-list compact-list">尚無 Checkpoint。</div>
+        <div id="checkpoint-browser" class="browser-list compact-list">尚無檢查點。</div>
     </section>
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Result 結果</h2>
+      <h2>結果</h2>
         <button id="clear-result" class="icon-btn" title="清除結果" aria-label="清除結果">×</button>
       </div>
       <pre id="result" class="output">已就緒。</pre>
@@ -266,6 +335,16 @@ return {
       <div id="timeline" class="timeline">尚無事件。</div>
     </section>
   </main>
+  <dialog id="confirmation-dialog" class="confirmation-dialog" aria-labelledby="confirmation-title" aria-describedby="confirmation-body">
+    <form method="dialog">
+      <h2 id="confirmation-title">需要確認</h2>
+      <p id="confirmation-body"></p>
+      <div class="confirmation-actions">
+        <button value="no" class="quiet-btn" type="submit">NO</button>
+        <button value="yes" class="primary-btn" type="submit">YES</button>
+      </div>
+    </form>
+  </dialog>
   <script src="app.js"></script>
 </body>
 </html>

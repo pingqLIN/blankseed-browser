@@ -20,6 +20,16 @@ npm test
 npm start
 ```
 
+若要開啟互動式繁體中文教學網站，請執行：
+
+```powershell
+npm run tutorial
+```
+
+接著前往 `http://127.0.0.1:4173/tutorial/`。教學站直接載入目前 Renderer
+markup 與 stylesheet 作為 UI 來源，再以本機模擬資料驅動；不會開啟真實網站、
+送出 credential、呼叫 model provider 或套用 Module。
+
 可用的一鍵驗證入口：
 
 ```powershell
@@ -119,14 +129,17 @@ endpoint: http://127.0.0.1:1234/v1/chat/completions
 model: local-model
 ```
 
-啟動前可設定 `BLANKSEED_LOCAL_MODEL_ENDPOINT` 與
-`BLANKSEED_LOCAL_MODEL_NAME`。endpoint 必須維持 HTTP(S) loopback（`127.0.0.1`、`localhost` 或 `::1`），不得包含 credentials。
+可直接在「Agent > AI 模型接入」面板變更本次程式使用的端點與模型 ID，也可在啟動前設定 `BLANKSEED_LOCAL_MODEL_ENDPOINT` 與 `BLANKSEED_LOCAL_MODEL_NAME`。端點必須維持 HTTP(S) loopback（本機回環；`127.0.0.1`、`localhost` 或 `::1`），不得包含憑證、查詢參數或片段。
 
 ## Hosted OpenAI GPT-5.6 adapters
 
-若 Electron Main Process environment 已有 `OPENAI_API_KEY`，Agent Console 會啟用 `gpt-5.6-sol`、`gpt-5.6-terra` 與 `gpt-5.6-luna`。專用 transport 使用官方 OpenAI Responses API、明確的 `reasoning.effort`、`store: false`、sequential function call 與固定 HTTPS endpoint；Renderer IPC 不接受 credential 或可編輯 hosted endpoint。
+「Agent > AI 模型接入」面板可接收暫時 OpenAI API 金鑰；程式也可沿用 Electron Main Process 環境中的 `OPENAI_API_KEY`。任一來源都會啟用 `gpt-5.6-sol`、`gpt-5.6-terra` 與 `gpt-5.6-luna`。專用傳輸使用官方 OpenAI Responses API、明確的 `reasoning.effort`、`store: false`、循序函式呼叫與固定 HTTPS 端點；託管端點不可編輯。
 
-Key 只留在 Main Process。Generated utility process 使用 explicit operational environment allowlist，因此 generated Node source、Module Test 與 Module Invoke 都不會繼承 provider key。Hosted use 與無 credential 的 WP-12 loopback evaluation profile 分開治理。
+控制 Renderer 只在輸入時短暫持有金鑰，透過專用且受信任的 IPC 傳送後立即清空欄位。面板提供的金鑰只保留於 Main Process 記憶體；狀態、事件、結果與持久化設定都不會回傳或儲存金鑰。產生的 utility process 使用明確的操作環境允許清單，因此產生的 Node 原始碼、模組測試與模組呼叫都不會繼承供應者金鑰。託管模型與無憑證的 WP-12 本機回環評估設定檔分開治理。
+
+## 模組生命週期自動化
+
+模組分頁預設提供一鍵流程：建立候選、測試候選、在提交前要求操作員確認、在啟用前再次要求確認，最後自動呼叫驗證。任一確認視窗選擇 NO，都會安全停在已測試候選或已提交版本。原有的逐項控制仍保留在「手動操作（進階）」內。
 
 請參考官方 [GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model) 與 [GPT-5.6 model catalog](https://developers.openai.com/api/docs/models)。
 

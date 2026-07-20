@@ -152,6 +152,9 @@ function normalizeLoopbackEndpoint(value) {
   if (endpoint.username || endpoint.password) {
     throw createProtocolError(errorCodes.invalidRequest, 'Local model endpoint must not contain credentials.');
   }
+  if (endpoint.search || endpoint.hash) {
+    throw createProtocolError(errorCodes.invalidRequest, 'Local model endpoint must not contain query parameters or fragments.');
+  }
   return endpoint.toString();
 }
 
@@ -576,6 +579,18 @@ class ModelTurnManager {
       available: adapter.publicMetadata?.available !== false,
       hosted: Boolean(adapter.publicMetadata?.hosted)
     }));
+  }
+
+  replaceAdapters(adapters = {}) {
+    if (this.active.size > 0) {
+      throw createProtocolError(errorCodes.invalidRequest, 'Model adapters cannot be changed while a model turn is active.', {
+        activeTurns: this.active.size
+      }, true);
+    }
+    const next = new Map(Object.entries(adapters));
+    next.set('local.manual', next.get('local.manual') || new LocalManualAdapter());
+    this.adapters = next;
+    return this.getCatalog();
   }
 
   async turn(payload = {}, context = {}, runtime = {}) {

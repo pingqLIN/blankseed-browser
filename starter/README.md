@@ -24,6 +24,17 @@ npm test
 npm start
 ```
 
+To open the interactive Traditional Chinese tutorial website, run:
+
+```powershell
+npm run tutorial
+```
+
+Then visit `http://127.0.0.1:4173/tutorial/`. The tutorial loads the current
+Renderer markup and stylesheet as its UI source of truth, then drives a local
+simulation. It does not navigate to real websites, submit credentials, call a
+model provider, or apply a Module.
+
 One-command verification:
 
 ```powershell
@@ -159,23 +170,36 @@ endpoint: http://127.0.0.1:1234/v1/chat/completions
 model: local-model
 ```
 
-Operators may set `BLANKSEED_LOCAL_MODEL_ENDPOINT` and
-`BLANKSEED_LOCAL_MODEL_NAME` before launch. The endpoint must remain HTTP(S)
-loopback (`127.0.0.1`, `localhost` or `::1`) and must not contain credentials.
+Operators can change the endpoint and model ID directly in Agent > AI Model
+Connection for the current application session, or set
+`BLANKSEED_LOCAL_MODEL_ENDPOINT` and `BLANKSEED_LOCAL_MODEL_NAME` before launch.
+The endpoint must remain HTTP(S) loopback (`127.0.0.1`, `localhost` or `::1`)
+and must not contain credentials, query parameters, or fragments.
 
 ## Hosted OpenAI GPT-5.6 adapters
 
-When `OPENAI_API_KEY` is already present in the Electron Main Process
-environment, the Agent Console enables `gpt-5.6-sol`, `gpt-5.6-terra`, and
+The Agent > AI Model Connection panel accepts a temporary OpenAI API key, or
+the application can inherit `OPENAI_API_KEY` from the Electron Main Process
+environment. Either source enables `gpt-5.6-sol`, `gpt-5.6-terra`, and
 `gpt-5.6-luna`. The dedicated transport uses the official OpenAI Responses API,
 explicit `reasoning.effort`, `store: false`, sequential function calls, and a
-fixed HTTPS endpoint. It does not accept credentials or editable hosted
-endpoints from Renderer IPC.
+fixed HTTPS endpoint. The hosted endpoint is not editable.
 
-The key remains Main-Process-only. Generated utility processes receive an
+The control Renderer holds a typed key only long enough to send it through a
+dedicated trusted IPC call and clears the input immediately. The Main Process
+keeps a panel-supplied key in memory only; status, events, results, and persisted
+settings never return or store it. Generated utility processes receive an
 explicit operational environment allowlist, so the provider key is not
 inherited by generated Node source, Module Test, or Module Invoke. Hosted use is
 separate from the credential-free WP-12 loopback evaluation profile.
+
+## Automated Module lifecycle
+
+The Module tab defaults to a one-click sequence: Create Candidate, Test,
+operator confirmation before Commit, a second operator confirmation before
+Activate, and Invoke verification. Selecting NO at either gate stops safely at
+the tested Candidate or committed version. The original individual controls
+remain available under Manual operations (advanced).
 
 See the official [GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model)
 and [GPT-5.6 model catalog](https://developers.openai.com/api/docs/models).

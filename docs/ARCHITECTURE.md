@@ -98,10 +98,18 @@ Module Test, Module Invoke, retained stdout/stderr, and experiment artifacts.
 `ModelTurnManager` keeps a provider-neutral turn contract. Local transports use
 the in-process manual adapter or credential-free loopback Chat Completions. The
 Hosted OpenAI adapters are fixed to the official HTTPS Responses API and the
-`gpt-5.6-sol`, `gpt-5.6-terra`, or `gpt-5.6-luna` model identity. The API key is
-injected only in the Main Process; redirects fail closed; requests use
-`store: false`; function calls return to the same bounded raw-tool dispatcher.
-The Renderer receives only redacted adapter metadata.
+`gpt-5.6-sol`, `gpt-5.6-terra`, or `gpt-5.6-luna` model identity. A dedicated
+trusted IPC call may transfer a temporary key from the control Renderer to the
+Main Process; the input is immediately cleared, the key remains memory-only,
+and no response or event contains it. Environment-provided keys remain
+supported. Redirects fail closed; requests use `store: false`; function calls
+return to the same bounded raw-tool dispatcher. The Renderer receives only
+redacted adapter and credential-presence metadata after configuration.
+
+The Module control panel can orchestrate Create Candidate, Test, Commit,
+Activate, and Invoke through existing IPC operations. Commit and Activate remain
+separate operator gates with explicit YES/NO decisions; declining stops the
+sequence without rolling back or silently advancing lifecycle state.
 
 ### Browser target boundary
 

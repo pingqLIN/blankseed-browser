@@ -70,7 +70,9 @@ Generated utility process 使用 explicit operational environment allowlist，�
 
 ### Model provider boundary
 
-`ModelTurnManager` 維持 provider-neutral turn contract。本機 transport 使用 in-process manual adapter 或無 credential 的 loopback Chat Completions。Hosted OpenAI adapter 固定連接官方 HTTPS Responses API，model identity 只允許 `gpt-5.6-sol`、`gpt-5.6-terra` 或 `gpt-5.6-luna`。API key 只在 Main Process 注入；redirect fail closed；request 使用 `store: false`；function call 仍回到同一個 bounded raw-tool dispatcher。Renderer 只接收 redacted adapter metadata。
+`ModelTurnManager` 維持不綁定供應者的回合契約。本機傳輸使用程序內手動介接器，或不含憑證的本機回環 Chat Completions。託管 OpenAI 介接器固定連接官方 HTTPS Responses API，模型身分只允許 `gpt-5.6-sol`、`gpt-5.6-terra` 或 `gpt-5.6-luna`。專用且受信任的 IPC 可把暫時金鑰從控制 Renderer 傳給 Main Process；輸入框會立即清空，金鑰只保留於記憶體，任何回應或事件都不得包含金鑰。環境變數提供的金鑰仍受支援。重新導向一律拒絕；請求使用 `store: false`；函式呼叫仍回到同一個受限原始工具分派器。設定完成後，Renderer 只接收已遮蔽的介接器資料與是否已設定憑證的狀態。
+
+模組控制面板可透過既有 IPC 依序協調建立候選、測試、提交、啟用與呼叫。提交與啟用仍是分開的操作員關卡，必須明確選擇 YES／NO；選擇 NO 會停止流程，不回復既有狀態，也不會靜默前進到下一個生命週期階段。
 
 ### Browser target boundary
 

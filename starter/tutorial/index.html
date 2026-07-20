@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>BlankSeed Browser 操作教學</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../src/renderer/styles.css">
+  <link rel="stylesheet" href="tutorial.css">
+</head>
+<body class="tutorial-page">
+  <div class="tutorial-shell">
+    <header class="window-chrome" aria-label="Electron 視窗 chrome 模擬">
+      <div class="window-titlebar">
+        <span class="window-app-icon" aria-hidden="true">◎</span>
+        <span>BlankSeed Browser 控制台</span>
+      </div>
+      <nav class="window-menu" aria-label="應用程式選單">
+        <span>檔案</span>
+        <span>編輯</span>
+        <span>檢視</span>
+        <span>視窗</span>
+      </nav>
+    </header>
+    <section class="product-frame" aria-label="BlankSeed Browser 互動式介面還原">
+      <div id="console-mount" class="console-mount" data-renderer-source="../src/renderer/index.html">
+        <div class="replica-loading" role="status">正在載入現行 BlankSeed UI…</div>
+      </div>
+
+      <section id="target-preview" class="target-preview" aria-label="目標頁教學預覽">
+        <header class="target-browser-bar" hidden>
+          <span class="target-lock" aria-hidden="true"></span>
+          <span id="target-origin">example.com</span>
+          <span class="target-mode">教學目標頁</span>
+        </header>
+        <div id="target-page" class="target-page"></div>
+      </section>
+    </section>
+
+    <button id="guide-toggle" class="guide-toggle" type="button" aria-controls="guide-panel" aria-expanded="true">
+      <span aria-hidden="true">?</span>
+      <span>操作教學</span>
+    </button>
+
+    <aside id="guide-panel" class="guide-panel" aria-labelledby="guide-title">
+      <header class="guide-head">
+        <div>
+          <p class="guide-product">BlankSeed Browser</p>
+          <h1 id="guide-title">互動式操作教學</h1>
+        </div>
+        <button id="guide-close" class="guide-close" type="button" aria-label="收合操作教學">×</button>
+      </header>
+
+      <div class="simulation-notice" role="note">
+        <strong>教學模擬</strong>
+        <span>所有操作都留在本頁，不會登入真實網站、呼叫模型或套用模組。</span>
+      </div>
+
+      <nav id="scenario-list" class="scenario-list" aria-label="教學情境"></nav>
+
+      <section class="step-card" aria-live="polite">
+        <div class="step-meta">
+          <span id="step-progress">步驟 1 / 1</span>
+          <button id="step-locate" type="button">定位控制項</button>
+        </div>
+        <h2 id="step-title">載入中</h2>
+        <p id="step-body"></p>
+        <div id="step-safety" class="step-callout safety" hidden>
+          <strong>安全提醒</strong>
+          <span></span>
+        </div>
+        <div id="step-expected" class="step-callout expected">
+          <strong>預期結果</strong>
+          <span></span>
+        </div>
+        <button id="step-demo" class="demo-button" type="button">示範這一步</button>
+      </section>
+
+      <div class="step-nav">
+        <button id="step-previous" type="button">上一步</button>
+        <button id="step-next" class="primary-guide-button" type="button">下一步</button>
+      </div>
+
+      <details id="model-setup" class="model-setup">
+        <summary>AI 模型接入速查</summary>
+        <div class="model-tabs" role="tablist" aria-label="AI Model 接入方式">
+          <button class="model-tab active" type="button" role="tab" data-model-tab="local" aria-selected="true">本機模型</button>
+          <button class="model-tab" type="button" role="tab" data-model-tab="hosted" aria-selected="false">OpenAI 雲端模型</button>
+        </div>
+        <section id="model-panel-local" class="model-panel active" role="tabpanel">
+          <h3>OpenAI 相容 loopback</h3>
+          <p>先啟動本機模型伺服器，再到 Agent 分頁的「AI 模型接入」區填入端點與模型 ID。端點僅接受 loopback（本機回環），且不會送出授權標頭。下列環境變數是啟動前的替代設定方式。</p>
+          <pre><code id="local-model-code">$env:BLANKSEED_LOCAL_MODEL_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions'
+$env:BLANKSEED_LOCAL_MODEL_NAME = 'local-model'
+try { npm start } finally {
+  Remove-Item Env:BLANKSEED_LOCAL_MODEL_ENDPOINT -ErrorAction SilentlyContinue
+  Remove-Item Env:BLANKSEED_LOCAL_MODEL_NAME -ErrorAction SilentlyContinue
+}</code></pre>
+          <button class="copy-code" type="button" data-copy-target="local-model-code">複製指令</button>
+        </section>
+        <section id="model-panel-hosted" class="model-panel" role="tabpanel" hidden>
+          <h3>OpenAI Responses API</h3>
+          <p>正式程式可在 Agent 分頁輸入暫時 OpenAI API 金鑰。金鑰送到 Main Process（主程序）後會立即清空輸入框，只保留於本次程式記憶體；generated Node（產生的 Node 程序）、模組測試與模組呼叫都不會繼承金鑰。教學頁不接受真實金鑰。下列環境變數仍可作為啟動前的替代方式。</p>
+          <pre><code id="hosted-model-code">$blankseedKey = Read-Host 'OPENAI_API_KEY' -AsSecureString
+$env:OPENAI_API_KEY = [Net.NetworkCredential]::new('', $blankseedKey).Password
+try { npm start } finally {
+  Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+}</code></pre>
+          <button class="copy-code" type="button" data-copy-target="hosted-model-code">複製指令</button>
+          <div class="official-links">
+            <a href="https://developers.openai.com/api/docs/guides/latest-model" target="_blank" rel="noreferrer">GPT-5.6 模型指引</a>
+            <a href="https://developers.openai.com/api/docs/models" target="_blank" rel="noreferrer">OpenAI 模型目錄</a>
+          </div>
+        </section>
+      </details>
+    </aside>
+
+    <div id="coachmark" class="coachmark" hidden aria-hidden="true"></div>
+    <div id="tutorial-status" class="sr-only" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="scenarios.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
