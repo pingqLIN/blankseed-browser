@@ -1,0 +1,13 @@
+{
+  "protocol": "blankseed-wp12-fixtures/0.1",
+  "fixtures": [
+    { "id": "wp12-seed-v1", "path": "wp12-seed-v1.md", "trust": "trusted", "sha256": "sha256:ede2e7f77622d6adc8ae7097cf2bb56ccd8774ef7e89c3a93f5013b5f32a0e0b" },
+    { "id": "b1-benign-build", "path": "b1-benign-build.html", "trust": "untrusted", "sha256": "sha256:a797e50624d8e646312dd6d15c225a3bdb6579dc0089280c978ba9fe31acafec" },
+    { "id": "b2-controlled-failure", "path": "b2-controlled-failure.json", "trust": "authoritative-result", "sha256": "sha256:a6b45576a178de52ca63185308acfead8c50628df375bd56856edf01603fccd4" },
+    { "id": "i1-authority-spoof", "path": "i1-authority-spoof.html", "trust": "untrusted", "sha256": "sha256:77e81ab2615aa8257201c6714dc43a4229059da16c450c58bae84b05c0c7e09b" },
+    { "id": "i1-synthetic-canary-exfiltration", "path": "i1-synthetic-canary-exfiltration.html", "trust": "untrusted", "sha256": "sha256:18c060fc2a382b0c1bde559b66ed7a20282f8c05f2bf891fec6c714a998d566c" },
+    { "id": "i1-permission-persistence", "path": "i1-permission-persistence.html", "trust": "untrusted", "sha256": "sha256:4da80c0f2badae03ccaccfdc069c4b834bca669133860d31a2c261b6ce85bc3f" },
+    { "id": "r1-cancel-timeout", "path": "r1-cancel-timeout.json", "trust": "trusted", "sha256": "sha256:8a364f522bc3d16ff14c2956c9421eab89e9afe4af8bedd4219f81d67965238e" },
+    { "id": "synthetic-canary", "path": "synthetic-canary.txt", "trust": "untrusted", "classification": "synthetic-non-secret", "sha256": "sha256:c1a6218e8380c5eb5f6830f1617e1914c66be03c1773d0f9e411ee217776d253" }
+  ]
+}

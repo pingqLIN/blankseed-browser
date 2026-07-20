@@ -10,17 +10,20 @@
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:wp12:preflight
 ```
 
 `verify` 涵蓋 JavaScript syntax、configuration、必要繁中 document companions 與 unit tests。`verify:runtime` 另啟動 Windows Electron candidate，僅使用 loopback fixtures，透過實際 DOM event handlers 操作繁中控制介面，驗證 page/CDP cancellation 與本機 OpenAI-compatible model transport，最後關閉 application 與 fixture server。
 
 `verify:wp11` 另在 isolated workspace 執行 deterministic OpenAI-compatible tool loop，驗證 observable candidate failure、model-driven correction、commit/activate/invoke、完整 correlated run manifest、第二個 Electron session reuse，以及 process/port cleanup。
 
+`verify:wp12:preflight` 會驗證 WP-12A validators 並產生 Git 忽略的 audit record。缺少實際 trial configuration 或外部 OS egress proof 時，預期結果是 `PRE-FLIGHT HOLD / NOT RUN`，不代表 trial 已執行或通過。
+
 ## 目前結果
 
 最新 automated evolution 結果記錄於 `starter/reports/wp-11-automated-evolution-loop.md`；WP-10 report 仍是 cancellation/CDP recovery 的權威證據。
 
-最新結果：33 個 JavaScript files 通過、18 份必要繁中 companion 通過、43/43 tests 通過。WP-11 Windows runtime smoke exit code 0；9 個 model turns、8 個 raw actions、1 個預期 failed action；第二 session module reuse 通過、runtime remaining=0、ephemeral CDP ownership nonce 已驗證且 port 可重綁。
+最新結果：37 個 JavaScript files 通過、20 份必要繁中 companion 通過、51/51 tests 通過。WP-11 Windows runtime smoke exit code 0；9 個 model turns、8 個 raw actions、1 個預期 failed action；第二 session module reuse 通過、runtime remaining=0、ephemeral CDP ownership nonce 已驗證且 port 可重綁。WP-12A 聚焦 validator suite 8/8 通過，涵蓋 READY、fail-closed HOLD、strict loopback、secret-shaped key rejection、owned path containment、fixture hash drift 與 valid/invalid evaluation sidecar。本 task 已重新成功執行 `verify:runtime` 與 `verify:wp11`，之後才記錄 strict preflight HOLD。
 
 ## 2026-07-18 控制介面 runtime 驗證
 
@@ -41,6 +44,12 @@ npm run verify:wp11
 ## WP-12 協定邊界
 
 `11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md` 與繁中 companion 定義已核准的 12-trial baseline、evidence schema、loopback-only profile，以及 pass/hold/stop gates；`npm run check` 會檢查這組文件。目前尚未執行 real-model WP-12 trial，因此本報告不宣稱 WP-12 model quality 或 prompt-injection robustness 已獲證明。
+
+WP-12A preflight 目前記錄 `PRE-FLIGHT HOLD / NOT RUN` 與 `trialStarted: false`；缺少 model identity 或外部 egress evidence 時不能升格為 READY。耐久證據在 `starter/reports/wp-12-preflight-foundation.zh-tw.md`。
+
+## Phase 1 完成邊界
+
+現行 source 已實作 Phase 1 protocol control，但 completion assessment 找到兩個目前 regression-evidence gap：重複 IPC request ID，以及 operation active 時的 navigation。只有 `starter/reports/phase-1-completion-assessment.zh-tw.md` 所列條件均具備目前且可重現的證據後，才能從 `IMPLEMENTATION PRESENT / COMPLETION EVIDENCE INCOMPLETE` 更新為完成。
 
 ## 剩餘驗證邊界
 

@@ -26,9 +26,10 @@ npm start
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:wp12:preflight
 ```
 
-`verify` 會執行 syntax、configuration、document companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke；`verify:wp11` 驗證 deterministic automated evolution loop，是 WP-12 preflight，不是真實模型證據。
+`verify` 會執行 syntax、configuration、document companion gate 與 unit tests；`verify:runtime` 另執行受控 Windows Electron hardening smoke；`verify:wp11` 驗證 deterministic automated evolution loop，是 WP-12 preflight，不是真實模型證據。`verify:wp12:preflight` 驗證 fail-closed WP-12A 基礎；未提供 operator 管理的 trial input 或外部 egress evidence 時，會記錄 `PRE-FLIGHT HOLD / NOT RUN`，且不會啟動 Electron 或聯絡模型。
 
 ## 目前 UI 與能力
 
@@ -123,3 +124,27 @@ npm run verify:wp11
 ```
 
 此流程會使用 isolated temporary workspace 與無憑證 loopback fixture。fixture model 會要求 raw tools，觀察一次預設的 candidate serialization failure，生成 corrected source，並進行 commit/activate module，之後由第二個 Electron session 重複使用。一般啟動的 run manifest 會寫在 `workspace/evolution-runs/`。
+
+## WP-12 預檢
+
+`test/fixtures/wp12/` 的 tracked files 會固定 B1/B2/I1/R1 input、trust label 與
+SHA-256。實際 model、workspace、port ownership 及外部 OS egress evidence
+必須放在 Git 忽略的 `workspace/wp12-preflight/`。請從
+`config/wp12-preflight.example.json` 開始，但不得把 template 當成證據。
+
+Strict preflight：
+
+```powershell
+npm run wp12:preflight
+```
+
+若要先執行兩個必要 Windows smoke，並把四項本次 check result 帶入 strict
+preflight，請執行 `npm run wp12:preflight:full`。
+
+HOLD 會以 exit code 2 結束並寫入
+`workspace/wp12-preflight/preflight.json`，且絕不啟動 trial。完成 trial 後，
+sidecar 應另行驗證：
+
+```powershell
+npm run validate:wp12:evaluation -- workspace/evolution-runs/<evolutionRunId>/wp12-evaluation.json
+```

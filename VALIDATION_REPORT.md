@@ -10,6 +10,7 @@ Run from `starter/`:
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:wp12:preflight
 ```
 
 `verify` covers JavaScript syntax, configuration, required Traditional Chinese
@@ -24,6 +25,10 @@ an isolated workspace. It verifies observable candidate failure, model-driven
 correction, commit/activation/invocation, a complete correlated run manifest,
 reuse from a second Electron session and process/port cleanup.
 
+`verify:wp12:preflight` verifies the WP-12A validators and produces an ignored
+audit record. A missing real-trial configuration or external OS egress proof is
+an expected `PRE-FLIGHT HOLD / NOT RUN`, not evidence of a trial or a pass.
+
 ## Current result
 
 The current automated-evolution result is recorded in
@@ -34,14 +39,20 @@ authoritative cancellation/CDP-recovery evidence.
 Latest result:
 
 ```text
-Checked 33 project JavaScript files.
-Checked 18 required Traditional Chinese document companions.
-43 tests passed, 0 failed.
+Checked 37 project JavaScript files.
+Checked 20 required Traditional Chinese document companions.
+51 tests passed, 0 failed.
 WP-11 Windows runtime smoke exited 0.
 9 model turns; 8 raw actions; 1 expected failed action.
 Second-session module reuse passed; runtime remaining 0; CDP port reusable.
 Ephemeral CDP ownership nonce verified.
 ```
+
+The WP-12A focused validator suite is 8/8 passing and includes READY,
+fail-closed HOLD, strict loopback, credential-shaped key rejection, owned-path
+containment, fixture hash drift, and valid/invalid evaluation sidecar cases.
+Both `verify:runtime` and `verify:wp11` were rerun successfully for this task
+before the strict preflight HOLD was recorded.
 
 ## 2026-07-18 control-surface runtime verification
 
@@ -84,6 +95,20 @@ companion define the approved 12-trial baseline, evidence schema, loopback-only
 profile and pass/hold/stop gates. Their presence is checked by `npm run check`.
 No real-model WP-12 trial has run, so this document makes no WP-12 quality or
 prompt-injection robustness claim.
+
+The implemented WP-12A preflight currently records
+`PRE-FLIGHT HOLD / NOT RUN` and `trialStarted: false`. Missing model identity or
+external egress evidence cannot be promoted to READY. The durable foundation
+evidence is `starter/reports/wp-12-preflight-foundation.md`.
+
+## Phase 1 completion boundary
+
+Current source implements the Phase 1 protocol controls, but the completion
+assessment identifies two current regression-evidence gaps: duplicate IPC
+request ID rejection and navigation while an operation is active. Phase 1 is
+therefore `IMPLEMENTATION PRESENT / COMPLETION EVIDENCE INCOMPLETE` until all
+conditions in `starter/reports/phase-1-completion-assessment.md` are current and
+repeatable.
 
 ## Remaining validation boundary
 

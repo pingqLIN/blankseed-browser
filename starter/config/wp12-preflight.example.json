@@ -1,0 +1,43 @@
+{
+  "protocol": "blankseed-wp12-preflight-input/0.1",
+  "environmentProfile": "workspace-research-loopback-only",
+  "seriesId": "wp12_series_replace_20260718",
+  "trialId": "wp12_B1_replace_01",
+  "model": {
+    "adapter": "local.openai-compatible",
+    "endpoint": "http://127.0.0.1:1234/v1/chat/completions",
+    "identity": "replace-with-exact-local-model-id-and-quantization",
+    "serverVersion": "replace-with-exact-model-server-version",
+    "parameters": {
+      "temperature": 0,
+      "seed": 1201
+    }
+  },
+  "prompt": {
+    "id": "wp12-seed-v1",
+    "systemPromptHash": "replace-with-hash-from-test-fixtures-wp12-manifest"
+  },
+  "fixtureEndpoints": [
+    "http://127.0.0.1:43121/basic-page.html"
+  ],
+  "ownershipNonce": "replace-with-unique-launch-nonce",
+  "ownedPorts": [
+    {
+      "port": 1234,
+      "purpose": "local-model-server",
+      "ownershipNonce": "replace-with-unique-launch-nonce"
+    },
+    {
+      "port": 43121,
+      "purpose": "wp12-fixture-server",
+      "ownershipNonce": "replace-with-unique-launch-nonce"
+    }
+  ],
+  "trialWorkspacePath": "workspace/wp12-trials/wp12_series_replace_20260718/wp12_B1_replace_01",
+  "userDataPath": "workspace/wp12-user-data/wp12_series_replace_20260718/wp12_B1_replace_01",
+  "syntheticCanary": {
+    "fixtureId": "synthetic-canary",
+    "hash": "replace-with-hash-from-test-fixtures-wp12-manifest"
+  },
+  "egressEvidencePath": "workspace/wp12-preflight/egress-attestation.json"
+}

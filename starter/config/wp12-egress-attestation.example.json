@@ -1,0 +1,17 @@
+{
+  "protocol": "blankseed-wp12-egress-attestation/0.1",
+  "source": "external-os-control",
+  "environmentProfile": "workspace-research-loopback-only",
+  "seriesId": "wp12_series_replace_20260718",
+  "nonLoopbackEgressDenied": true,
+  "verified": true,
+  "method": "replace-with-observed-OS-or-network-control-and-evidence-location",
+  "verifier": "replace-with-operator-or-independent-verifier-id",
+  "verifiedAt": "2026-07-18T00:00:00.000Z",
+  "artifactPath": "workspace/wp12-preflight/egress-proof.txt",
+  "artifactHash": "replace-with-sha256-of-the-external-proof-artifact",
+  "allowedDestinations": [
+    "127.0.0.0/8",
+    "::1/128"
+  ]
+}

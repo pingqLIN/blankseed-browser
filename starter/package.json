@@ -10,7 +10,11 @@
     "test": "node --test",
     "verify": "npm run check && npm test",
     "verify:runtime": "npm run verify && node scripts/runtime-wp10-hardening-smoke.mjs",
-    "verify:wp11": "npm run verify && node scripts/runtime-wp11-evolution-loop-smoke.mjs"
+    "verify:wp11": "npm run verify && node scripts/runtime-wp11-evolution-loop-smoke.mjs",
+    "wp12:preflight": "node scripts/wp12-preflight.mjs",
+    "verify:wp12:preflight": "npm run verify && node scripts/wp12-preflight.mjs --allow-hold --verified-check npm-run-check --verified-check npm-test",
+    "wp12:preflight:full": "npm run verify:runtime && npm run verify:wp11 && node scripts/wp12-preflight.mjs --verified-check npm-run-check --verified-check npm-test --verified-check npm-run-verify-runtime --verified-check npm-run-verify-wp11",
+    "validate:wp12:evaluation": "node scripts/validate-wp12-evaluation.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -9,12 +9,13 @@
 - The WP-09 candidate branch remains local evidence and is intentionally not merged into `main`.
 - The trusted control surface uses Traditional Chinese user-facing labels and has an English-authoritative operator guide with a `.zh-tw.md` companion.
 - The WP-12 real local-model evaluation protocol is approved; no WP-12 real-model trial has run yet.
+- The WP-12A fail-closed preflight/evidence foundation is implemented and tested. The current result remains `PRE-FLIGHT HOLD / NOT RUN`; no trial started.
 - The application remains a local Windows-first research environment, not a release-ready browser product.
 
 ## Phase assessment
 
 - Phase 0: complete with Windows Electron runtime evidence.
-- Phase 1: deterministic protocol is implemented; the current hardening slice adds explicit page/CDP cancellation and next-command CDP recovery.
+- Phase 1: deterministic protocol implementation is present. Final completion evidence remains open for automated duplicate-request-ID and navigation-during-active-execution regression cases; see `starter/reports/phase-1-completion-assessment.md`.
 - Phase 2: generated Node runtime supervision is implemented.
 - Phase 3: versioned module lifecycle and rollback are implemented.
 - Phase 4: one manual capability-evolution experiment completed and reused its module after restart.
@@ -37,6 +38,7 @@
 - Page JavaScript cancellation terminates the broker result lifecycle but cannot guarantee that Chromium stops already-running JavaScript immediately.
 - The deterministic fixture proves transport, dispatch, correction and reuse behavior; real-model quality and prompt-injection robustness remain unproven.
 - WP-12 pass/hold evidence is not yet available; the protocol is a plan, not a result.
+- WP-12A correctly holds until exact model/server identity, fresh owned trial paths/ports, all current command evidence and external OS egress-denial evidence are supplied from a clean recorded commit.
 - Evolution cancellation prevents later dispatch and can cancel the active model request, but does not guarantee immediate termination of already-running Chromium JavaScript.
 - Source-evolution dependency changes, merge conflicts and multiple concurrent candidates are not yet proven.
 - CI validates syntax, configuration, documentation companions and unit tests. Electron smoke remains a Windows runtime workflow.
@@ -49,4 +51,5 @@ From `starter/`:
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:wp12:preflight
 ```

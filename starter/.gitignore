@@ -11,3 +11,6 @@ workspace/state/*
 !workspace/state/.gitkeep
 workspace/source-evolution/*
 !workspace/source-evolution/.gitkeep
+workspace/wp12-preflight/*
+workspace/wp12-trials/*
+workspace/wp12-user-data/*

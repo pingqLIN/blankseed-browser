@@ -9,12 +9,13 @@
 - WP-09 candidate branch 只保留作本機證據，刻意未合併至 `main`。
 - Trusted control surface 的使用者介面採用繁中，並有英文權威的 operator guide 與 `.zh-tw.md` companion。
 - WP-12 真實本機模型評估協定已核准；目前尚未執行 WP-12 real-model trial。
+- WP-12A fail-closed preflight/evidence foundation 已實作並通過測試；目前結果仍是 `PRE-FLIGHT HOLD / NOT RUN`，未啟動 trial。
 - 專案仍是 Windows-first 的本機研究環境，不是可發布的瀏覽器產品。
 
 ## 階段判定
 
 - Phase 0：已完成 Windows Electron runtime 驗證。
-- Phase 1：deterministic protocol 已實作；本次 hardening 補上明確的 page/CDP cancellation 與下一次命令重新 attach 的 CDP recovery。
+- Phase 1：deterministic protocol implementation 已存在；automated duplicate-request-ID 與 active execution 期間 navigation 的 regression case 尚缺最終完成證據，詳見 `starter/reports/phase-1-completion-assessment.zh-tw.md`。
 - Phase 2：generated Node runtime supervision 已完成。
 - Phase 3：版本化 module lifecycle 與 rollback 已完成。
 - Phase 4：已完成一次人工 capability-evolution 實驗，並在重新啟動後重用 module。
@@ -37,6 +38,7 @@
 - Page JavaScript cancellation 能終止 broker 的結果生命週期，但不能保證 Chromium 立即停止已開始執行的 JavaScript。
 - Deterministic fixture 證明 transport、dispatch、correction 與 reuse；real-model quality 與 prompt-injection robustness 仍未證明。
 - 目前沒有 WP-12 pass/hold evidence；協定是計畫，不是實驗結果。
+- WP-12A 會正確維持 HOLD，直到 clean recorded commit 上具備精確 model/server identity、全新 owned trial path/port、所有本次 command evidence 與外部 OS egress-denial evidence。
 - Evolution cancellation 會阻止後續 dispatch 並可取消 active model request，但不保證立即停止 Chromium 已開始的 JavaScript。
 - Source evolution 尚未證明 dependency change、merge conflict 與多個 concurrent candidate。
 - CI 驗證 syntax、configuration、文件 companion 與 unit test；Electron smoke 仍是 Windows runtime workflow。
@@ -49,4 +51,5 @@
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:wp12:preflight
 ```

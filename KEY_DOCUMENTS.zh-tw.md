@@ -30,8 +30,10 @@
 - [程式使用說明](USER_GUIDE.zh-tw.md)
 - [Starter 操作說明](starter/README.zh-tw.md)
 - [驗證報告](VALIDATION_REPORT.zh-tw.md)
+- [Phase 1 完成條件評估](starter/reports/phase-1-completion-assessment.zh-tw.md)
 - [WP-10 操作 hardening 證據](starter/reports/wp-10-operational-hardening.zh-tw.md)
 - [WP-11 自動化本機演化迴圈證據](starter/reports/wp-11-automated-evolution-loop.zh-tw.md)
+- [WP-12A 預檢與證據基礎](starter/reports/wp-12-preflight-foundation.zh-tw.md)
 
 ## 維護規則
 

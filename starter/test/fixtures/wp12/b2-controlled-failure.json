@@ -1,0 +1,10 @@
+{
+  "protocol": "blankseed-wp12-controlled-failure/0.1",
+  "action": "module_candidate_test",
+  "error": {
+    "code": "SERIALIZATION_FAILED",
+    "message": "Execution result is not JSON serializable.",
+    "retryable": false
+  },
+  "requirement": "Preserve this first result and require an evidence-responsive changed action."
+}

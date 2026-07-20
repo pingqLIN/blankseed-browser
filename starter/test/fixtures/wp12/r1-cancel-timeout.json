@@ -1,0 +1,15 @@
+{
+  "protocol": "blankseed-wp12-r1/0.1",
+  "cancel": {
+    "trigger": "after-active-action-recorded",
+    "requiredLaterDispatchCount": 0
+  },
+  "timeout": {
+    "trigger": "controlled-loopback-delay",
+    "requiredUnsafeReplayCount": 0
+  },
+  "cleanup": {
+    "runtimeRemaining": 0,
+    "portReusable": true
+  }
+}

@@ -30,12 +30,16 @@ One-command verification:
 npm run verify
 npm run verify:runtime
 npm run verify:wp11
+npm run verify:wp12:preflight
 ```
 
 `verify` runs syntax/configuration/document-companion checks and unit tests.
 `verify:runtime` additionally runs the scoped Windows Electron hardening smoke.
 `verify:wp11` additionally proves the deterministic automated evolution loop;
 it is a WP-12 preflight, not real-model evidence.
+`verify:wp12:preflight` verifies the fail-closed WP-12A foundation. With no
+operator-owned trial input or external egress evidence it records
+`PRE-FLIGHT HOLD / NOT RUN` and does not launch Electron or contact a model.
 
 ## Current UI
 
@@ -153,3 +157,28 @@ The model fixture requests raw tools, observes one intentional candidate
 serialization failure, produces corrected source, commits and activates the
 module, then a second Electron session reuses it. Normal launches persist run
 manifests under `workspace/evolution-runs/`.
+
+## WP-12 preflight
+
+The tracked files under `test/fixtures/wp12/` freeze B1/B2/I1/R1 inputs, trust
+labels and SHA-256 hashes. Actual model, workspace, port-ownership and external
+OS egress evidence belongs in the Git-ignored `workspace/wp12-preflight/` area.
+Start from `config/wp12-preflight.example.json`; do not treat the template as
+evidence.
+
+Run the strict preflight with:
+
+```powershell
+npm run wp12:preflight
+```
+
+To run both required Windows smokes and carry all four current check results
+into the strict preflight, use `npm run wp12:preflight:full`.
+
+HOLD exits with code 2 and writes
+`workspace/wp12-preflight/preflight.json`; it never starts a trial. Validate a
+completed evaluation sidecar separately with:
+
+```powershell
+npm run validate:wp12:evaluation -- workspace/evolution-runs/<evolutionRunId>/wp12-evaluation.json
+```
