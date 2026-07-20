@@ -60,6 +60,7 @@ evolution-run artifacts, not in hidden Main Process branches.
 | Node Runtime | Execute generated Node source under `ProcessSupervisor` | Separate Electron `utilityProcess`; observable and terminable, but not a security sandbox |
 | Module System | Store Candidate source, Test results, immutable committed versions, active mappings, and Rollback transitions | Generated workspace separated from Kernel source |
 | Recovery records | Persist events and Checkpoints and support version-oriented recovery decisions | Integrity-checked state captures plus an operator-confirmed restore limited to the active Module mapping |
+| Multi-Agent Governance | Run a sequential Proposer-to-Reviewer handoff, bind evidence to a same-session Main Process anchor, and hold approved activation for operator Apply | Role-separated Agent identities; read-only governed tool profile; no model-direct policy authority |
 
 ## Process Model
 
@@ -73,7 +74,8 @@ Renderer displays state; it does not own Runtime authority.
 ### Main process
 
 The Main Process constructs the window, Target, Event Store, Checkpoint Store,
-Process Supervisor, Module Store, model adapter, evolution loop, and IPC router.
+Process Supervisor, Module Store, model adapter, evolution loop, Multi-Agent
+Runtime, and IPC router.
 It is the coordination and trust boundary. Generated behavior must not be
 evaluated directly inside this process.
 
@@ -157,6 +159,11 @@ safe:
   allowlist.
 - Hosted provider credentials remain Main-Process-only and are never accepted
   in Renderer/model payload fields.
+- Governed Multi-Agent review limits both Proposer and Reviewer to
+  `page_snapshot` and `module_list`. Proposal, handoff, review, activation target,
+  and source identity are hash-bound and anchored in Main Process memory for the
+  current session; a separate operator confirmation and compare-and-swap are
+  required before Activate. Persisted decisions cannot be applied after restart.
 - A Candidate remains inactive until it passes Test, completes Commit as an
   immutable Module version, and is explicitly selected through Activate.
 - Module Rollback changes the active mapping to a selected earlier committed
@@ -198,6 +205,13 @@ Runtime state is intentionally split by purpose:
 - `starter/workspace/state/active-modules.json` stores active version mappings.
 - `starter/workspace/evolution-runs/<evo_*>/run.json` stores bounded evolution
   evidence.
+- `starter/workspace/multi-agent-runs/<mar_*>/run.json` stores sequential Agent
+  identity and handoff evidence.
+- `starter/workspace/governance/decisions/<gov_*>.json` stores review and
+  operator-Apply state.
+- `<userData>/blankseed-data/checkpoint-transitions/<rst_*>.json` journals
+  restore intent and records `applied_unknown` when the active mapping changed
+  but completion evidence could not be finalized.
 
 ## Capability evolution boundary
 
@@ -209,11 +223,12 @@ and failure behavior are defined in
 
 ## Platform extension points
 
-Knowledge Plane, Agent Memory, Skill Registry, Capability Marketplace, and
-Multi-Agent Governance are future platform layers. They may consume the
-identities, evidence, and version model defined here, but they are not current
-Runtime claims. Any future layer must preserve broker observability, remote
-content isolation, immutable version identity, and explicit recovery evidence.
+The current Multi-Agent slice is sequential, role-separated, read-only during
+review, and human-gated for activation. It is not parallel orchestration,
+independent-provider quorum, or autonomous policy authority. Knowledge Plane,
+Agent Memory, Skill Registry, and Capability Marketplace remain future platform
+layers. Any extension must preserve broker observability, remote content
+isolation, immutable version identity, and explicit recovery evidence.
 
 ## Architectural invariants
 
@@ -226,3 +241,6 @@ content isolation, immutable version identity, and explicit recovery evidence.
    mapping restore rather than general or automatic state reversal.
 7. New platform planes must extend this architecture without silently moving
    generated authority into the fixed Kernel.
+8. Generated review output cannot directly Activate a Module; operator Apply
+   must verify distinct Agent identities, hashes, source identity, and expected
+   active version.

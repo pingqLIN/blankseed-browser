@@ -17,6 +17,7 @@ const state = {
   modules: { active: {}, modules: [], candidates: [] },
   status: null,
   agent: { running: false, evolutionRunId: null, label: 'Agent 待命。' },
+  multiAgent: { running: false, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent 待命。' },
   stop: { state: 'idle', label: '待命' }
 };
 
@@ -105,22 +106,39 @@ function renderAll() {
 
 function renderAgent() {
   const catalog = Array.isArray(state.status?.modelAdapters) ? state.status.modelAdapters : [];
-  const select = $('agent-adapter');
-  const selected = select.value;
-  select.replaceChildren();
-  for (const adapter of catalog) {
-    const option = document.createElement('option');
-    option.value = adapter.id;
-    option.textContent = `${adapter.label} · ${adapter.model || adapter.id}`;
-    option.disabled = adapter.available === false;
-    select.append(option);
+  const defaults = new Map([
+    ['agent-adapter', 'openai.gpt-5.6-terra'],
+    ['reviewer-adapter', 'openai.gpt-5.6-sol']
+  ]);
+  for (const select of [$('agent-adapter'), $('reviewer-adapter')]) {
+    const selected = select.value;
+    select.replaceChildren();
+    for (const adapter of catalog) {
+      const option = document.createElement('option');
+      option.value = adapter.id;
+      option.textContent = `${adapter.label} · ${adapter.model || adapter.id}`;
+      option.disabled = adapter.available === false;
+      select.append(option);
+    }
+    if ([...select.options].some((option) => option.value === selected && !option.disabled)) {
+      select.value = selected;
+    } else {
+      const preferred = [...select.options].find((option) => option.value === defaults.get(select.id) && !option.disabled);
+      const fallback = [...select.options].find((option) => !option.disabled);
+      if (preferred || fallback) select.value = (preferred || fallback).value;
+    }
   }
-  if ([...select.options].some((option) => option.value === selected && !option.disabled)) {
-    select.value = selected;
-  }
-  $('agent-run').disabled = state.agent.running || select.options.length === 0;
+  $('agent-run').disabled = state.agent.running || !$('agent-adapter').selectedOptions[0] || $('agent-adapter').selectedOptions[0].disabled;
   $('agent-cancel').disabled = !state.agent.running;
   $('agent-run-status').textContent = state.agent.label;
+  $('multi-agent-run').disabled = state.multiAgent.running
+    || !$('agent-adapter').selectedOptions[0]
+    || $('agent-adapter').selectedOptions[0].disabled
+    || !$('reviewer-adapter').selectedOptions[0]
+    || $('reviewer-adapter').selectedOptions[0].disabled;
+  $('multi-agent-cancel').disabled = !state.multiAgent.running;
+  $('governance-apply').disabled = !state.multiAgent.decisionId && !$('governance-decision-id').value.trim();
+  $('multi-agent-status').textContent = state.multiAgent.label;
 }
 
 function renderStatus() {
@@ -361,15 +379,16 @@ $('utility-stop').addEventListener('click', () => run(() => window.blankseed.uti
 $('stop-all').addEventListener('click', () => run(async () => {
   state.stop = { state: 'requested', label: '已要求停止' };
   renderStopState();
-  const [evolution, executions, runtime, model] = await Promise.all([
+  const [evolution, multiAgent, executions, runtime, model] = await Promise.all([
     window.blankseed.evolution.cancel(null, { requestId: requestId('stop_evolution') }),
+    window.blankseed.multiAgent.cancel(null, { requestId: requestId('stop_multi_agent') }),
     window.blankseed.execution.cancel(null, { requestId: requestId('stop_execution') }),
     window.blankseed.utility.stop({ requestId: requestId('stop_runtime') }),
     window.blankseed.model.cancel({ requestId: requestId('stop_model') })
   ]);
   const remaining = Number(runtime.remaining || 0) + Number(executions.remaining || 0);
   state.stop = { state: 'confirmed', label: `已確認 / 剩餘 ${remaining}` };
-  return { evolution, executions, runtime, model, remaining };
+  return { evolution, multiAgent, executions, runtime, model, remaining };
 }));
 $('module-refresh').addEventListener('click', () => run(() => window.blankseed.modules.list(), { skipRefresh: false }));
 $('module-create').addEventListener('click', () => run(async () => {
@@ -419,6 +438,66 @@ $('agent-cancel').addEventListener('click', () => run(async () => {
   state.agent = { running: false, evolutionRunId: null, label: `已要求取消 Agent Run · ${value.cancelled || 0}` };
   return value;
 }));
+$('multi-agent-run').addEventListener('click', async () => {
+  const task = $('agent-task').value.trim();
+  if (!task) {
+    showError({ code: 'INVALID_REQUEST', message: 'Task 任務不得為空。' });
+    return;
+  }
+  const moduleId = $('governance-module-id').value.trim();
+  const version = $('governance-module-version').value.trim();
+  state.multiAgent = { running: true, multiAgentRunId: null, decisionId: null, label: 'Multi-Agent Review 執行中…' };
+  renderAgent();
+  try {
+    const value = await window.blankseed.multiAgent.run(task, {
+      proposerAdapter: $('agent-adapter').value,
+      reviewerAdapter: $('reviewer-adapter').value,
+      activation: moduleId || version ? { id: moduleId, version } : null,
+      maxTurns: Number($('agent-max-turns').value),
+      maxActions: Number($('agent-max-actions').value),
+      options: { reasoningEffort: $('agent-reasoning').value }
+    }, { requestId: requestId('multi_agent_run') });
+    const decisionId = value.decision?.decisionId || null;
+    if (decisionId) $('governance-decision-id').value = decisionId;
+    state.multiAgent = {
+      running: false,
+      multiAgentRunId: value.multiAgentRunId || null,
+      decisionId,
+      label: value.status === 'ok'
+        ? `Governed Review 已完成 · ${value.decision.review.verdict} · ${short(decisionId, 18)}`
+        : `Multi-Agent Review 失敗：${value.error?.message || 'unknown'}`
+    };
+    show(value);
+  } catch (error) {
+    state.multiAgent = { running: false, multiAgentRunId: null, decisionId: null, label: `Multi-Agent Review 失敗：${error.message}` };
+    showError(error);
+  }
+  await refreshAll();
+});
+$('multi-agent-cancel').addEventListener('click', () => run(async () => {
+  const value = await window.blankseed.multiAgent.cancel(state.multiAgent.multiAgentRunId, { requestId: requestId('multi_agent_cancel') });
+  state.multiAgent = { running: false, multiAgentRunId: null, decisionId: state.multiAgent.decisionId, label: `已要求取消 Multi-Agent Run · ${value.cancelled || 0}` };
+  return value;
+}));
+$('governance-apply').addEventListener('click', () => {
+  const decisionId = $('governance-decision-id').value.trim();
+  if (!decisionId) {
+    showError({ code: 'INVALID_REQUEST', message: '請先完成或選擇 Governance Decision。' });
+    return;
+  }
+  if (!window.confirm('Apply 會依已審查的 immutable evidence Activate 指定 committed Module version。確定繼續？')) return;
+  run(async () => {
+    const value = await window.blankseed.multiAgent.apply(decisionId, {
+      requestId: requestId('governance_apply'),
+      confirmed: true
+    });
+    state.multiAgent = { running: false, multiAgentRunId: value.multiAgentRunId, decisionId, label: `Governance Decision 已套用 · ${short(decisionId, 18)}` };
+    return value;
+  });
+});
+$('governance-decision-id').addEventListener('input', () => {
+  $('governance-apply').disabled = !$('governance-decision-id').value.trim();
+});
 $('refresh-events').addEventListener('click', () => refreshAll());
 $('clear-result').addEventListener('click', () => { result.textContent = '已就緒。'; });
 

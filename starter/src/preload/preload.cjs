@@ -34,6 +34,10 @@ const channels = Object.freeze({
   modelCancel: 'blankseed:model:cancel',
   evolutionRun: 'blankseed:evolution:run',
   evolutionCancel: 'blankseed:evolution:cancel',
+  multiAgentRun: 'blankseed:multi-agent:run',
+  multiAgentCancel: 'blankseed:multi-agent:cancel',
+  multiAgentList: 'blankseed:multi-agent:list',
+  governanceApply: 'blankseed:governance:apply',
   eventPush: 'blankseed:event:push'
 });
 
@@ -124,6 +128,21 @@ contextBridge.exposeInMainWorld('blankseed', {
     cancel: (evolutionRunId, options) => invoke(
       channels.evolutionCancel,
       withOptions(evolutionRunId ? { evolutionRunId } : {}, options)
+    )
+  },
+  multiAgent: {
+    run: (task, configuration = {}, options) => invoke(
+      channels.multiAgentRun,
+      withOptions({ task, ...configuration }, options)
+    ),
+    cancel: (multiAgentRunId, options) => invoke(
+      channels.multiAgentCancel,
+      withOptions(multiAgentRunId ? { multiAgentRunId } : {}, options)
+    ),
+    list: (options) => invoke(channels.multiAgentList, withOptions({}, options)),
+    apply: (governanceDecisionId, options) => invoke(
+      channels.governanceApply,
+      withOptions({ governanceDecisionId, confirmed: options?.confirmed === true }, options)
     )
   }
 });

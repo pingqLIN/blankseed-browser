@@ -692,6 +692,71 @@ credential source, streaming mode, or automatic hosted evaluation protocol.
 
 ---
 
+## ADR-017 — Require session-anchored handoff evidence and operator Apply for Multi-Agent activation
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+The Runtime can execute bounded Agent runs and Activate committed Modules, but
+model-to-model review without role identity, evidence binding, or a separate
+authority gate would let generated output silently become activation policy.
+The platform needs a first Multi-Agent contract without redesigning the raw
+broker, Module API, or recovery model.
+
+### Evidence
+
+Module Commit already provides immutable `id`, `version`, and `sourceHash`;
+Checkpoint restore provides integrity checks, a safety capture, and atomic
+active-mapping replacement; the evolution loop already records run, turn,
+action, and tool evidence. These primitives can bind a review without granting
+the Reviewer a mutating tool.
+
+### Alternatives
+
+- Let a Reviewer call `module_activate` directly after approving a Proposal.
+- Treat two model turns in one run as sufficient review without separate Agent
+  identities or a persisted handoff.
+- Wait for a complete parallel scheduler, policy engine, and quorum system.
+
+### Decision
+
+Add a sequential `MultiAgentRuntime` with distinct immutable Proposer and
+Reviewer `agt_*` identities. Limit both roles to read-only `page_snapshot` and
+`module_list`; bind Proposal, handoff, review, optional activation target, and
+committed source identity by hash; persist a `gov_*` decision; and keep its
+Apply authority in a same-session Main Process memory anchor. A Reviewer
+approval is advisory. An activation target remains `awaiting_operator` until an
+explicit `governance.apply` call revalidates the memory anchor, different
+identities, evidence hashes, `sourceHash`, and expected active version, creates
+a safety Checkpoint, then performs compare-and-swap Activate. Persisted decisions
+cannot be applied after restart.
+
+### Consequences
+
+- Multi-Agent review becomes inspectable and recoverable without adding a
+  semantic task whitelist or changing the Module lifecycle.
+- Hash mismatch, self-review, malformed verdict, changed source, or stale
+  active state fails closed.
+- The first implementation is sequential and does not prove independent
+  reviewers, providers, organizations, or failure domains.
+- Human confirmation remains the policy authority for activation.
+- If activation/restore reaches its target mapping but completion evidence
+  fails, retain `applied_unknown` and a durable transition record instead of
+  falsely returning to an unapplied state.
+
+### Rollback/review trigger
+
+Disable governed Apply if persisted evidence can replace the same-session
+memory anchor, a Reviewer can obtain mutating tools, a model verdict can
+Activate without operator confirmation, or active-state compare-and-swap is
+bypassed. Re-review before
+adding parallel orchestration, delegated policy authority, independent-provider
+quorum, remote governance services, or broader tool profiles.
+
+---
+
 ## ADR template
 
 ```markdown

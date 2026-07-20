@@ -158,6 +158,23 @@ redacted decision metadata. Generated utility processes receive an explicit
 environment allowlist that excludes provider keys and unrelated environment
 variables.
 
+### Governed Multi-Agent review
+
+The current Multi-Agent Runtime separates a Proposer, Reviewer, and operator.
+Proposer and Reviewer identities are distinct and immutable for the run, and
+both receive only the read-only `page_snapshot` and `module_list` tools. The
+handoff, Proposal, review, optional activation target, and committed source
+identity are hash-bound. A decision eligible for Apply is additionally anchored
+in Main Process memory for the current session. Rewriting and rehashing the
+persisted workspace JSON cannot replace that authority, and a persisted
+decision cannot be applied after restart.
+
+A Reviewer verdict is not activation authority. An approved activation remains
+`awaiting_operator` until a separate operator confirmation. Apply then verifies
+different Agent identities, evidence hashes, committed `sourceHash`, and the
+expected active Module version; creates a safety Checkpoint; and uses
+compare-and-swap activation. Any stale or inconsistent state fails closed.
+
 ## Failure containment and recovery order
 
 Use the smallest applicable control first:
@@ -179,12 +196,21 @@ operator must verify both termination and the resulting active state.
 - Candidate Test is not a comprehensive security review.
 - Module growth has no quota, review quorum, or garbage-collection policy.
 - Checkpoint restore is limited to an integrity-checked active Module mapping.
+- Checkpoint and governance updates are not one filesystem transaction with the
+  active mapping. Durable records use `applied_unknown` when the target mapping
+  is observed but completion evidence fails; an operator must reconcile it.
 - Module versions are locally hashed but not signed or publisher-authenticated.
 - Rollback cannot reverse external side effects.
 - Policy decisions remain operator/governance responsibilities outside model
   output.
 - Hosted transport does not itself provide a data-loss-prevention policy or
   approve sending unrelated local content.
+- Multi-Agent execution is sequential, not a parallel scheduler or quorum
+  system; distinct `agt_*` identities do not prove independent humans,
+  organizations, providers, or failure domains.
+- Persisted governance JSON is evidence, not authority by itself. The
+  same-session memory anchor deliberately does not survive an application
+  restart.
 
 ## Future Extension
 
@@ -211,10 +237,11 @@ generated the Candidate.
 
 ### Registry and governance controls
 
-Skill Registry, Capability Marketplace, and Multi-Agent Governance may add
-publisher identity, signatures, review quorum, revocation, retention policy,
-compatibility declarations, and activation authority. These controls should
-build on, rather than bypass, Candidate isolation and immutable Commit identity.
+Skill Registry, Capability Marketplace, and stronger Multi-Agent Governance may
+add publisher identity, signatures, independent review quorum, revocation,
+retention policy, compatibility declarations, and delegated activation policy.
+These controls should build on, rather than bypass, Candidate isolation,
+immutable Commit identity, and the operator gate.
 
 ## Security invariants
 
@@ -229,3 +256,6 @@ build on, rather than bypass, Candidate isolation and immutable Commit identity.
    inspectable.
 8. Hosted credentials remain Main-Process-only and never enter generated
    Runtime environment, Renderer IPC payloads, or retained evidence.
+9. Multi-Agent verdicts remain advisory until operator Apply revalidates the
+   same-session Main Process anchor, hash-bound evidence, and current active
+   state.

@@ -92,6 +92,12 @@ Target `WebContentsView` 使用 `nodeIntegration: false`、`contextIsolation: tr
 
 Hosted OpenAI request 固定使用官方 HTTPS Responses endpoint 與一個已設定的 GPT-5.6 adapter identity。Main Process 把 `OPENAI_API_KEY` 注入 Authorization header；Renderer/model payload 會拒絕 secret-shaped field。Redirect 一律拒絕，明確使用 `store: false`，event 只保留 provider/model/origin/response identity、usage、hash 與 redacted decision metadata。Generated utility process 使用 explicit environment allowlist，排除 provider key 與無關 environment variable。
 
+### Governed Multi-Agent review
+
+目前 Multi-Agent Runtime 會分離 Proposer、Reviewer 與 operator。每次 run 中，Proposer 與 Reviewer identity 都不同且 immutable，並且都只能使用 read-only 的 `page_snapshot` 與 `module_list` tool。Handoff、Proposal、review、optional activation target 與 committed source identity 會以 hash 綁定。可 Apply 的 decision 另由目前 session 的 Main Process memory anchor 保護；即使重寫並重新計算 persisted workspace JSON，也不能取代此 authority。App restart 後，persisted decision 不可 Apply。
+
+Reviewer verdict 不等於 activation authority。Approve 後的 activation 仍維持 `awaiting_operator`，直到 operator 另行確認。Apply 會再驗證不同的 Agent identity、evidence hash、committed `sourceHash` 與 expected active Module version，建立 safety Checkpoint，再以 compare-and-swap Activate。任何 stale 或 inconsistent state 都會 fail closed。
+
 ## Failure containment 與 recovery order
 
 優先使用影響最小且適用的 control：
@@ -112,10 +118,13 @@ Hosted OpenAI request 固定使用官方 HTTPS Responses endpoint 與一個已�
 - Candidate Test 不是完整 security review。
 - Module growth 尚無 quota、review quorum 或 garbage-collection policy。
 - Checkpoint restore 僅限通過 integrity check 的 active Module mapping。
+- Checkpoint/governance update 與 active mapping 並不是同一個 filesystem transaction。若觀察到 target mapping 已套用、completion evidence 卻失敗，durable record 會保留 `applied_unknown`，必須由 operator reconciliation。
 - Module version 具有 local hash，但沒有 signature 或 publisher authentication。
 - Rollback 無法逆轉 external side effect。
 - Policy decision 仍屬於 model output 之外的 operator/governance responsibility。
 - Hosted transport 本身不等於 data-loss-prevention policy，也不授權傳送與 task 無關的 local content。
+- Multi-Agent execution 目前是 sequential，不是 parallel scheduler 或 quorum system；不同的 `agt_*` identity 也不代表不同 human、organization、provider 或 failure domain。
+- Persisted governance JSON 本身是 evidence，不是 authority；同一 session 的 memory anchor 刻意不跨 app restart。
 
 ## Future Extension
 
@@ -133,7 +142,7 @@ Hosted OpenAI request 固定使用官方 HTTPS Responses endpoint 與一個已�
 
 ### Registry 與 governance controls
 
-Skill Registry、Capability Marketplace 與 Multi-Agent Governance 可加入 publisher identity、signature、review quorum、revocation、retention policy、compatibility declaration 與 activation authority。這些 control 應建立在 Candidate isolation 與 immutable Commit identity 上，而不是繞過它們。
+Skill Registry、Capability Marketplace 與更完整的 Multi-Agent Governance 可加入 publisher identity、signature、independent review quorum、revocation、retention policy、compatibility declaration 與 delegated activation policy。這些 control 應建立在 Candidate isolation、immutable Commit identity 與 operator gate 上，而不是繞過它們。
 
 ## Security invariants
 
@@ -145,3 +154,4 @@ Skill Registry、Capability Marketplace 與 Multi-Agent Governance 可加入 pub
 6. Stop、Rollback 與 Checkpoint 是三種 claim 不同的 control。
 7. Failed code、validation result、error 與 recovery action 維持可檢視。
 8. Hosted credential 只留在 Main Process，不進入 generated Runtime environment、Renderer IPC payload 或 retained evidence。
+9. Multi-Agent verdict 維持 advisory，直到 operator Apply 重新驗證同一 session 的 Main Process anchor、hash-bound evidence 與目前 active state。

@@ -25,6 +25,11 @@ class EventStore {
       requestId: context.requestId ?? null,
       executionId: context.executionId ?? null,
       evolutionRunId: context.evolutionRunId ?? null,
+      multiAgentRunId: context.multiAgentRunId ?? null,
+      agentId: context.agentId ?? null,
+      handoffId: context.handoffId ?? null,
+      governanceDecisionId: context.governanceDecisionId ?? null,
+      restoreTransitionId: context.restoreTransitionId ?? null,
       turnId: context.turnId ?? null,
       actionId: context.actionId ?? null,
       data

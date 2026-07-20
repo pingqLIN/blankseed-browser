@@ -50,6 +50,7 @@ Runtime Services
 | Node Runtime | 在 `ProcessSupervisor` 下執行 generated Node source | 獨立 Electron `utilityProcess`；可觀察、可終止，但不是 security sandbox |
 | Module System | 儲存 Candidate source、Test result、immutable committed version、active mapping 與 Rollback transition | Generated workspace 與 Kernel source 分離 |
 | Recovery records | 持久化 event 與 Checkpoint，提供 version-oriented recovery decision 所需資訊 | 具 integrity check 的 state capture，以及需 operator confirmation、僅限 active Module mapping 的 restore |
+| Multi-Agent Governance | 執行 sequential Proposer-to-Reviewer handoff、將 evidence 綁定至同一 session 的 Main Process anchor，並讓已 approve 的 activation 等待 operator Apply | role-separated Agent identity、read-only governed tool profile；model 不直接持有 policy authority |
 
 ## Process Model
 
@@ -59,7 +60,7 @@ UI Console 由本機 application file 載入，設定為 `nodeIntegration: false
 
 ### Main process
 
-Main Process 建立 window、Target、Event Store、Checkpoint Store、Process Supervisor、Module Store、model adapter、evolution loop 與 IPC router。它是 coordination 與 trust boundary；generated behavior 不得直接在此 process 內 evaluate。
+Main Process 建立 window、Target、Event Store、Checkpoint Store、Process Supervisor、Module Store、model adapter、evolution loop、Multi-Agent Runtime 與 IPC router。它是 coordination 與 trust boundary；generated behavior 不得直接在此 process 內 evaluate。
 
 ### Node execution boundary
 
@@ -106,6 +107,7 @@ Service 透過 IPC 回傳 structured value 或 normalized error。UI 顯示最�
 - Page、CDP、process、Module 與 Checkpoint 操作均保留在 broker 或 shared event pipeline 內，維持 observability。
 - Generated Node code 在 Main Process 外由 supervisor 執行，並受 timeout、stop/kill control 與 explicit secret-free environment allowlist 管理。
 - Hosted provider credential 只留在 Main Process，Renderer/model payload field 不接受 credential。
+- Governed Multi-Agent review 將 Proposer 與 Reviewer 都限制於 `page_snapshot`、`module_list`。Proposal、handoff、review、activation target 與 source identity 以 hash 綁定，並在目前 session 以 Main Process memory anchor 保護；Activate 前還需要獨立 operator confirmation 與 compare-and-swap。App restart 後，persisted decision 不可再 Apply。
 - Candidate 必須通過 Test、以 immutable Module version 完成 Commit，並明確 Activate 後才會成為 active。
 - Module Rollback 會將 active mapping 切換到指定的舊 committed version，並記錄 transition。
 - Checkpoint creation 會在高風險 transition 前記錄目前 Runtime state 與 integrity hash。operator-confirmed Checkpoint restore 會停止 owned work、驗證 referenced committed Module 與 source hash、建立 safety Checkpoint，再以 atomic compare-and-swap 只還原 `modules.active`。Target navigation、browser user data/storage、configuration、credentials、events、Module files、Git state 與 external effects 均明確排除。
@@ -138,6 +140,9 @@ Runtime state 依用途分開保存：
 - `starter/workspace/modules/` 儲存 Candidate 與 committed Module version。
 - `starter/workspace/state/active-modules.json` 儲存 active version mapping。
 - `starter/workspace/evolution-runs/<evo_*>/run.json` 儲存 bounded evolution evidence。
+- `starter/workspace/multi-agent-runs/<mar_*>/run.json` 儲存 sequential Agent identity 與 handoff evidence。
+- `starter/workspace/governance/decisions/<gov_*>.json` 儲存 review 與 operator-Apply state。
+- `<userData>/blankseed-data/checkpoint-transitions/<rst_*>.json` 記錄 restore intent；若 active mapping 已改變但 completion evidence 無法完成，會保留 `applied_unknown`。
 
 ## Capability evolution boundary
 
@@ -145,7 +150,7 @@ Module System 使用明確的 `Generate -> Candidate -> Test -> Commit -> Activa
 
 ## Platform extension points
 
-Knowledge Plane、Agent Memory、Skill Registry、Capability Marketplace 與 Multi-Agent Governance 是未來 platform layer。它們可使用此處定義的 identity、evidence 與 version model，但目前不屬於 Runtime 已完成的功能。未來 layer 必須保留 broker observability、remote content isolation、immutable version identity 與明確 recovery evidence。
+目前 Multi-Agent slice 是 sequential、role-separated、review 過程 read-only，且 activation 需要 human gate。它不代表 parallel orchestration、independent-provider quorum 或 autonomous policy authority。Knowledge Plane、Agent Memory、Skill Registry 與 Capability Marketplace 仍是未來 platform layer。任何 extension 都必須保留 broker observability、remote content isolation、immutable version identity 與明確 recovery evidence。
 
 ## Architecture invariants
 
@@ -156,3 +161,4 @@ Knowledge Plane、Agent Memory、Skill Registry、Capability Marketplace 與 Mul
 5. Activation 與 Rollback 指向明確的 immutable Module version。
 6. Checkpoint restore 必須描述為需 operator confirmation 的 active-Module mapping restore，不得描述為 general 或 automatic state reversal。
 7. 新 platform plane 必須延伸本架構，不得把 generated authority 靜默移入固定 Kernel。
+8. Generated review output 不得直接 Activate Module；operator Apply 必須驗證不同 Agent identity、hash、source identity 與 expected active version。

@@ -112,3 +112,38 @@ provider key，且 stdout/stderr 會被保留。決定讓每個 generated utilit
 event/evidence、error detail、redirect 或非 allowlisted request，應停用所有
 Hosted adapter；新增 provider、endpoint、credential source、streaming 或 automatic
 hosted evaluation protocol 前必須 review。
+
+## ADR-017 — Multi-Agent activation 必須具備 session-anchored handoff evidence 與 operator Apply
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+Runtime 已能執行 bounded Agent run 並 Activate committed Module；但若 model-to-model review 沒有 role identity、evidence binding 與獨立 authority gate，generated output 就可能靜默成為 activation policy。第一版 Multi-Agent contract 必須沿用 raw broker、Module API 與 recovery model，不重新設計 Runtime。
+
+### Evidence
+
+Module Commit 已提供 immutable `id`、`version` 與 `sourceHash`；Checkpoint restore 已具備 integrity check、safety capture 與 atomic active-mapping replacement；evolution loop 也會記錄 run、turn、action 與 tool evidence。這些 primitive 足以綁定 review，無須把 mutating tool 交給 Reviewer。
+
+### Alternatives
+
+- Reviewer approve 後直接呼叫 `module_activate`。
+- 不建立獨立 Agent identity 與 persisted handoff，只把同一 run 的兩次 model turn 視為 review。
+- 等待完整 parallel scheduler、policy engine 與 quorum system 後才實作。
+
+### Decision
+
+加入 sequential `MultiAgentRuntime`，為 Proposer 與 Reviewer 建立不同且 immutable 的 `agt_*` identity。兩個 role 都只能使用 read-only 的 `page_snapshot` 與 `module_list`；Proposal、handoff、review、optional activation target 與 committed source identity 都以 hash 綁定，保存 `gov_*` decision，並以同一 session 的 Main Process memory anchor 持有 Apply authority。Reviewer approve 只是 advisory。Activation target 會維持 `awaiting_operator`，直到明確呼叫 `governance.apply`，重新驗證 memory anchor、不同 identity、evidence hash、`sourceHash` 與 expected active version，建立 safety Checkpoint，再以 compare-and-swap Activate。App restart 後，persisted decision 不可 Apply。
+
+### Consequences
+
+- Multi-Agent review 可檢視且可復原，不需要加入 semantic task whitelist，也不改變 Module lifecycle。
+- Hash mismatch、self-review、verdict 格式錯誤、source 改變或 stale active state 都會 fail closed。
+- 第一版是 sequential，不證明 reviewer、provider、organization 或 failure domain 彼此獨立。
+- Activation policy authority 仍由 human confirmation 掌握。
+- 若 activation/restore 已到達 target mapping、completion evidence 卻失敗，保留 `applied_unknown` 與 durable transition record，不得錯誤回到 unapplied state。
+
+### Rollback/review trigger
+
+若 persisted evidence 能取代同一 session 的 memory anchor、Reviewer 能取得 mutating tool、model verdict 可在沒有 operator confirmation 時 Activate，或 active-state compare-and-swap 被繞過，應停用 governed Apply。加入 parallel orchestration、delegated policy authority、independent-provider quorum、remote governance service 或更廣 tool profile 前，必須重新 review。

@@ -181,11 +181,19 @@ class ModuleStore {
     return { moduleId: manifest.id, version: manifest.version, directory: versionDirectory, manifest };
   }
 
-  activate({ id, version }, context = {}) {
+  activate(input, context = {}) {
+    const { id, version, expectedActiveVersion } = input;
     const moduleId = this.#assertModuleId(id);
     const targetVersion = this.#assertVersion(version);
     const manifest = this.#readCommittedManifest(moduleId, targetVersion);
     const previousVersion = this.active[moduleId] ?? null;
+    if (Object.hasOwn(input, 'expectedActiveVersion') && previousVersion !== expectedActiveVersion) {
+      throw createProtocolError(errorCodes.moduleVersionConflict, 'Active Module version changed before activation.', {
+        moduleId,
+        expectedActiveVersion,
+        currentActiveVersion: previousVersion
+      }, true);
+    }
     this.active[moduleId] = targetVersion;
     this.#writeActive();
     this.eventStore.append('module.activated', {

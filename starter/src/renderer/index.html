@@ -103,6 +103,30 @@
       </div>
       <button id="agent-run">啟動 Agent Run</button>
       <div id="agent-run-status" class="micro-output" role="status" aria-live="polite">Agent 待命。</div>
+      <hr class="section-rule">
+      <div class="panel-head">
+        <h2>Multi-Agent Governance</h2>
+        <button id="multi-agent-cancel">取消 Multi-Agent Run</button>
+      </div>
+      <div class="agent-grid">
+        <label>Reviewer Adapter
+          <select id="reviewer-adapter" aria-label="Reviewer Adapter"></select>
+        </label>
+        <label>Governance Decision
+          <input id="governance-decision-id" placeholder="gov_..." spellcheck="false">
+        </label>
+        <label>Activation Module（可選）
+          <input id="governance-module-id" placeholder="generated.example" spellcheck="false">
+        </label>
+        <label>Activation Version（可選）
+          <input id="governance-module-version" placeholder="0.1.0" spellcheck="false">
+        </label>
+      </div>
+      <div class="button-grid">
+        <button id="multi-agent-run">啟動 Governed Review</button>
+        <button id="governance-apply">確認並 Apply Decision</button>
+      </div>
+      <div id="multi-agent-status" class="micro-output" role="status" aria-live="polite">Multi-Agent 待命。</div>
     </section>
 
     <section id="tab-cdp" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-cdp" tabindex="0" hidden>

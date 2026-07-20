@@ -67,6 +67,9 @@ Available baseline controls:
   or an available OpenAI GPT-5.6 Sol/Terra/Luna adapter.
 - run a bounded provider-neutral model/tool evolution loop through the same raw
   broker, runtime, module and checkpoint services.
+- run a sequential Proposer-to-Reviewer Multi-Agent review with hash-bound,
+  same-session Main Process evidence anchoring, then require operator Apply
+  before an approved committed Module can be activated.
 
 ## Important
 
@@ -86,6 +89,15 @@ Electron writes runtime data under its userData directory:
 ```
 
 The UI displays the resolved path.
+
+Git-ignored Runtime workspace evidence also includes
+`workspace/evolution-runs/<runId>/run.json`,
+`workspace/multi-agent-runs/<runId>/run.json`, and
+`workspace/governance/decisions/<decisionId>.json`.
+Checkpoint restore transitions are journaled under
+`<userData>/blankseed-data/checkpoint-transitions/`; `applied_unknown` means the
+target mapping was observed but completion evidence failed and needs operator
+reconciliation.
 
 ## Manual verification
 
@@ -163,6 +175,21 @@ separate from the credential-free WP-12 loopback evaluation profile.
 
 See the official [GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model)
 and [GPT-5.6 model catalog](https://developers.openai.com/api/docs/models).
+
+## Multi-Agent Governance
+
+The Agent tab can execute a sequential Proposer-to-Reviewer handoff. Each role
+has a distinct immutable Agent identity and is limited to read-only
+`page_snapshot` and `module_list` tools. The Reviewer must bind its verdict to
+the Proposal hash. When a committed Module target is supplied, approval creates
+an `awaiting_operator` decision; it does not activate anything directly.
+
+Operator Apply revalidates evidence hashes, the committed source identity, and
+the expected active version against a same-session Main Process memory anchor,
+creates a safety Checkpoint, and performs a compare-and-swap Activate. Persisted
+decision JSON is evidence only and cannot be applied after restart. This is a
+human-gated review workflow, not parallel or autonomous Multi-Agent policy
+authority.
 
 ## Automated evolution verification
 

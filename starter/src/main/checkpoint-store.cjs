@@ -10,8 +10,10 @@ const {
   serializeError,
   sha256
 } = require('../shared/contracts.cjs');
+const { activeMappingHash } = require('./module-store.cjs');
 
 const CHECKPOINT_SCHEMA = 'blankseed-checkpoint/0.2';
+const RESTORE_TRANSITION_SCHEMA = 'blankseed-checkpoint-restore/0.1';
 
 function writeJsonAtomic(filePath, value) {
   const temporary = `${filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
@@ -22,11 +24,13 @@ function writeJsonAtomic(filePath, value) {
 class CheckpointStore {
   constructor(baseDirectory, { appVersion, getState, eventStore, moduleStore }) {
     this.directory = path.join(baseDirectory, 'checkpoints');
+    this.transitionsDirectory = path.join(baseDirectory, 'checkpoint-transitions');
     this.appVersion = appVersion;
     this.getState = getState;
     this.eventStore = eventStore;
     this.moduleStore = moduleStore;
     fs.mkdirSync(this.directory, { recursive: true });
+    fs.mkdirSync(this.transitionsDirectory, { recursive: true });
   }
 
   create(label = 'manual checkpoint', context = {}) {
@@ -94,6 +98,9 @@ class CheckpointStore {
     const checkpointId = assertIdentifier(id, 'checkpointId', 'chk');
     let checkpoint;
     let plan;
+    let transition = null;
+    let transitionPath = null;
+    let restoreAttempted = false;
     try {
       if (!confirmed) {
         throw createProtocolError(errorCodes.invalidRequest, 'Checkpoint restore requires explicit operator confirmation.', {
@@ -114,10 +121,27 @@ class CheckpointStore {
         excludedState: checkpoint.excludedState
       }, context);
       const safetyCheckpoint = this.create(`before restore ${checkpointId}`, context);
+      const transitionId = `rst_${crypto.randomUUID()}`;
+      transitionPath = path.join(this.transitionsDirectory, `${transitionId}.json`);
+      transition = {
+        schema: RESTORE_TRANSITION_SCHEMA,
+        transitionId,
+        checkpointId,
+        status: 'applying',
+        startedAt: new Date().toISOString(),
+        finishedAt: null,
+        safetyCheckpointId: safetyCheckpoint.id,
+        previousActiveHash: plan.currentActiveHash,
+        targetActiveHash: plan.targetActiveHash,
+        observedActiveHash: plan.currentActiveHash,
+        error: null
+      };
+      writeJsonAtomic(transitionPath, transition);
+      restoreAttempted = true;
       const restored = this.moduleStore.restoreActive({
         active: plan.targetActive,
         expectedActive: plan.currentActive
-      }, { ...context, checkpointId, kind: 'checkpoint.restore' });
+      }, { ...context, checkpointId, restoreTransitionId: transitionId, kind: 'checkpoint.restore' });
       const result = {
         checkpointId,
         safetyCheckpointId: safetyCheckpoint.id,
@@ -125,21 +149,48 @@ class CheckpointStore {
         excludedState: checkpoint.excludedState,
         ...restored
       };
+      transition = {
+        ...transition,
+        status: 'completed',
+        finishedAt: new Date().toISOString(),
+        observedActiveHash: restored.activeHash
+      };
+      writeJsonAtomic(transitionPath, transition);
       this.eventStore.append('checkpoint.restore.completed', {
         checkpointId,
         safetyCheckpointId: safetyCheckpoint.id,
         previousActiveHash: restored.previousActiveHash,
         activeHash: restored.activeHash,
-        moduleCount: restored.modules.length
-      }, context);
-      return result;
+        moduleCount: restored.modules.length,
+        transitionId
+      }, { ...context, restoreTransitionId: transitionId });
+      return { ...result, transitionId, transitionPath };
     } catch (error) {
-      this.eventStore.append('checkpoint.restore.failed', {
-        checkpointId,
-        checkpointStateHash: checkpoint?.stateHash ?? null,
-        targetActiveHash: plan?.targetActiveHash ?? null,
-        error: serializeError(error, errorCodes.checkpointFailed)
-      }, context);
+      const currentActiveHash = activeMappingHash(this.moduleStore.list().active);
+      const appliedUnknown = restoreAttempted && currentActiveHash === plan?.targetActiveHash;
+      if (transition && transitionPath) {
+        transition = {
+          ...transition,
+          status: appliedUnknown ? 'applied_unknown' : 'failed',
+          finishedAt: new Date().toISOString(),
+          observedActiveHash: currentActiveHash,
+          error: serializeError(error, errorCodes.checkpointFailed)
+        };
+        writeJsonAtomic(transitionPath, transition);
+      }
+      try {
+        this.eventStore.append(appliedUnknown ? 'checkpoint.restore.applied_unknown' : 'checkpoint.restore.failed', {
+          checkpointId,
+          transitionId: transition?.transitionId ?? null,
+          checkpointStateHash: checkpoint?.stateHash ?? null,
+          targetActiveHash: plan?.targetActiveHash ?? null,
+          observedActiveHash: currentActiveHash,
+          restoreAttempted,
+          error: serializeError(error, errorCodes.checkpointFailed)
+        }, { ...context, restoreTransitionId: transition?.transitionId ?? null });
+      } catch {
+        // The durable transition journal remains the recovery source if Event Store append fails.
+      }
       throw error;
     }
   }
@@ -177,4 +228,4 @@ class CheckpointStore {
   }
 }
 
-module.exports = { CHECKPOINT_SCHEMA, CheckpointStore };
+module.exports = { CHECKPOINT_SCHEMA, RESTORE_TRANSITION_SCHEMA, CheckpointStore };

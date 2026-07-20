@@ -2,7 +2,7 @@
 
 const PROTOCOL = 'blankseed/0.1';
 const DEFAULT_IPC_PAYLOAD_LIMIT_BYTES = 1_048_576;
-const ID_PATTERN = /^(req|exe|ses|chk|evo|act)_[A-Za-z0-9][A-Za-z0-9_-]{7,}$/;
+const ID_PATTERN = /^(req|exe|ses|chk|evo|act|mar|agt|hnd|gov|rst)_[A-Za-z0-9][A-Za-z0-9_-]{7,}$/;
 
 const errorCodes = Object.freeze({
   invalidRequest: 'INVALID_REQUEST',
@@ -51,6 +51,10 @@ const channels = Object.freeze({
   modelCancel: 'blankseed:model:cancel',
   evolutionRun: 'blankseed:evolution:run',
   evolutionCancel: 'blankseed:evolution:cancel',
+  multiAgentRun: 'blankseed:multi-agent:run',
+  multiAgentCancel: 'blankseed:multi-agent:cancel',
+  multiAgentList: 'blankseed:multi-agent:list',
+  governanceApply: 'blankseed:governance:apply',
   eventPush: 'blankseed:event:push'
 });
 

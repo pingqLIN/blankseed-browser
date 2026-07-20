@@ -124,6 +124,42 @@ then updates the Module `id` to version mapping in
 Activate may select only committed versions. Activation should be preceded by
 a Checkpoint when the capability is persistent or operationally significant.
 
+### Governed Multi-Agent activation
+
+BlankSeed provides a sequential, human-gated review path for an optional
+activation target:
+
+```text
+Propose
+   |
+   v
+Handoff
+   |
+   v
+Review
+   |
+   v
+Operator Apply
+```
+
+The Proposer and Reviewer receive distinct immutable `agt_*` identities and are
+limited to the read-only `page_snapshot` and `module_list` tools during the
+governed run. The handoff binds the Proposal, Agent identities, and optional
+committed Module target by hash. The Main Process retains a same-session memory
+anchor for every decision eligible for Apply; editing or recomputing the
+persisted JSON does not change that authority. The Reviewer must return an
+explicit verdict bound to the same `proposalHash`.
+
+An approval is advisory and does not Activate a Module. When an activation
+target is present, the resulting governance decision remains
+`awaiting_operator`. Operator Apply revalidates the proposal/review evidence,
+committed `sourceHash`, and expected active version, creates a safety
+Checkpoint, then performs a compare-and-swap Activate. A stale mapping, changed
+source identity, self-review, malformed verdict, or hash mismatch fails closed.
+
+This path is currently sequential. It does not claim parallel orchestration,
+independent-provider quorum, or autonomous policy authority.
+
 ## Invoke
 
 Invoke resolves the active version for a Module `id`, verifies its stored source
@@ -154,8 +190,10 @@ integrity, the application version, committed Module manifests, and source
 hashes; creates a pre-restore safety Checkpoint; and atomically restores only
 the complete active Module mapping. It does not restore navigation, browser
 storage, configuration, credentials, events, Module files, Git state, or
-external effects. Application source recovery remains a separately governed
-Git/workspace procedure.
+external effects. A durable restore-transition journal records intent and uses
+`applied_unknown` if the mapping reaches the target but completion evidence
+fails. Application source recovery remains a separately governed Git/workspace
+procedure.
 
 ## Failure transitions
 
@@ -176,12 +214,14 @@ Git/workspace procedure.
 5. Invoke resolves only the active version and verifies its source hash.
 6. Rollback targets an existing committed version and remains observable.
 7. No lifecycle step erases failed source, Test results, or transition events.
+8. Multi-Agent approval cannot bypass same-session Main Process anchoring,
+   operator Apply, or immutable Module identity checks.
 
 ## Relationship to future registries
 
 A future Skill Registry or Capability Marketplace may index committed Module
 versions, validation evidence, provenance, compatibility declarations, and
 policy decisions. Discovery or distribution must not collapse Candidate,
-Commit, and Activate into one operation. Multi-Agent Governance may coordinate
-who proposes, reviews, or activates a capability, while the lifecycle state
-machine remains the common technical contract.
+Commit, and Activate into one operation. Stronger Multi-Agent quorum and
+publisher governance may extend the current sequential review path, while the
+lifecycle state machine remains the common technical contract.

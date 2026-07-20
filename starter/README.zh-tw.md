@@ -52,6 +52,7 @@ npm run verify:wp12:preflight
 - 透過 `local.manual` 或無憑證 `local.openai-compatible` loopback adapter 執行 provider-neutral model turn；
 - 透過同一組 raw broker、runtime、module 與 checkpoint 服務，執行 bounded 的 provider-neutral model/tool evolution loop。
 - 在 Agent Console 組合 bounded Task，並選擇 Local Manual、Local OpenAI-compatible，或可用的 OpenAI GPT-5.6 Sol/Terra/Luna adapter。
+- 執行 sequential Proposer-to-Reviewer Multi-Agent review，以 hash 與同一 session 的 Main Process memory anchor 綁定 evidence；若要 Activate 已 approve 的 committed Module，仍須 operator Apply。
 
 ## 重要
 
@@ -68,6 +69,10 @@ Electron runtime data 會寫入其 userData 目錄：
 ```
 
 UI 會顯示已解析的路徑。
+
+Git 忽略的 Runtime workspace evidence 也包含 `workspace/evolution-runs/<runId>/run.json`、`workspace/multi-agent-runs/<runId>/run.json` 與 `workspace/governance/decisions/<decisionId>.json`。
+
+Checkpoint restore transition 會記錄於 `<userData>/blankseed-data/checkpoint-transitions/`。`applied_unknown` 表示已觀察到 target mapping，但 completion evidence 失敗，必須由 operator reconciliation。
 
 ## 人工驗證
 
@@ -123,6 +128,12 @@ model: local-model
 Key 只留在 Main Process。Generated utility process 使用 explicit operational environment allowlist，因此 generated Node source、Module Test 與 Module Invoke 都不會繼承 provider key。Hosted use 與無 credential 的 WP-12 loopback evaluation profile 分開治理。
 
 請參考官方 [GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model) 與 [GPT-5.6 model catalog](https://developers.openai.com/api/docs/models)。
+
+## Multi-Agent Governance
+
+Agent 分頁可執行 sequential Proposer-to-Reviewer handoff。每個 role 都有不同且 immutable 的 Agent identity，並且只能使用 read-only 的 `page_snapshot` 與 `module_list` tool。Reviewer 必須讓 verdict 指向 Proposal hash。若指定 committed Module target，approve 只會建立 `awaiting_operator` decision，不會直接 Activate。
+
+Operator Apply 會依同一 session 的 Main Process memory anchor，重新驗證 evidence hash、committed source identity 與 expected active version，建立 safety Checkpoint，再以 compare-and-swap 執行 Activate。Persisted decision JSON 只是 evidence，app restart 後不可 Apply。這是具有 human gate 的 review workflow，不是 parallel 或 autonomous Multi-Agent policy authority。
 
 ## 自動演化驗證
 

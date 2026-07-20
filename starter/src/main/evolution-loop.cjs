@@ -134,8 +134,10 @@ class RawCapabilityDispatcher {
     this.config = config;
   }
 
-  getToolDefinitions() {
-    return TOOL_DEFINITIONS;
+  getToolDefinitions(allowedTools = null) {
+    if (!Array.isArray(allowedTools)) return TOOL_DEFINITIONS;
+    const allowed = new Set(allowedTools);
+    return TOOL_DEFINITIONS.filter((entry) => allowed.has(entry.function.name));
   }
 
   async execute({ actionId, toolCallId, name, arguments: rawArguments }, context = {}) {
@@ -143,6 +145,9 @@ class RawCapabilityDispatcher {
     const kind = this.#kind(name);
     let payload;
     try {
+      if (Array.isArray(context.allowedTools) && !context.allowedTools.includes(name)) {
+        throw protocolError('Model tool is outside the Agent profile allowlist.', { name, allowedTools: context.allowedTools });
+      }
       if (typeof rawArguments !== 'string') throw protocolError('Tool arguments must be a JSON string.', { name });
       payload = JSON.parse(rawArguments);
       assertPlainObject(payload, 'tool arguments');
@@ -367,10 +372,13 @@ class EvolutionRunManager {
     fs.mkdirSync(this.runsRoot, { recursive: true });
   }
 
-  async run(payload = {}, context = {}) {
+  async run(payload = {}, context = {}, runtime = {}) {
     const evolutionRunId = `evo_${crypto.randomUUID()}`;
     const startedAt = new Date().toISOString();
     const controller = new AbortController();
+    const cancelFromParent = () => controller.abort('cancel');
+    if (runtime.signal?.aborted) cancelFromParent();
+    else runtime.signal?.addEventListener('abort', cancelFromParent, { once: true });
     const adapter = assertString(payload.adapter || 'local.manual', 'adapter', { max: 120 });
     const maxTurns = payload.maxTurns === undefined
       ? this.defaultMaxTurns
@@ -379,9 +387,12 @@ class EvolutionRunManager {
       ? this.defaultMaxActions
       : assertInteger(payload.maxActions, 'maxActions', { min: 1, max: 500 });
     const messages = Array.isArray(payload.messages) ? payload.messages.map((message) => ({ ...message })) : payload.messages;
+    const allowedTools = payload.allowedTools === undefined
+      ? null
+      : [...new Set((Array.isArray(payload.allowedTools) ? payload.allowedTools : []).map((name) => assertString(name, 'allowed tool', { max: 120 })))];
     const directory = path.join(this.runsRoot, evolutionRunId);
     const evidencePath = path.join(directory, 'run.json');
-    const runContext = { ...context, evolutionRunId, adapter };
+    const runContext = { ...context, evolutionRunId, adapter, allowedTools };
     const checkpoint = this.checkpointStore.create(`evolution run ${evolutionRunId}`, runContext);
     const evidence = {
       schema: RUN_SCHEMA,
@@ -390,6 +401,13 @@ class EvolutionRunManager {
       sessionId: context.sessionId ?? null,
       requestId: context.requestId ?? null,
       adapter,
+      agent: context.agentId ? {
+        agentId: context.agentId,
+        role: context.agentRole ?? null,
+        multiAgentRunId: context.multiAgentRunId ?? null,
+        parentAgentId: context.parentAgentId ?? null,
+        handoffId: context.handoffId ?? null
+      } : null,
       startedAt,
       finishedAt: null,
       status: 'running',
@@ -425,7 +443,7 @@ class EvolutionRunManager {
           timeoutMs: payload.timeoutMs
         }, runContext, {
           signal: controller.signal,
-          tools: this.dispatcher.getToolDefinitions()
+          tools: this.dispatcher.getToolDefinitions(allowedTools)
         });
         evidence.metrics.turns += 1;
         evidence.transcript.push({
@@ -482,14 +500,14 @@ class EvolutionRunManager {
               toolCallId: request.id,
               name: duplicate ? 'invalid_action' : request.name,
               arguments: duplicate ? JSON.stringify({ duplicateToolCallId: request.id }) : null
-            }, { ...runContext, checkpointId: checkpoint.id, turnId: turn.turnId });
+            }, { ...runContext, checkpointId: checkpoint.id, turnId: turn.turnId, allowedTools });
           } else {
             actionResult = await this.dispatcher.execute({
               actionId,
               toolCallId: request.id,
               name: request.name,
               arguments: request.arguments
-            }, { ...runContext, checkpointId: checkpoint.id, turnId: turn.turnId });
+            }, { ...runContext, checkpointId: checkpoint.id, turnId: turn.turnId, allowedTools });
           }
           evidence.metrics.actions += 1;
           if (actionResult.status === 'error') evidence.metrics.failedActions += 1;
@@ -521,6 +539,7 @@ class EvolutionRunManager {
       return this.#finish(evidence, evidencePath, runContext, 'error');
     } finally {
       this.active.delete(evolutionRunId);
+      runtime.signal?.removeEventListener('abort', cancelFromParent);
     }
   }
 

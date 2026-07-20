@@ -92,6 +92,29 @@ Activate 明確將 committed version 加入 active Runtime capability set。Modu
 
 只有 committed version 可以 Activate。若 capability 具有持久性或 operation 影響，Activate 前應建立 Checkpoint。
 
+### Governed Multi-Agent activation
+
+BlankSeed 針對 optional activation target 提供 sequential 且具有 human gate 的 review path：
+
+```text
+Propose
+   |
+   v
+Handoff
+   |
+   v
+Review
+   |
+   v
+Operator Apply
+```
+
+Proposer 與 Reviewer 會取得不同且 immutable 的 `agt_*` identity；在 governed run 期間，只能使用 read-only 的 `page_snapshot` 與 `module_list` tool。Handoff 會以 hash 綁定 Proposal、Agent identity，以及 optional committed Module target。每個可 Apply 的 decision 都另有同一 session 的 Main Process memory anchor；修改或重新計算 persisted JSON 不會改變 authority。Reviewer 必須回傳明確 verdict，並指向同一個 `proposalHash`。
+
+Approve 只是 advisory，不會直接 Activate Module。若包含 activation target，governance decision 會停在 `awaiting_operator`。Operator Apply 會重新驗證 proposal/review evidence、committed `sourceHash` 與 expected active version，先建立 safety Checkpoint，再以 compare-and-swap 執行 Activate。Stale mapping、source identity 改變、self-review、verdict 格式錯誤或 hash mismatch 都會 fail closed。
+
+目前此 path 是 sequential；不代表 parallel orchestration、independent-provider quorum 或 autonomous policy authority。
+
 ## Invoke
 
 Invoke 會解析 Module `id` 的 active version、以 `sourceHash` 驗證 stored source，然後把 source 與指定 environment、timeout 送至受監督的 Node Runtime。
@@ -109,7 +132,7 @@ Rollback 有明確限制：
 - 它不同於 Checkpoint restore；
 - 它也不同於 application source 的 Git/worktree rollback。
 
-Checkpoint restore 是需 operator confirmation 的 recovery operation，不是 Module 可自行選擇的 lifecycle transition。它會驗證 Checkpoint integrity、application version、committed Module manifest 與 source hash，建立 pre-restore safety Checkpoint，再以 atomic operation 只還原完整 active Module mapping。它不還原 navigation、browser storage、configuration、credentials、events、Module files、Git state 或 external effects。Application source recovery 仍屬於另行治理的 Git/workspace procedure。
+Checkpoint restore 是需 operator confirmation 的 recovery operation，不是 Module 可自行選擇的 lifecycle transition。它會驗證 Checkpoint integrity、application version、committed Module manifest 與 source hash，建立 pre-restore safety Checkpoint，再以 atomic operation 只還原完整 active Module mapping。它不還原 navigation、browser storage、configuration、credentials、events、Module files、Git state 或 external effects。Durable restore-transition journal 會記錄 intent；若 mapping 已到達 target、completion evidence 卻失敗，狀態會保留為 `applied_unknown`。Application source recovery 仍屬於另行治理的 Git/workspace procedure。
 
 ## Failure transitions
 
@@ -129,7 +152,8 @@ Checkpoint restore 是需 operator confirmation 的 recovery operation，不是 
 5. Invoke 只能解析 active version，並驗證 source hash。
 6. Rollback 指向既有 committed version，且過程保持 observable。
 7. 任何 lifecycle step 都不會清除 failed source、Test result 或 transition event。
+8. Multi-Agent approve 不得繞過同一 session 的 Main Process anchor、operator Apply 或 immutable Module identity check。
 
 ## 與未來 registry 的關係
 
-未來的 Skill Registry 或 Capability Marketplace 可索引 committed Module version、validation evidence、provenance、compatibility declaration 與 policy decision。Discovery 或 distribution 不得把 Candidate、Commit 與 Activate 合併成單一操作。Multi-Agent Governance 可協調由誰 propose、review 或 activate capability，但 lifecycle state machine 仍是共通 technical contract。
+未來的 Skill Registry 或 Capability Marketplace 可索引 committed Module version、validation evidence、provenance、compatibility declaration 與 policy decision。Discovery 或 distribution 不得把 Candidate、Commit 與 Activate 合併成單一操作。更完整的 Multi-Agent quorum 與 publisher governance 可延伸目前 sequential review path，但 lifecycle state machine 仍是共通 technical contract。

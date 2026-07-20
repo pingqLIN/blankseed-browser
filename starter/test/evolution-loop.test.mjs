@@ -348,6 +348,35 @@ test('EvolutionRunManager serializes an unknown tool error and allows the model 
   }
 });
 
+test('EvolutionRunManager enforces an Agent profile tool allowlist at dispatch', async () => {
+  let calls = 0;
+  const adapter = {
+    id: 'fixture.governed-tools',
+    async run({ messages, tools }) {
+      calls += 1;
+      assert.deepEqual(tools.map((entry) => entry.function.name), ['module_list']);
+      if (calls === 1) return request('call_disallowed_activate', 'module_activate', { id: 'generated.example', version: '1.0.0' });
+      const failure = latestToolResult(messages);
+      assert.equal(failure.status, 'error');
+      assert.match(failure.error.message, /outside the Agent profile allowlist/);
+      return { role: 'assistant', content: 'Disallowed mutation remained contained.', toolRequests: [] };
+    }
+  };
+  const harness = createHarness(adapter);
+  try {
+    const result = await harness.manager.run({
+      adapter: adapter.id,
+      allowedTools: ['module_list'],
+      messages: [{ role: 'user', content: 'Attempt a disallowed action.' }]
+    }, { sessionId: 'ses_fixture_12345678', requestId: 'req_governed_tools_12345678' });
+    assert.equal(result.status, 'ok');
+    assert.equal(result.metrics.failedActions, 1);
+    assert.deepEqual(harness.moduleStore.list().active, {});
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
 test('EvolutionRunManager rejects malformed and duplicate tool calls without dispatching arbitrary work', async () => {
   let calls = 0;
   const adapter = {

@@ -12,6 +12,7 @@ const { ProcessSupervisor } = require('./process-supervisor.cjs');
 const { ModuleStore } = require('./module-store.cjs');
 const { HostedOpenAIResponsesAdapter, LocalOpenAICompatibleAdapter, ModelTurnManager } = require('./model-adapter.cjs');
 const { EvolutionRunManager, RawCapabilityDispatcher } = require('./evolution-loop.cjs');
+const { MultiAgentRuntime } = require('./multi-agent-runtime.cjs');
 const { registerIpc } = require('./ipc-router.cjs');
 
 const packageJson = require('../../package.json');
@@ -29,6 +30,7 @@ let processSupervisor = null;
 let moduleStore = null;
 let modelTurnManager = null;
 let evolutionRunManager = null;
+let multiAgentRuntime = null;
 let eventStore = null;
 const sessionId = `ses_${crypto.randomUUID()}`;
 
@@ -95,6 +97,7 @@ function createWindow() {
     dataRoot,
     config,
     modelAdapters: modelTurnManager?.getCatalog() || [],
+    multiAgentActive: multiAgentRuntime?.getActiveCount() || 0,
     modules: moduleStore.getState(),
     target: target.getState()
   });
@@ -155,6 +158,13 @@ function createWindow() {
     defaultMaxActions: config.evolutionMaxActions,
     maxEvidenceBytes: config.evolutionMaxEvidenceBytes
   });
+  multiAgentRuntime = new MultiAgentRuntime({
+    eventStore,
+    evolutionRunManager,
+    checkpointStore,
+    moduleStore,
+    workspaceRoot
+  });
 
   cleanupIpc = registerIpc({
     trustedWebContents: mainWindow.webContents,
@@ -165,6 +175,7 @@ function createWindow() {
     moduleStore,
     modelTurnManager,
     evolutionRunManager,
+    multiAgentRuntime,
     sessionId,
     getStatus,
     config
@@ -181,6 +192,7 @@ function createWindow() {
   mainWindow.on('close', () => {
     eventStore?.append('app.window.closing', {}, { sessionId });
     evolutionRunManager?.cancel({}, { sessionId, requestId: 'req_app_shutdown_evolution' });
+    multiAgentRuntime?.cancel({}, { sessionId, requestId: 'req_app_shutdown_multi_agent' });
     processSupervisor?.shutdown({ sessionId, requestId: 'req_app_shutdown_runtime' });
     target?.destroy();
     cleanupIpc?.();
@@ -193,6 +205,7 @@ function createWindow() {
     moduleStore = null;
     modelTurnManager = null;
     evolutionRunManager = null;
+    multiAgentRuntime = null;
   });
 }
 

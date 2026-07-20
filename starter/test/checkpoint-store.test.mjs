@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -11,8 +11,9 @@ const { ModuleStore } = require('../src/main/module-store.cjs');
 const { createExecutionResult, sha256 } = require('../src/shared/contracts.cjs');
 
 class MemoryEventStore {
-  constructor() { this.events = []; }
+  constructor() { this.events = []; this.failOn = null; }
   append(type, data = {}, context = {}) {
+    if (this.failOn === type) throw new Error(`Injected event failure: ${type}`);
     const event = { type, data, requestId: context.requestId ?? null };
     this.events.push(event);
     return event;
@@ -121,6 +122,27 @@ test('CheckpointStore rejects unconfirmed, tampered, and unavailable restore sta
     assert.throws(() => harness.store.restore(checkpoint.id, { confirmed: true }), /does not exist/);
     assert.equal(harness.moduleStore.getState().active['generated.restore'], '0.2.0');
     assert.ok(harness.eventStore.events.some((event) => event.type === 'checkpoint.restore.failed'));
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('CheckpointStore journals applied_unknown when completion evidence fails after mapping restore', async () => {
+  const harness = await createHarness();
+  try {
+    harness.moduleStore.activate({ id: 'generated.restore', version: '0.1.0' });
+    const checkpoint = harness.store.create('restore journal fixture');
+    harness.moduleStore.activate({ id: 'generated.restore', version: '0.2.0' });
+    harness.eventStore.failOn = 'checkpoint.restore.completed';
+
+    assert.throws(() => harness.store.restore(checkpoint.id, { confirmed: true }), /Injected event failure/);
+    assert.equal(harness.moduleStore.getState().active['generated.restore'], '0.1.0');
+    const transitionDirectory = join(harness.root, 'data', 'checkpoint-transitions');
+    const files = readdirSync(transitionDirectory);
+    assert.equal(files.length, 1);
+    const transition = JSON.parse(readFileSync(join(transitionDirectory, files[0]), 'utf8'));
+    assert.equal(transition.status, 'applied_unknown');
+    assert.equal(transition.observedActiveHash, transition.targetActiveHash);
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }

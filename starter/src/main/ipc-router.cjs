@@ -14,7 +14,7 @@ const {
   serializeError
 } = require('../shared/contracts.cjs');
 
-function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, processSupervisor, moduleStore, modelTurnManager, evolutionRunManager, sessionId, getStatus, config }) {
+function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, processSupervisor, moduleStore, modelTurnManager, evolutionRunManager, multiAgentRuntime, sessionId, getStatus, config }) {
   const handlers = [];
   const seenRequestIds = new Set();
   const payloadLimit = config.ipcPayloadLimitBytes;
@@ -49,16 +49,18 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
 
   const waitForRestoreIdle = async (context) => {
     evolutionRunManager.cancel({}, context);
+    multiAgentRuntime.cancel({}, context);
     modelTurnManager.cancel(context);
     const targetCancellation = target.cancelExecutions({}, context);
     const runtime = await processSupervisor.stop(context);
     const deadline = Date.now() + 2000;
-    while (Date.now() < deadline && (evolutionRunManager.getActiveCount() > 0 || modelTurnManager.getActiveCount() > 0)) {
+    while (Date.now() < deadline && (evolutionRunManager.getActiveCount() > 0 || modelTurnManager.getActiveCount() > 0 || multiAgentRuntime.getActiveCount() > 0)) {
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
     const active = {
       evolutionRuns: evolutionRunManager.getActiveCount(),
       modelTurns: modelTurnManager.getActiveCount(),
+      multiAgentRuns: multiAgentRuntime.getActiveCount(),
       nodeExecutions: processSupervisor.getActiveCount(),
       pageExecutions: targetCancellation.remaining
     };
@@ -253,6 +255,29 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
       ? undefined
       : assertIdentifier(payload.evolutionRunId, 'evolutionRunId', 'evo');
     return evolutionRunManager.cancel({ evolutionRunId }, context);
+  });
+  handle(channels.multiAgentRun, 'multi_agent.run', async (payload, context) => {
+    assertPlainObject(payload, 'payload');
+    return multiAgentRuntime.run(payload, context);
+  });
+  handle(channels.multiAgentCancel, 'multi_agent.cancel', async (payload = {}, context) => {
+    assertPlainObject(payload, 'payload');
+    const multiAgentRunId = payload.multiAgentRunId === undefined
+      ? undefined
+      : assertIdentifier(payload.multiAgentRunId, 'multiAgentRunId', 'mar');
+    return multiAgentRuntime.cancel({ multiAgentRunId }, context);
+  });
+  handle(channels.multiAgentList, 'multi_agent.list', async () => multiAgentRuntime.list(), { evented: false });
+  handle(channels.governanceApply, 'governance.apply', async (payload, context) => {
+    assertPlainObject(payload, 'payload');
+    if (payload.confirmed !== true) {
+      throw createProtocolError(errorCodes.invalidRequest, 'Governance apply requires explicit operator confirmation.');
+    }
+    return multiAgentRuntime.apply(
+      assertIdentifier(payload.governanceDecisionId, 'governanceDecisionId', 'gov'),
+      { confirmed: true, operatorId: 'operator.local' },
+      context
+    );
   });
 
   return () => {
