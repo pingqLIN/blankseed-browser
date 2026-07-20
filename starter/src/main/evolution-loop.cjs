@@ -19,6 +19,9 @@ const PROTOCOL = 'blankseed/0.1';
 const RUN_SCHEMA = 'blankseed-evolution-run/0.1';
 
 const TOOL_DEFINITIONS = Object.freeze([
+  tool('target_navigate', 'Navigate the current browser target to an HTTP(S) URL through the observable target controller.', {
+    type: 'object', additionalProperties: false, required: ['url'], properties: { url: { type: 'string' } }
+  }),
   tool('page_snapshot', 'Capture the current remote page through the observable page broker.', {
     type: 'object', additionalProperties: false, properties: {}
   }),
@@ -50,6 +53,11 @@ const TOOL_DEFINITIONS = Object.freeze([
     type: 'object', additionalProperties: false, required: ['candidateId'], properties: { candidateId: { type: 'string' } }
   }),
   tool('module_activate', 'Activate a committed generated capability version.', {
+    type: 'object', additionalProperties: false, required: ['id', 'version'], properties: {
+      id: { type: 'string' }, version: { type: 'string' }
+    }
+  }),
+  tool('module_rollback', 'Rollback an active generated capability to a specified committed version.', {
     type: 'object', additionalProperties: false, required: ['id', 'version'], properties: {
       id: { type: 'string' }, version: { type: 'string' }
     }
@@ -192,6 +200,7 @@ class RawCapabilityDispatcher {
 
   #kind(name) {
     const known = new Map([
+      ['target_navigate', 'target.navigate'],
       ['page_snapshot', 'page.snapshot'],
       ['page_execute', 'page.execute'],
       ['cdp_send', 'cdp.send'],
@@ -201,6 +210,7 @@ class RawCapabilityDispatcher {
       ['module_candidate_test', 'module.candidate.test'],
       ['module_candidate_commit', 'module.candidate.commit'],
       ['module_activate', 'module.activate'],
+      ['module_rollback', 'module.rollback'],
       ['module_invoke', 'module.invoke'],
       ['checkpoint_create', 'checkpoint.create']
     ]);
@@ -210,6 +220,9 @@ class RawCapabilityDispatcher {
   async #invoke(kind, payload, context) {
     if (!kind) throw protocolError('Unknown model tool.', { name: context.name });
     switch (kind) {
+      case 'target.navigate':
+        await this.target.navigate(assertString(payload.url, 'url', { max: 8192 }));
+        return this.target.getState();
       case 'page.snapshot':
         return this.target.snapshot({
           maxTextChars: this.config.snapshotMaxTextChars,
@@ -264,6 +277,11 @@ class RawCapabilityDispatcher {
         return this.moduleStore.commitCandidate(assertString(payload.candidateId, 'candidateId', { max: 120 }), { ...context, kind });
       case 'module.activate':
         return this.moduleStore.activate({
+          id: assertString(payload.id, 'id', { max: 120 }),
+          version: assertString(payload.version, 'version', { max: 80 })
+        }, { ...context, kind });
+      case 'module.rollback':
+        return this.moduleStore.rollback({
           id: assertString(payload.id, 'id', { max: 120 }),
           version: assertString(payload.version, 'version', { max: 80 })
         }, { ...context, kind });
@@ -480,6 +498,13 @@ class EvolutionRunManager {
             request: { actionId, toolCallId: request.id, name: request.name, arguments: request.arguments },
             result: actionResult
           });
+          if (actionResult.status === 'ok' && actionResult.actionKind === 'target.navigate') {
+            const nextTarget = actionResult.result || {};
+            runContext.expectedTarget = {
+              targetId: nextTarget.targetId,
+              documentGeneration: nextTarget.documentGeneration
+            };
+          }
           conversation.push({
             role: 'tool',
             name: request.name,

@@ -67,3 +67,16 @@ adapter 保留安全介面。Catalog availability 只代表 configuration，不�
 provider health 或 model quality。若 renderer 可讀到 credential、unrestricted
 endpoint 或其他 secret-bearing configuration，應移除此投影；在 renderer IPC
 加入可編輯 endpoint／credential 前必須重新 review。
+
+## ADR-014 — 將導航與版本 Rollback 納入 brokered raw tools
+
+Agent loop 原本能觀察／執行目前 Target，也能 Activate Module，卻不能導航到
+使用者指定 URL，亦不能選擇先前 committed Module version。決定把既有
+`TargetViewController.navigate()` 與 `ModuleStore.rollback()` 投影為
+`target_navigate`、`module_rollback`，且仍只經既有 service 與 event path。
+
+成功導航會改變 `documentGeneration`，因此同一 run 必須以回傳的 `targetId`
+與 `documentGeneration` 更新 expected target identity，之後的 page/CDP action
+才不會被誤判為 stale。Module Rollback 仍只改變 active mapping，不宣稱能
+反轉 external side effect；若任一 tool 繞過 URL/version validation、遺失
+event evidence，或未完成導航便更新 identity，應立即移除並 review。

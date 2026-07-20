@@ -544,6 +544,53 @@ fields to renderer IPC.
 
 ---
 
+## ADR-014 — Add navigation and version rollback as brokered raw tools
+
+**Status:** Accepted
+**Date:** 2026-07-20
+
+### Context
+
+The Agent loop could inspect and execute within the current Target and could
+activate Modules, but it could neither navigate to a user-requested URL nor
+select a previous committed Module version. Both operations already existed in
+the trusted UI and service layer.
+
+### Evidence
+
+`TargetViewController.navigate()` and `ModuleStore.rollback()` already emit
+observable events and enforce their existing URL/version validation. A
+navigation changes `documentGeneration`, so retaining the run's original target
+identity would incorrectly reject later page/CDP actions as stale.
+
+### Alternatives
+
+- Keep navigation and rollback available only to the operator UI.
+- Add task-level browse/recover tools with semantic policy.
+- Let the model invoke arbitrary IPC channel names.
+
+### Decision
+
+Add `target_navigate` and `module_rollback` to the fixed raw-tool catalog and
+dispatch them only through the existing target/module services. After a
+successful navigation, refresh the current run's expected target identity to
+the returned `targetId` and `documentGeneration` before any later raw action.
+
+### Consequences
+
+- An Agent Run can perform a complete observe–navigate–observe loop and can
+  explicitly recover a Module version.
+- Events, action envelopes and evidence remain on the existing broker path.
+- Module Rollback changes only the active mapping and does not reverse external
+  side effects.
+
+### Rollback/review trigger
+
+Remove either tool if it bypasses URL/version validation, loses event evidence,
+or causes target identity to be refreshed without a completed navigation.
+
+---
+
 ## ADR template
 
 ```markdown

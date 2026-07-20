@@ -149,16 +149,31 @@ function createHarness(adapter = new ScriptedEvolutionAdapter(), managerOptions 
   const eventStore = new MemoryEventStore();
   const processSupervisor = new FixtureSupervisor();
   const moduleStore = new ModuleStore({ workspaceRoot, eventStore, processSupervisor, defaultTimeoutMs: 100 });
+  const targetState = { url: 'https://example.com/', title: 'Example Domain', targetId: 1, documentGeneration: 1 };
   const target = {
-    snapshot: async (_options, context) => createExecutionResult({
+    getState: () => ({ ...targetState }),
+    navigate: async (url) => {
+      targetState.url = new URL(url).toString();
+      targetState.title = 'Navigated Fixture';
+      targetState.documentGeneration += 1;
+    },
+    snapshot: async (_options, context) => {
+      if (context.expectedTarget) {
+        assert.deepEqual(context.expectedTarget, {
+          targetId: targetState.targetId,
+          documentGeneration: targetState.documentGeneration
+        });
+      }
+      return createExecutionResult({
       sessionId: context.sessionId,
       requestId: context.requestId,
       executionId: 'exe_snapshot_12345678',
       kind: context.kind,
       startedAt: '2026-07-17T00:00:00.000Z',
       finishedAt: '2026-07-17T00:00:00.010Z',
-      result: { title: 'Example Domain', text: 'Example Domain has one paragraph.' }
-    }),
+      result: { title: targetState.title, text: 'Example Domain has one paragraph.' }
+    });
+    },
     execute: async () => { throw new Error('not used'); },
     sendCdp: async () => { throw new Error('not used'); }
   };
@@ -182,7 +197,7 @@ function createHarness(adapter = new ScriptedEvolutionAdapter(), managerOptions 
     getStatus: () => ({
       appVersion: '0.1.0',
       sessionId: 'ses_fixture_12345678',
-      target: { url: 'https://example.com/', title: 'Example Domain', targetId: 1, documentGeneration: 1 },
+      target: { ...targetState },
       config: { researchProfile: 'workspace-research', generatedNodeRuntimeEnabled: true, pageWorldId: 1001 }
     }),
     getEvents: (limit) => eventStore.events.slice(-limit),
@@ -203,8 +218,58 @@ function createHarness(adapter = new ScriptedEvolutionAdapter(), managerOptions 
     defaultMaxActions: 32,
     ...managerOptions
   });
-  return { adapter, dispatcher, eventStore, manager, moduleStore, processSupervisor, root, workspaceRoot };
+  return { adapter, dispatcher, eventStore, manager, moduleStore, processSupervisor, root, target, targetState, workspaceRoot };
 }
+
+test('raw tool catalog navigates the target, refreshes target identity, and dispatches rollback', async () => {
+  let calls = 0;
+  const adapter = {
+    id: 'fixture.navigate',
+    async run({ messages, tools }) {
+      calls += 1;
+      assert.ok(tools.some((entry) => entry.function.name === 'target_navigate'));
+      assert.ok(tools.some((entry) => entry.function.name === 'module_rollback'));
+      if (calls === 1) return request('call_navigate_12345678', 'target_navigate', { url: 'https://example.org/next' });
+      if (calls === 2) {
+        assert.equal(latestToolResult(messages).result.documentGeneration, 2);
+        return request('call_snapshot_after_nav', 'page_snapshot', {});
+      }
+      assert.equal(latestToolResult(messages).status, 'ok');
+      return { role: 'assistant', content: 'Navigation identity was refreshed.', toolRequests: [] };
+    }
+  };
+  const harness = createHarness(adapter);
+  try {
+    const result = await harness.manager.run({
+      adapter: adapter.id,
+      messages: [{ role: 'user', content: 'Navigate, then inspect the new document.' }]
+    }, {
+      sessionId: 'ses_fixture_12345678',
+      requestId: 'req_navigate_12345678',
+      expectedTarget: { targetId: 1, documentGeneration: 1 }
+    });
+    assert.equal(result.status, 'ok');
+    assert.equal(harness.targetState.url, 'https://example.org/next');
+
+    let rollbackPayload = null;
+    harness.dispatcher.moduleStore = {
+      rollback: async (payload) => {
+        rollbackPayload = payload;
+        return { moduleId: payload.id, version: payload.version, active: { [payload.id]: payload.version } };
+      }
+    };
+    const rollback = await harness.dispatcher.execute({
+      actionId: 'act_rollback_12345678',
+      toolCallId: 'call_rollback_12345678',
+      name: 'module_rollback',
+      arguments: JSON.stringify({ id: 'generated.example', version: '0.1.0' })
+    }, { sessionId: 'ses_fixture_12345678', requestId: 'req_rollback_12345678' });
+    assert.equal(rollback.status, 'ok');
+    assert.deepEqual(rollbackPayload, { id: 'generated.example', version: '0.1.0' });
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
 
 test('EvolutionRunManager feeds observable failure evidence back to the model and commits the correction', async () => {
   const harness = createHarness();
