@@ -7,6 +7,9 @@
   "scripts": {
     "start": "electron .",
     "tutorial": "node scripts/serve-tutorial.mjs",
+    "app:open": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/launch-blankseed.ps1",
+    "tutorial:open": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/launch-tutorial.ps1",
+    "tutorial:stop": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop-tutorial.ps1",
     "check": "node scripts/check-project.mjs && node scripts/check-doc-companions.mjs",
     "test": "node --test",
     "verify": "npm run check && npm test",

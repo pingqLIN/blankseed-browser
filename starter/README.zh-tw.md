@@ -20,13 +20,17 @@ npm test
 npm start
 ```
 
-若要開啟互動式繁體中文教學網站，請執行：
+Windows 使用者也可在儲存庫根目錄雙擊 `啟動 BlankSeed Browser.cmd`，透過相同啟動路徑開啟程式。
+
+若要啟動互動式繁體中文教學網站，並自動開啟正確的本機回環網址，請執行：
 
 ```powershell
-npm run tutorial
+npm run tutorial:open
 ```
 
-接著前往 `http://127.0.0.1:4173/tutorial/`。教學站直接載入目前 Renderer
+Windows 使用者也可在儲存庫根目錄雙擊 `啟動操作教學.cmd`。若要停止由快捷啟動器建立的伺服器，可執行 `npm run tutorial:stop`，或雙擊 `停止操作教學.cmd`。教學頁必須從本機回環伺服器取得正式 Renderer，因此直接使用 `file://` 開啟時會顯示攔截與復原指引。
+
+啟動器會開啟 `http://127.0.0.1:4173/tutorial/`。教學站直接載入目前 Renderer
 markup 與 stylesheet 作為 UI 來源，再以本機模擬資料驅動；不會開啟真實網站、
 送出 credential、呼叫 model provider 或套用 Module。
 
@@ -133,7 +137,9 @@ model: local-model
 
 ## Hosted OpenAI GPT-5.6 adapters
 
-「Agent > AI 模型接入」面板可接收暫時 OpenAI API 金鑰；程式也可沿用 Electron Main Process 環境中的 `OPENAI_API_KEY`。任一來源都會啟用 `gpt-5.6-sol`、`gpt-5.6-terra` 與 `gpt-5.6-luna`。專用傳輸使用官方 OpenAI Responses API、明確的 `reasoning.effort`、`store: false`、循序函式呼叫與固定 HTTPS 端點；託管端點不可編輯。
+使用頂端的「模型設定」捷徑，或開啟「Agent > AI 模型接入」。面板可接收暫時 OpenAI API 金鑰；程式也可沿用 Electron Main Process 環境中的 `OPENAI_API_KEY`。任一來源都會啟用 `gpt-5.6-sol`、`gpt-5.6-terra` 與 `gpt-5.6-luna`。專用傳輸使用官方 OpenAI Responses API、明確的 `reasoning.effort`、`store: false`、循序函式呼叫與固定 HTTPS 端點；託管端點不可編輯。
+
+本程式目前沒有註冊 Codex provider，也沒有名為 `GPT Codex` 的模型。Codex 屬於不同的產品與執行環境；在完成專用整合與驗證前，不應將它顯示為可用的 Adapter。
 
 控制 Renderer 只在輸入時短暫持有金鑰，透過專用且受信任的 IPC 傳送後立即清空欄位。面板提供的金鑰只保留於 Main Process 記憶體；狀態、事件、結果與持久化設定都不會回傳或儲存金鑰。產生的 utility process 使用明確的操作環境允許清單，因此產生的 Node 原始碼、模組測試與模組呼叫都不會繼承供應者金鑰。託管模型與無憑證的 WP-12 本機回環評估設定檔分開治理。
 

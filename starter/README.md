@@ -24,13 +24,23 @@ npm test
 npm start
 ```
 
-To open the interactive Traditional Chinese tutorial website, run:
+On Windows, the repository-root `啟動 BlankSeed Browser.cmd` file provides a
+double-click launcher for the same application startup path.
+
+To start the interactive Traditional Chinese tutorial website and open the
+correct loopback URL automatically, run:
 
 ```powershell
-npm run tutorial
+npm run tutorial:open
 ```
 
-Then visit `http://127.0.0.1:4173/tutorial/`. The tutorial loads the current
+Windows users can instead double-click the repository-root
+`啟動操作教學.cmd` file. Use `npm run tutorial:stop` or
+`停止操作教學.cmd` to stop a server started by that launcher. Direct `file://`
+loading is intercepted because the tutorial must fetch the current Renderer
+markup from its loopback server.
+
+The launcher opens `http://127.0.0.1:4173/tutorial/`. The tutorial loads the current
 Renderer markup and stylesheet as its UI source of truth, then drives a local
 simulation. It does not navigate to real websites, submit credentials, call a
 model provider, or apply a Module.
@@ -178,12 +188,17 @@ and must not contain credentials, query parameters, or fragments.
 
 ## Hosted OpenAI GPT-5.6 adapters
 
-The Agent > AI Model Connection panel accepts a temporary OpenAI API key, or
+Use the top-bar **模型設定** shortcut, or open **Agent > AI 模型接入**. The
+panel accepts a temporary OpenAI API key, or
 the application can inherit `OPENAI_API_KEY` from the Electron Main Process
 environment. Either source enables `gpt-5.6-sol`, `gpt-5.6-terra`, and
 `gpt-5.6-luna`. The dedicated transport uses the official OpenAI Responses API,
 explicit `reasoning.effort`, `store: false`, sequential function calls, and a
 fixed HTTPS endpoint. The hosted endpoint is not editable.
+
+This application does not currently register a Codex provider or a model named
+`GPT Codex`. Codex is a separate product/runtime boundary and must not be
+presented as an available adapter without a dedicated, tested integration.
 
 The control Renderer holds a typed key only long enough to send it through a
 dedicated trusted IPC call and clears the input immediately. The Main Process

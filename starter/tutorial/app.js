@@ -92,6 +92,14 @@ function setTab(tabId) {
   }
 }
 
+function openModelSettings() {
+  setTab('agent');
+  const modelConnection = query('#model-connection', consoleRoot);
+  modelConnection.open = true;
+  modelConnection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  query('#model-local-endpoint', consoleRoot).focus({ preventScroll: true });
+}
+
 function populateAdapters() {
   const adapters = [
     { id: 'local.manual', label: '本機手動', model: 'manual', available: true },
@@ -605,6 +613,7 @@ function wireReplica() {
     renderCheckpoints();
     addTimeline('console.refresh.completed', '教學狀態已重新整理', 'neutral');
   });
+  query('#open-model-settings', consoleRoot).addEventListener('click', openModelSettings);
   query('#snapshot', consoleRoot).addEventListener('click', () => {
     showResult({ status: 'ok', title: tutorialState.target.title, url: tutorialState.target.url, headings: [tutorialState.target.title] });
     addTimeline('page.snapshot.completed', tutorialState.target.title, 'ok');
@@ -1052,4 +1061,8 @@ async function initialize() {
   }
 }
 
-initialize();
+if (globalThis.blankseedTutorialLaunchGuard?.assessment?.allowed === false) {
+  globalThis.blankseedTutorialLaunchGuard.renderRecovery();
+} else {
+  initialize();
+}

@@ -39,6 +39,22 @@ export function createTutorialServer({ root = starterRoot } = {}) {
       response.end('Method Not Allowed');
       return;
     }
+    const requestPath = String(request.url || '/').split(/[?#]/, 1)[0];
+    if (requestPath === '/__blankseed_tutorial_health') {
+      const body = JSON.stringify({ status: 'ok', service: 'blankseed-tutorial' });
+      response.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': Buffer.byteLength(body),
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff'
+      });
+      if (request.method === 'HEAD') {
+        response.end();
+        return;
+      }
+      response.end(body);
+      return;
+    }
     let filePath;
     try {
       filePath = resolveTutorialPath(request.url || '/', root);

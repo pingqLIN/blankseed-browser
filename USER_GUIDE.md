@@ -29,6 +29,12 @@ npm test
 npm start
 ```
 
+On Windows, double-click `啟動 BlankSeed Browser.cmd` in the repository root
+for a simple application launcher. Double-click `啟動操作教學.cmd`, or run
+`npm run tutorial:open` from `starter/`, to start the loopback tutorial server
+and open its correct URL. Direct `file://` tutorial loading is intercepted. Use
+`停止操作教學.cmd` or `npm run tutorial:stop` to stop the managed server.
+
 Install dependencies only when `node_modules/` is absent or the lockfile has
 changed. The left side of the application is the trusted control console. The
 right side is the remote `Target`, initially `https://example.com/`.
@@ -103,6 +109,12 @@ The four tabs support `Left Arrow`, `Right Arrow`, `Home`, and `End` keyboard
 navigation.
 
 ## Local model and evolution loop
+
+Select the top-bar **模型設定** shortcut, or open **Agent > AI 模型接入**, to
+configure the current session. The hosted catalog currently contains
+`gpt-5.6-sol`, `gpt-5.6-terra`, and `gpt-5.6-luna`. It does not contain a Codex
+provider or a model named `GPT Codex`; Codex is a separate product/runtime
+boundary.
 
 The default adapter connects only to this credential-free loopback endpoint:
 
