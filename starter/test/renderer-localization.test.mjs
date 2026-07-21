@@ -97,6 +97,7 @@ test('renderer provides direct model configuration and default module automation
   assert.match(app, /await requestConfirmation\(\s*'啟用版本？'/);
   assert.match(app, /await requestConfirmation\(\s*'提交所選候選？'/);
   assert.match(app, /await requestConfirmation\(\s*'啟用所選版本？'/);
+  assert.match(app, /await requestConfirmation\(\s*'回復所選版本？'/);
   assert.match(app, /allowedTools: \[\.\.\.uiAgentTools\]/);
   assert.match(app, /createCandidate[\s\S]*testCandidate[\s\S]*commitCandidate[\s\S]*activate[\s\S]*invoke/);
   assert.match(app, /tested\.passed !== true/);
@@ -104,11 +105,16 @@ test('renderer provides direct model configuration and default module automation
   assert.match(preload, /setOpenAICredential/);
   assert.match(preload, /commitCandidate:[^\n]+confirmed: options\?\.confirmed === true/);
   assert.match(preload, /activate:[^\n]+confirmed: options\?\.confirmed === true/);
+  assert.match(preload, /rollback:[^\n]+confirmed: options\?\.confirmed === true/);
   assert.match(contracts, /modelConfigurationOpenAISet/);
   assert.match(main, /registerIpc\(\{[\s\S]*modelTurnManager,\s*modelConfiguration,/);
   assert.match(ipcRouter, /Module Commit requires explicit operator confirmation/);
   assert.match(ipcRouter, /Module Activate requires explicit operator confirmation/);
-  assert.match(evolutionLoop, /DEFAULT_AGENT_TOOLS[\s\S]*module_candidate_commit[\s\S]*module_activate[\s\S]*module_rollback/);
+  assert.match(ipcRouter, /Module Rollback requires explicit operator confirmation/);
+  assert.match(
+    evolutionLoop,
+    /\.filter\(\(name\) => !\['module_candidate_commit', 'module_activate', 'module_rollback'\]\.includes\(name\)\)/
+  );
 });
 
 test('renderer separates the Agent transcript from the user instruction composer', async () => {
@@ -137,6 +143,7 @@ test('renderer presents a guarded six-step task workflow without hiding advanced
 
   assert.equal((html.match(/data-workflow-step="[1-6]"/g) || []).length, 6);
   assert.equal((html.match(/id="workflow-step-[1-6]"/g) || []).length, 6);
+  assert.match(html, /<main data-workflow-contract="prepare,target-context,describe-task,system-check,execute-confirm,evidence-recovery">/);
   assert.match(html, /id="task-no-target" type="checkbox"/);
   assert.match(html, /id="workflow-blocker"[^>]+role="status"/);
   assert.match(html, /id="agent-task-error"[^>]+role="alert"/);
@@ -197,4 +204,16 @@ test('renderer keeps the complete control surface in an independently scrollable
   assert.match(styles, /scrollbar-gutter:\s*stable/);
   assert.match(app, /style\.setProperty\('--control-panel-width'/);
   assert.match(app, /window\.blankseedConsoleReady = false;[\s\S]*refreshAll\(\)\.finally\([\s\S]*window\.blankseedConsoleReady = true/);
+});
+
+test('UI V2 verification declares the non-recursive artifact hash policy', async () => {
+  const [writer, report] = await Promise.all([
+    readFile(resolve(starterRoot, 'scripts/write-ui-v2-verification.mjs'), 'utf8'),
+    readFile(resolve(starterRoot, 'reports/ui-v2/README.md'), 'utf8')
+  ]);
+
+  assert.match(writer, /artifactHashPolicy:\s*\{/);
+  assert.match(writer, /excludedOutput: 'starter\/reports\/ui-v2\/verification\.json'/);
+  assert.match(writer, /avoid recursive self-reference/);
+  assert.match(report, /intentionally excludes itself from its `artifacts` array/);
 });

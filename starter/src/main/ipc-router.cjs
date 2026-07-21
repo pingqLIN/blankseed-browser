@@ -224,6 +224,9 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
   });
   handle(channels.moduleRollback, 'module.rollback', async (payload, context) => {
     assertPlainObject(payload, 'payload');
+    if (payload.confirmed !== true) {
+      throw createProtocolError(errorCodes.invalidRequest, 'Module Rollback requires explicit operator confirmation.');
+    }
     return moduleStore.rollback({
       id: assertString(payload.id, 'id', { max: 120 }),
       version: assertString(payload.version, 'version', { max: 80 })

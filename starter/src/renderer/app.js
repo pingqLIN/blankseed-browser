@@ -949,7 +949,22 @@ $('module-invoke').addEventListener('click', () => run(() => window.blankseed.mo
   environment: moduleEnvironment(),
   timeoutMs: 5000
 })));
-$('module-rollback').addEventListener('click', () => run(() => window.blankseed.modules.rollback($('module-id').value, $('module-version').value, { requestId: requestId('module_rollback') })));
+$('module-rollback').addEventListener('click', async () => {
+  const id = $('module-id').value.trim();
+  const version = $('module-version').value.trim();
+  const confirmed = await requestConfirmation(
+    '回復所選版本？',
+    `YES 會把 ${id || '未指定 Module'} 的作用中版本回復為 ${version || '未指定版本'}；目前版本仍保留，可再次明確啟用。NO 不會變更作用中版本。`
+  );
+  if (!confirmed) {
+    show({ kind: 'module.rollback', status: 'declined', id, version });
+    return;
+  }
+  await run(() => window.blankseed.modules.rollback(id, version, {
+    requestId: requestId('module_rollback'),
+    confirmed: true
+  }));
+});
 $('agent-run').addEventListener('click', async () => {
   const task = agentTask.value.trim();
   if (!task) {

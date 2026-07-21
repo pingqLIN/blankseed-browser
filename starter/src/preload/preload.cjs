@@ -120,7 +120,7 @@ contextBridge.exposeInMainWorld('blankseed', {
     commitCandidate: (candidateId, options) => invoke(channels.moduleCommitCandidate, withOptions({ candidateId, confirmed: options?.confirmed === true }, options)),
     activate: (id, version, options) => invoke(channels.moduleActivate, withOptions({ id, version, confirmed: options?.confirmed === true }, options)),
     deactivate: (id, options) => invoke(channels.moduleDeactivate, withOptions({ id }, options)),
-    rollback: (id, version, options) => invoke(channels.moduleRollback, withOptions({ id, version }, options)),
+    rollback: (id, version, options) => invoke(channels.moduleRollback, withOptions({ id, version, confirmed: options?.confirmed === true }, options)),
     invoke: (id, options) => invoke(channels.moduleInvoke, withOptions({ id }, options))
   },
   model: {

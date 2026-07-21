@@ -1,22 +1,22 @@
 {
   "schema": "blankseed-ui-v2-verification/2",
-  "generatedAt": "2026-07-21T03:26:39.326Z",
+  "generatedAt": "2026-07-21T04:06:16.075Z",
   "command": "npm run verify:ui:agent",
   "exitCode": 0,
   "baseline": {
-    "head": "3932d1edf80561e086d20429ebb1ad7b24966909",
-    "scopedContentSha256": "97c55a7558804543d418a92b97377305cc4ca4cb1e67cf8971724e1015078086",
+    "head": "86254dbd446159d7d05463b575b0ca9077811442",
+    "scopedContentSha256": "cdfa148d61b70961b5f63b3a4448d73aafd7936425249948c145d363aa6ba9c9",
     "scopeDigestCanonicalization": "UTF-8 path + NUL + decimal size + NUL + lowercase SHA-256 + LF for each scopeFiles record sorted by path",
     "scopeFiles": [
       {
         "path": "09_DECISION_LOG.md",
-        "size": 37572,
-        "sha256": "cce3800bf0ebc512433822917f2cea356a6b20dd04c4c8d83a7e03ece50fe9ec"
+        "size": 37646,
+        "sha256": "95f05b9fd9a57072e006f68ec8b0ff07c224e90c05beb89f072e7c96e6e52d44"
       },
       {
         "path": "09_DECISION_LOG.zh-tw.md",
-        "size": 21527,
-        "sha256": "2056bb188a3c799d6ae1670505079869a39b842b87f98fcf4069d239e1ba7ff1"
+        "size": 21611,
+        "sha256": "24b6d2dabc3d9dff7ca1643c6c606e804430490d1c4f9aadadabc0ac1519d2e0"
       },
       {
         "path": "starter/config/defaults.json",
@@ -35,8 +35,8 @@
       },
       {
         "path": "starter/scripts/runtime-ui-agent-workspace-smoke.mjs",
-        "size": 42914,
-        "sha256": "3eba1544e42b475001496b930c1158eb2a8cd7973bd96b2b50db2fe96b2918ba"
+        "size": 51285,
+        "sha256": "8360fe78988e54c30f2a94b12f590fda5ee99c54179b640aac5d9e659a66106b"
       },
       {
         "path": "starter/scripts/verify-ui-v2.mjs",
@@ -45,8 +45,8 @@
       },
       {
         "path": "starter/scripts/write-ui-v2-verification.mjs",
-        "size": 6435,
-        "sha256": "4de56c4c82fad1cddfd5e60c811cb28c66a0c07e92979949fe57be267fcd07d5"
+        "size": 6941,
+        "sha256": "c67b3b7081e49aacd76bf07ae876f1888eeb971b430c1ea429c8eca4c6179743"
       },
       {
         "path": "starter/src/main/evolution-loop.cjs",
@@ -55,23 +55,23 @@
       },
       {
         "path": "starter/src/main/ipc-router.cjs",
-        "size": 14852,
-        "sha256": "b16c7cbcdc8db6be7afb82781458b874fac546b56b699695bfc4ed20515e229a"
+        "size": 15016,
+        "sha256": "9de866963a3d85e37173c53775f08e7457d3c0f439c89a08d7a6244e9446ae15"
       },
       {
         "path": "starter/src/preload/preload.cjs",
-        "size": 7756,
-        "sha256": "d7a789bc107d1cdcf8e3b9a4247a4562236273816bb9a7ad7676f89820f29b3f"
+        "size": 7796,
+        "sha256": "ca61e6ad38654a6ea8df435b77fe543e09b96e7a0d2d55c1498c198bc90852fd"
       },
       {
         "path": "starter/src/renderer/app.js",
-        "size": 49543,
-        "sha256": "397d53c68b71d70f32f9c899e6839019c3dc4f051490d799f55d21341d302042"
+        "size": 50025,
+        "sha256": "58e99e12c502491c3a40ff76b32cb54d829d409b85c26922bf9b991b315d1422"
       },
       {
         "path": "starter/src/renderer/index.html",
-        "size": 26796,
-        "sha256": "6e03ac5a447e7c4648e959fa5559d084ffbaf63a4fbdb9496c988ddfdb62af79"
+        "size": 26905,
+        "sha256": "c1d8dc637dbcacbb99fe9f5e9abd3728f954ca4b5b4e9535c9062b49790a9f3a"
       },
       {
         "path": "starter/src/renderer/styles.css",
@@ -90,29 +90,30 @@
       },
       {
         "path": "starter/test/renderer-localization.test.mjs",
-        "size": 9358,
-        "sha256": "5b1af4f5c0ad3b461c34dd3705674def8e77536fd0eb6d621ee60081ff278561"
+        "size": 10361,
+        "sha256": "4359e8b315c6a54c619266efed44ec30ba344be18581f660a789f564124fe174"
       }
     ],
     "scopedStatus": [
       " M 09_DECISION_LOG.md",
       " M 09_DECISION_LOG.zh-tw.md",
-      " M starter/config/defaults.json",
       " M starter/package.json",
+      " M starter/reports/ui-v2/README.md",
+      " M starter/reports/ui-v2/README.zh-tw.md",
+      " M starter/reports/ui-v2/qa-agent-workspace-390.png",
+      " M starter/reports/ui-v2/qa-workflow-desktop-500.png",
+      " M starter/reports/ui-v2/qa-workflow-short-430x600.png",
+      " M starter/reports/ui-v2/runtime-smoke.json",
+      " M starter/reports/ui-v2/verification.json",
       " M starter/scripts/runtime-ui-agent-workspace-smoke.mjs",
-      " M starter/src/main/evolution-loop.cjs",
+      " M starter/scripts/write-ui-v2-verification.mjs",
       " M starter/src/main/ipc-router.cjs",
       " M starter/src/preload/preload.cjs",
       " M starter/src/renderer/app.js",
       " M starter/src/renderer/index.html",
-      " M starter/src/renderer/styles.css",
-      " M starter/test/evolution-loop.test.mjs",
       " M starter/test/renderer-localization.test.mjs",
-      "?? starter/reports/ui-v2/",
-      "?? starter/scripts/async-resource-scope.mjs",
-      "?? starter/scripts/verify-ui-v2.mjs",
-      "?? starter/scripts/write-ui-v2-verification.mjs",
-      "?? starter/test/async-resource-scope.test.mjs"
+      "?? starter/reports/ui-v2/hardening-audit-report.md",
+      "?? starter/reports/ui-v2/hardening-audit-report.zh-tw.md"
     ]
   },
   "versions": {
@@ -125,8 +126,8 @@
     "runtimeSmoke": "passed",
     "projectJavaScriptFiles": 57,
     "documentationCompanions": 24,
-    "testCount": 93,
-    "passedTests": 93,
+    "testCount": 94,
+    "passedTests": 94,
     "failedTests": 0
   },
   "commandResults": [
@@ -146,7 +147,7 @@
     "command": "node scripts/runtime-ui-agent-workspace-smoke.mjs",
     "exitCode": 0,
     "title": "BlankSeed Browser 控制台",
-    "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=75435f05-56aa-467e-b54d-176bac1e3f1b",
+    "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=61b5751c-bb02-4a05-bf8f-8f91ebb1bed9",
     "viewport": {
       "width": 430,
       "height": 920
@@ -161,9 +162,9 @@
       "USER",
       "AGENT"
     ],
-    "messageText": "USER使用者指令11:26:07請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 011:26:07已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER使用者指令11:26:14請等待取消測試AGENT使用者已要求停止11:26:14cancel",
+    "messageText": "USER使用者指令12:05:45請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 012:05:45已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER受控審核指令12:05:56請以唯讀方式審查 capability handoff。PROPOSERevo_de5792a7-ced6-43e8-a0b5-3a3aa39f7a2112:05:56保留唯讀能力邊界，並由獨立 Reviewer 驗證 handoff identity。REVIEWERAPPROVE · gov_32bba658-792f-44bb-9cfe-159c7431352612:05:56Proposal hash and bounded read-only scope are consistent.USER使用者指令12:05:57請等待取消測試AGENT使用者已要求停止12:05:57cancel",
     "taskCount": "7 / 12000",
-    "runStatus": "Agent 任務 已完成 · evo_5a96020f-fc87-4e3d-8ea5-dd6b89815463",
+    "runStatus": "Agent 任務 已完成 · evo_1c2f4aab-5486-484b-9668-10ab1c9649b4",
     "regionsSeparated": true,
     "liveLogNodesStable": true,
     "editorAccessibleNames": {
@@ -202,9 +203,57 @@
         "visible": true
       }
     ],
+    "advancedToolFocusChecks": [
+      {
+        "tab": "tab-button-page",
+        "focused": true,
+        "selected": true,
+        "panelVisible": true
+      },
+      {
+        "tab": "tab-button-cdp",
+        "focused": true,
+        "selected": true,
+        "panelVisible": true
+      },
+      {
+        "tab": "tab-button-node",
+        "focused": true,
+        "selected": true,
+        "panelVisible": true
+      },
+      {
+        "tab": "tab-button-module",
+        "focused": true,
+        "selected": true,
+        "panelVisible": true
+      },
+      {
+        "tab": "tab-button-agent",
+        "focused": true,
+        "selected": true,
+        "panelVisible": true
+      }
+    ],
+    "capabilityEvidence": {
+      "targetUrl": "http://127.0.0.1:30436/target",
+      "pageStatus": "ok",
+      "pageTitle": "BlankSeed Capability Fixture",
+      "pageHeading": "Capability fixture ready",
+      "cdpStatus": "ok",
+      "cdpHistoryEntries": 2,
+      "nodeStatus": "ok",
+      "nodeValue": 42
+    },
+    "multiAgentEvidence": {
+      "status": "受控審核已完成 · approve · gov_32bba658-792f-44bb-9cfe-159c74313526",
+      "decisionId": "gov_32bba658-792f-44bb-9cfe-159c74313526",
+      "proposerVisible": true,
+      "reviewerVisible": true
+    },
     "agentCancellation": {
       "runStatusClass": "run-status warning",
-      "runStatusText": "Agent 任務 已取消 · evo_7f7e8c8d-400c-4393-8a9d-71e863beea57",
+      "runStatusText": "Agent 任務 已取消 · evo_3b5eb866-d6fe-4034-a8f0-f4b4c9d9d966",
       "transcriptWarning": true,
       "workflowWarning": true
     },
@@ -215,7 +264,7 @@
     ],
     "modelConnection": {
       "shortcutWorked": true,
-      "localEndpoint": "http://127.0.0.1:65297/v1/chat/completions",
+      "localEndpoint": "http://127.0.0.1:30436/v1/chat/completions",
       "localModel": "agent-ui-panel-fixture",
       "openAIKeyType": "password",
       "openAIStatus": "環境變數已接入",
@@ -231,27 +280,30 @@
       "invoked": true
     },
     "manualModuleDialogs": {
-      "candidateId": "cand_d6f18b3d-445f-4935-bced-afec0607dd4c",
+      "candidateId": "cand_2ca4e034-81b9-4d98-92c7-295de15043a8",
       "absentConfirmationRejected": true,
+      "absentRollbackConfirmationRejected": true,
       "commitNoMutation": true,
       "commitExactlyOneOnYes": true,
       "activateNoMutation": true,
-      "activateExactlyOneOnYes": true
+      "activateExactlyOneOnYes": true,
+      "rollbackNoMutation": true,
+      "rollbackExactlyOneOnYes": true
     },
     "fulfilledErrorFeedback": {
       "className": "operation-feedback error",
       "summary": "操作未完成：fulfilled error fixture",
-      "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_52b9141c-dd99-437d-8e8c-3c77ebe9ddf4\",\n  \"requestId\": \"req_ui_node_1784604385670_26bbb28563ea9\",\n  \"executionId\": \"exe_0f18be71-5a77-4cf3-be62-6e4d02c87c0b\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-21T03:26:25.670Z\",\n  \"finishedAt\": \"2026-07-21T03:26:26.051Z\",\n  \"durationMs\": 381,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:38:16), <anonymous>:4:7)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:49:25)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:96:8)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
+      "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_b9a71746-27e3-429f-a35e-eca57d1ccc41\",\n  \"requestId\": \"req_ui_node_1784606765915_7a79c0453c6bf8\",\n  \"executionId\": \"exe_71c9e9b4-cefa-4625-897a-e0b22ec4d047\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-21T04:06:05.916Z\",\n  \"finishedAt\": \"2026-07-21T04:06:06.266Z\",\n  \"durationMs\": 350,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:38:16), <anonymous>:4:7)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:49:25)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:96:8)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
     },
     "checkpointDialogEvidence": {
-      "selectedCheckpointId": "chk_2f00d031-93e7-478d-bdfc-bcbc7b2b7da7",
+      "selectedCheckpointId": "chk_505c84b1-1e5a-4ecf-9cff-f1ff741713f8",
       "noMutationOnNo": true,
       "exactlyOneCompletionOnYes": true
     },
     "governanceDialogEvidence": {
       "noMutationOnNo": true,
       "invalidYesFailedClosed": true,
-      "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:124:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:319:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:312:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:292:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
+      "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:124:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:319:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:312:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:295:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
     },
     "horizontalOverflow": false,
     "overflowingControls": [],
@@ -284,7 +336,7 @@
       "browserNonceObserved": true,
       "ownedChildProcessExited": true,
       "temporaryRuntimeRemoved": true,
-      "cdpPort": 65296
+      "cdpPort": 30435
     }
   },
   "runtimeBaseState": {
@@ -302,7 +354,7 @@
       "browserNonceObserved": true,
       "ownedChildProcessExited": true,
       "temporaryRuntimeRemoved": true,
-      "cdpPort": 65296
+      "cdpPort": 30435
     }
   },
   "resetManifest": {
@@ -313,6 +365,15 @@
     "manifestDigestCanonicalization": "For each files[] record in array order, hash UTF-8 source + NUL + destination + NUL + decimal size + NUL + lowercase sha256 + LF.",
     "totalFiles": 407,
     "rollbackPolicy": "recoverable-move-no-permanent-delete"
+  },
+  "artifactHashPolicy": {
+    "excludedOutput": "starter/reports/ui-v2/verification.json",
+    "reason": "The generated verification output is excluded from its own artifact set to avoid recursive self-reference.",
+    "independentControls": [
+      "The file is covered by Git object identity when committed.",
+      "External audit packets bind the reviewed evidence set and scoped source digest by SHA-256.",
+      "Consumers may independently hash verification.json as a top-level evidence object."
+    ]
   },
   "artifacts": [
     {
@@ -341,29 +402,39 @@
       "sha256": "f7541650f7c4a12c92cca6c4016dd98b343c8cd6031ecf2c0bfe6a0dfeab79eb"
     },
     {
+      "path": "starter/reports/ui-v2/hardening-audit-report.md",
+      "size": 4093,
+      "sha256": "a48f1e7d24aac13030a0a25d3ef645753dfd82034048edfbb326307ae11c9356"
+    },
+    {
+      "path": "starter/reports/ui-v2/hardening-audit-report.zh-tw.md",
+      "size": 3942,
+      "sha256": "731668a50afd4d0922d617a5cf5c6abadc966d9a01f5e0b0ab6fa781e723d5e6"
+    },
+    {
       "path": "starter/reports/ui-v2/qa-agent-workspace-390.png",
-      "size": 78282,
-      "sha256": "fb0bce3dc4bfbc3a4801a8a8f845c9c1fe78827b89ca87f0c70623eb46123c4b"
+      "size": 78384,
+      "sha256": "73ecd63f43932a23cd543198d7f4aae79de8eeb2b33276f0cec5232aa679364c"
     },
     {
       "path": "starter/reports/ui-v2/qa-workflow-desktop-500.png",
-      "size": 89812,
-      "sha256": "2fa8bdff01454cfd26727ed49dcd7979dcdfce9e9037cbb62ce6b8ef574709bb"
+      "size": 90825,
+      "sha256": "f78e9ef81486cdbaa7b548db45b09d37c265c36e300cf88b9ee5d4cca427dca1"
     },
     {
       "path": "starter/reports/ui-v2/qa-workflow-short-430x600.png",
-      "size": 51098,
-      "sha256": "e3456de4cdc33112a5ec2d6330999d423739954e1a273ab87da7706f55e52ea5"
+      "size": 50844,
+      "sha256": "64121053de362fba66ae06ca3fd0cc3e9458c4cbe770dcd269c60b2b7743a276"
     },
     {
       "path": "starter/reports/ui-v2/README.md",
-      "size": 3878,
-      "sha256": "c4d776b5096b90d126ef9e751fdc6767563b2648e448ec69b600aca1568238c0"
+      "size": 4685,
+      "sha256": "83a58c260ba6b25b8c6f3e00d50c5d7fe217d56dd8285b09a4282076b6b9f916"
     },
     {
       "path": "starter/reports/ui-v2/README.zh-tw.md",
-      "size": 3667,
-      "sha256": "0905b7868a318c26ef0a6ff1cdf41bdc498cb0e41dec5ea37a72bac011e635b0"
+      "size": 4436,
+      "sha256": "5460f0d157f5018b5f775c2f592214482f4f84530aa026020582d9e84e1b57d7"
     },
     {
       "path": "starter/reports/ui-v2/runtime-reset-manifest.json",
@@ -372,8 +443,8 @@
     },
     {
       "path": "starter/reports/ui-v2/runtime-smoke.json",
-      "size": 6321,
-      "sha256": "b9cb32a557b9517f9f553b6a22d987e1c6aa41713efd1894392b7307719f2ef6"
+      "size": 7942,
+      "sha256": "fdfa0515e0bff9c91d8f7010d92483bc261ae7496c8609884fbf6e0f2eeb8b79"
     }
   ]
 }

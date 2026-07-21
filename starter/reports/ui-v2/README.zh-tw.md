@@ -14,13 +14,16 @@
   - 由標頭捷徑開啟模型設定；
   - 設定並清除合成的 session credential，且未將值寫入 log；
   - 以 `Ctrl+Enter` 執行 Agent 任務；
+  - 導航至 owned loopback target，成功完成 Page JS、CDP 與 generated Node capability 呼叫；
+  - 以鍵盤巡覽五個進階工作台 tab，確認 focus、selected state 與對應 panel 都正確；
+  - 完成具 hash 綁定的 Proposer-to-Reviewer Multi-Agent handoff，並顯示 governance decision；
   - 取消執行中的 Agent 任務，確認 run status、訊息與步驟都一致顯示 warning／已停止；
-  - 分別驗證自動與手動 Module 建立／測試；手動 Commit 與 Activate 選擇 `NO` 時不得變更，選擇 `YES` 時各只產生一次變更；
-  - 確認缺少明確 confirmation 時，Main Process 會拒絕 Module Commit；
+  - 分別驗證自動與手動 Module 建立／測試；手動 Commit、Activate 與 Rollback 選擇 `NO` 時不得變更，選擇 `YES` 時各只產生一次變更；
+  - 確認缺少明確 confirmation 時，Main Process 會拒絕 Module Commit 與 Rollback；
   - 將左側功能區完整捲到底；
   - 檢查 500×920、390×844 與 430×600 版面；
   - 注入長錯誤與識別碼版面 fixture，確認可完整換行且不使用 ellipsis。
-- 預期結果：六個順序步驟皆可閱讀；情境資訊持續可見；被阻擋的動作會說明缺少條件；進階能力仍可使用；沒有水平溢位；短高度仍看得到主要操作；Module 確認 gate 維持有效。
+- 預期結果：六個順序步驟皆可閱讀；情境資訊持續可見；被阻擋的動作會說明缺少條件；每項進階能力都可由鍵盤到達並留下明確證據；沒有水平溢位；短高度仍看得到主要操作；Module 確認 gate 維持有效。
 - 實際結果：Electron/CDP smoke run 全部符合預期；單元測試與靜態檢查另行通過。
 - 相關證據：
   - `qa-workflow-desktop-500.png`
@@ -29,6 +32,8 @@
   - `runtime-smoke.json` — 結構化 Electron/CDP 結果
   - `verification.json` — 由命令輸出推導的檢查數、版本、完整涵蓋 scoped file bytes 的 identity、hash、inventory 與實測 cleanup 結果
   - `runtime-reset-manifest.json` — 可復原 reset 的 hash-linked manifest、可重現 digest canonicalization 與 rollback procedure
+
+`verification.json` 刻意不把自身列入 `artifacts` array，以避免遞迴 self-reference。報告會明確記錄這項 policy；已提交的 Git object identity、packet-level SHA-256 provenance 與獨立 top-level hash 共同提供外部完整性控制。
 
 ## Runtime 基礎狀態
 
@@ -63,4 +68,4 @@
 
 - Desktop 概念稿顯示完整分割視窗；CDP 截圖只擷取控制 renderer。實際 Electron 視窗仍會把隔離的 `WebContentsView` 放在 500px 左側功能區右邊。
 - 概念稿文字只作示意，含 image generation 產生的文字瑕疵；實作中的 code-native 繁體中文標籤才是權威內容。
-- 概念稿使用五個粗略階段；實作拆成六個階段，把準備與目標／上下文分開，讓不需要網頁的任務可明確跳過該前置條件。
+- 概念稿使用五個粗略階段；具權威性且可測試的 UI contract 是 `prepare → target-context → describe-task → system-check → execute-confirm → evidence-recovery`。它把準備與目標／上下文分開，讓不需要網頁的任務可明確跳過該前置條件。

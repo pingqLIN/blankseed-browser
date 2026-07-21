@@ -257,11 +257,11 @@ ADR-016 原本只允許 Main Process 環境變數提供憑證。操作員現在�
 
 ### Context
 
-ADR-020 只在 Module 自動流程中對 Commit 與 Activate 設置關卡；手動按鈕與預設 Agent tool catalog 仍可在沒有同等決定的情況下跨越相同邊界。這與步驟導向介面顯示的安全說明矛盾，也可能讓操作員把未審核或已停止的路徑誤認為已核准變更。
+ADR-020 只在 Module 自動流程中對 Commit 與 Activate 設置關卡；手動 Commit、Activate、Rollback 按鈕與預設 Agent tool catalog 仍可在沒有同等決定的情況下跨越相同邊界。這與步驟導向介面顯示的安全說明矛盾，也可能讓操作員把未審核或已停止的路徑誤認為已核准變更。
 
 ### Evidence
 
-獨立的 UX、Runtime 與 Governance reviewer 都指出手動確認缺口。Governance reviewer 也確認預設 Agent catalog 會提供 Commit 與 Activate。既有 checkpoint restore 與 governance apply 已證明可在 Main Process 使用 fail-closed 的確認檢查。
+獨立的 UX、Runtime 與 Governance reviewer 指出 Module 生命週期邊界的手動確認缺口；最終 Governance reviewer 建議讓 Rollback 與 Commit、Activate 採用一致關卡。既有 checkpoint restore 與 governance apply 已證明可在 Main Process 使用 fail-closed 的確認檢查。
 
 ### Alternatives
 
@@ -271,15 +271,15 @@ ADR-020 只在 Module 自動流程中對 Commit 與 Activate 設置關卡；手�
 
 ### Decision
 
-Module Commit 與 Activate 必須在 Main Process IPC 邊界收到 `confirmed: true`。自動與手動介面路徑都必須先顯示語意化 YES／NO dialog，才能送出這個值；NO 不得產生變更。預設 Agent profile 排除 Commit、Activate 與 Rollback tool；只有另外取得授權的明確 allowlist 才能使用。Agent 仍可建立與測試 Candidate，留下可供操作員審查的內容。
+Module Commit、Activate 與 Rollback 必須在 Main Process IPC 邊界收到 `confirmed: true`。所有受信任控制介面路徑都必須先顯示語意化 YES／NO dialog，才能送出這個值；NO 不得產生變更。預設 Agent profile 排除 Commit、Activate 與 Rollback tool；只有另外取得授權的明確 allowlist 才能使用。Agent 仍可建立與測試 Candidate，留下可供操作員審查的內容。
 
 ### Consequences
 
-- 受信任控制介面的所有發布與啟用路徑都使用相同操作員關卡。
+- 受信任控制介面的所有發布、啟用與回復路徑都使用相同操作員關卡。
 - 一般 Agent 可準備與測試 Candidate，但不能改變已提交或作用中的 Module 狀態。
 - 特殊研究 profile 只有在提供明確 tool allowlist 並保留完整證據時，才能維持自動生命週期測試。
 - 既有 Module 身分、checkpoint、rollback 資料與遠端內容隔離都維持不變。
 
 ### Rollback/review trigger
 
-若任何介面路徑可省略確認、NO 仍產生事件或狀態變更、一般 Agent 取得高風險 Module tool，或特殊 allowlist 缺少可檢視的授權來源，必須停止 Module mutation。將 Commit、Activate 或 Rollback 委派給新的 Runtime profile 前，必須重新審查。
+若任何介面路徑可省略確認、NO 仍產生事件或狀態變更、一般 Agent 取得高風險 Module tool，或特殊 allowlist 缺少可檢視的授權來源，必須停止 Commit、Activate 或 Rollback。將這些操作委派給新的 Runtime profile 前，必須重新審查。
