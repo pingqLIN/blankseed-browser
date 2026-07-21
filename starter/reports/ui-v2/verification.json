@@ -1,0 +1,379 @@
+{
+  "schema": "blankseed-ui-v2-verification/2",
+  "generatedAt": "2026-07-21T03:26:39.326Z",
+  "command": "npm run verify:ui:agent",
+  "exitCode": 0,
+  "baseline": {
+    "head": "3932d1edf80561e086d20429ebb1ad7b24966909",
+    "scopedContentSha256": "97c55a7558804543d418a92b97377305cc4ca4cb1e67cf8971724e1015078086",
+    "scopeDigestCanonicalization": "UTF-8 path + NUL + decimal size + NUL + lowercase SHA-256 + LF for each scopeFiles record sorted by path",
+    "scopeFiles": [
+      {
+        "path": "09_DECISION_LOG.md",
+        "size": 37572,
+        "sha256": "cce3800bf0ebc512433822917f2cea356a6b20dd04c4c8d83a7e03ece50fe9ec"
+      },
+      {
+        "path": "09_DECISION_LOG.zh-tw.md",
+        "size": 21527,
+        "sha256": "2056bb188a3c799d6ae1670505079869a39b842b87f98fcf4069d239e1ba7ff1"
+      },
+      {
+        "path": "starter/config/defaults.json",
+        "size": 788,
+        "sha256": "d8cae4aadb943747c9095a7c56ca9b387f18201b9582b6b2e0fe6246f431617a"
+      },
+      {
+        "path": "starter/package.json#scripts.verify:ui:agent",
+        "size": 59,
+        "sha256": "6eab4b9c981dcd06f0af0fde05d1d7c4a0cd4fc4430b4c280412600d3690d5cb"
+      },
+      {
+        "path": "starter/scripts/async-resource-scope.mjs",
+        "size": 1197,
+        "sha256": "5b1469e3144b377b14824bb432ba7e234f017ae77e9413c4510b4c2124288764"
+      },
+      {
+        "path": "starter/scripts/runtime-ui-agent-workspace-smoke.mjs",
+        "size": 42914,
+        "sha256": "3eba1544e42b475001496b930c1158eb2a8cd7973bd96b2b50db2fe96b2918ba"
+      },
+      {
+        "path": "starter/scripts/verify-ui-v2.mjs",
+        "size": 3839,
+        "sha256": "020e8b32d0b3e8d0bdbe254fd1c22ff457992e53e28903344e8380d10fe1a7f4"
+      },
+      {
+        "path": "starter/scripts/write-ui-v2-verification.mjs",
+        "size": 6435,
+        "sha256": "4de56c4c82fad1cddfd5e60c811cb28c66a0c07e92979949fe57be267fcd07d5"
+      },
+      {
+        "path": "starter/src/main/evolution-loop.cjs",
+        "size": 26560,
+        "sha256": "7bee5e72720a7029ef00abf1472b74627d2e25df70fe37264a7b7f9c5680c0f8"
+      },
+      {
+        "path": "starter/src/main/ipc-router.cjs",
+        "size": 14852,
+        "sha256": "b16c7cbcdc8db6be7afb82781458b874fac546b56b699695bfc4ed20515e229a"
+      },
+      {
+        "path": "starter/src/preload/preload.cjs",
+        "size": 7756,
+        "sha256": "d7a789bc107d1cdcf8e3b9a4247a4562236273816bb9a7ad7676f89820f29b3f"
+      },
+      {
+        "path": "starter/src/renderer/app.js",
+        "size": 49543,
+        "sha256": "397d53c68b71d70f32f9c899e6839019c3dc4f051490d799f55d21341d302042"
+      },
+      {
+        "path": "starter/src/renderer/index.html",
+        "size": 26796,
+        "sha256": "6e03ac5a447e7c4648e959fa5559d084ffbaf63a4fbdb9496c988ddfdb62af79"
+      },
+      {
+        "path": "starter/src/renderer/styles.css",
+        "size": 24828,
+        "sha256": "1e71dabbecf40fdd81f55def17d890ac2e466331ad679a764cd90e70a1b6ea2e"
+      },
+      {
+        "path": "starter/test/async-resource-scope.test.mjs",
+        "size": 2625,
+        "sha256": "1e10705707bbf258427e5f6e953670d247a5bebfc8df43707995fa46e3c48a18"
+      },
+      {
+        "path": "starter/test/evolution-loop.test.mjs",
+        "size": 22555,
+        "sha256": "987f65a98025064d5a88f9ff8833fefa17aff9f9e895840f1f6fcdce8111b7ef"
+      },
+      {
+        "path": "starter/test/renderer-localization.test.mjs",
+        "size": 9358,
+        "sha256": "5b1af4f5c0ad3b461c34dd3705674def8e77536fd0eb6d621ee60081ff278561"
+      }
+    ],
+    "scopedStatus": [
+      " M 09_DECISION_LOG.md",
+      " M 09_DECISION_LOG.zh-tw.md",
+      " M starter/config/defaults.json",
+      " M starter/package.json",
+      " M starter/scripts/runtime-ui-agent-workspace-smoke.mjs",
+      " M starter/src/main/evolution-loop.cjs",
+      " M starter/src/main/ipc-router.cjs",
+      " M starter/src/preload/preload.cjs",
+      " M starter/src/renderer/app.js",
+      " M starter/src/renderer/index.html",
+      " M starter/src/renderer/styles.css",
+      " M starter/test/evolution-loop.test.mjs",
+      " M starter/test/renderer-localization.test.mjs",
+      "?? starter/reports/ui-v2/",
+      "?? starter/scripts/async-resource-scope.mjs",
+      "?? starter/scripts/verify-ui-v2.mjs",
+      "?? starter/scripts/write-ui-v2-verification.mjs",
+      "?? starter/test/async-resource-scope.test.mjs"
+    ]
+  },
+  "versions": {
+    "node": "v24.14.1",
+    "electron": "43.1.0"
+  },
+  "checks": {
+    "projectCheck": "passed",
+    "tests": "passed",
+    "runtimeSmoke": "passed",
+    "projectJavaScriptFiles": 57,
+    "documentationCompanions": 24,
+    "testCount": 93,
+    "passedTests": 93,
+    "failedTests": 0
+  },
+  "commandResults": [
+    {
+      "command": "npm run verify",
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "command": "node scripts/runtime-ui-agent-workspace-smoke.mjs",
+      "exitCode": 0,
+      "signal": null
+    }
+  ],
+  "runtimeSmoke": {
+    "schema": "blankseed-ui-runtime-smoke/1",
+    "command": "node scripts/runtime-ui-agent-workspace-smoke.mjs",
+    "exitCode": 0,
+    "title": "BlankSeed Browser 控制台",
+    "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=75435f05-56aa-467e-b54d-176bac1e3f1b",
+    "viewport": {
+      "width": 430,
+      "height": 920
+    },
+    "agentMode": false,
+    "hiddenGlobalRegions": {
+      "status": "grid",
+      "target": "grid"
+    },
+    "transcriptRole": "log",
+    "messageLabels": [
+      "USER",
+      "AGENT"
+    ],
+    "messageText": "USER使用者指令11:26:07請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 011:26:07已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER使用者指令11:26:14請等待取消測試AGENT使用者已要求停止11:26:14cancel",
+    "taskCount": "7 / 12000",
+    "runStatus": "Agent 任務 已完成 · evo_5a96020f-fc87-4e3d-8ea5-dd6b89815463",
+    "regionsSeparated": true,
+    "liveLogNodesStable": true,
+    "editorAccessibleNames": {
+      "page": "Page JS 原始碼",
+      "node": "Generated Node 原始碼"
+    },
+    "workflowFocusChecks": [
+      {
+        "stage": "workflow-step-1",
+        "focused": true,
+        "visible": true
+      },
+      {
+        "stage": "workflow-step-2",
+        "focused": true,
+        "visible": true
+      },
+      {
+        "stage": "workflow-step-3",
+        "focused": true,
+        "visible": true
+      },
+      {
+        "stage": "workflow-step-4",
+        "focused": true,
+        "visible": true
+      },
+      {
+        "stage": "workflow-step-5",
+        "focused": true,
+        "visible": true
+      },
+      {
+        "stage": "workflow-step-6",
+        "focused": true,
+        "visible": true
+      }
+    ],
+    "agentCancellation": {
+      "runStatusClass": "run-status warning",
+      "runStatusText": "Agent 任務 已取消 · evo_7f7e8c8d-400c-4393-8a9d-71e863beea57",
+      "transcriptWarning": true,
+      "workflowWarning": true
+    },
+    "disclosureLabels": [
+      "AI 模型接入",
+      "執行設定",
+      "Governance 治理"
+    ],
+    "modelConnection": {
+      "shortcutWorked": true,
+      "localEndpoint": "http://127.0.0.1:65297/v1/chat/completions",
+      "localModel": "agent-ui-panel-fixture",
+      "openAIKeyType": "password",
+      "openAIStatus": "環境變數已接入",
+      "configurationRoundTrip": true
+    },
+    "moduleAutomation": {
+      "automationControlsLocked": true,
+      "stoppedAtTestedCandidate": true,
+      "noStatus": "使用者選擇 NO；流程停在已測試候選。",
+      "completedStatus": "自動化流程已完成 · generated.example@0.1.0",
+      "committed": true,
+      "active": true,
+      "invoked": true
+    },
+    "manualModuleDialogs": {
+      "candidateId": "cand_d6f18b3d-445f-4935-bced-afec0607dd4c",
+      "absentConfirmationRejected": true,
+      "commitNoMutation": true,
+      "commitExactlyOneOnYes": true,
+      "activateNoMutation": true,
+      "activateExactlyOneOnYes": true
+    },
+    "fulfilledErrorFeedback": {
+      "className": "operation-feedback error",
+      "summary": "操作未完成：fulfilled error fixture",
+      "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_52b9141c-dd99-437d-8e8c-3c77ebe9ddf4\",\n  \"requestId\": \"req_ui_node_1784604385670_26bbb28563ea9\",\n  \"executionId\": \"exe_0f18be71-5a77-4cf3-be62-6e4d02c87c0b\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-21T03:26:25.670Z\",\n  \"finishedAt\": \"2026-07-21T03:26:26.051Z\",\n  \"durationMs\": 381,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:38:16), <anonymous>:4:7)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:49:25)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:96:8)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
+    },
+    "checkpointDialogEvidence": {
+      "selectedCheckpointId": "chk_2f00d031-93e7-478d-bdfc-bcbc7b2b7da7",
+      "noMutationOnNo": true,
+      "exactlyOneCompletionOnYes": true
+    },
+    "governanceDialogEvidence": {
+      "noMutationOnNo": true,
+      "invalidYesFailedClosed": true,
+      "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:124:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:319:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:312:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:292:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
+    },
+    "horizontalOverflow": false,
+    "overflowingControls": [],
+    "leftRail": {
+      "initial": {
+        "viewportWidth": 1486,
+        "viewportHeight": 858,
+        "width": 500,
+        "right": 500,
+        "clientHeight": 858,
+        "scrollHeight": 3223,
+        "overflowY": "auto"
+      },
+      "scrolled": {
+        "scrollTop": 2365.333251953125,
+        "maxScroll": 2365,
+        "finalPanelVisible": true,
+        "mainTop": 0,
+        "mainBottom": 858,
+        "finalPanelTop": 796.40625,
+        "finalPanelBottom": 843.7395858764648
+      }
+    },
+    "screenshots": {
+      "desktop": "<starter>\\reports\\ui-v2\\qa-workflow-desktop-500.png",
+      "narrow": "<starter>\\reports\\ui-v2\\qa-agent-workspace-390.png",
+      "short": "<starter>\\reports\\ui-v2\\qa-workflow-short-430x600.png"
+    },
+    "cleanup": {
+      "browserNonceObserved": true,
+      "ownedChildProcessExited": true,
+      "temporaryRuntimeRemoved": true,
+      "cdpPort": 65296
+    }
+  },
+  "runtimeBaseState": {
+    "workspaceResiduals": {
+      "evolution-runs": 0,
+      "experiments": 0,
+      "modules": 0,
+      "source-evolution": 0,
+      "state": 0,
+      "wp12-preflight": 0
+    },
+    "activeModulesFileExists": false,
+    "appDataRuntimeRootExists": false,
+    "ownedProcessCleanup": {
+      "browserNonceObserved": true,
+      "ownedChildProcessExited": true,
+      "temporaryRuntimeRemoved": true,
+      "cdpPort": 65296
+    }
+  },
+  "resetManifest": {
+    "path": "starter/reports/ui-v2/runtime-reset-manifest.json",
+    "sha256": "78b3319d9fe4c1c7b885da1e45233f6b2b7f78b5a7da69a75e2fbc17ff91f960",
+    "manifestDigest": "a0d3bf5514fb4bfa25ac050ef07b1982f31d414c209ae819e92ac78b0f03eec7",
+    "manifestDigestAlgorithm": "sha256",
+    "manifestDigestCanonicalization": "For each files[] record in array order, hash UTF-8 source + NUL + destination + NUL + decimal size + NUL + lowercase sha256 + LF.",
+    "totalFiles": 407,
+    "rollbackPolicy": "recoverable-move-no-permanent-delete"
+  },
+  "artifacts": [
+    {
+      "path": "starter/reports/ui-v2/concept-desktop.png",
+      "size": 1253386,
+      "sha256": "6ad18bdbbeecc2e1501eea04e4c074c4fffbbdad1fcd77e16492c3c29808d1c6"
+    },
+    {
+      "path": "starter/reports/ui-v2/concept-failure-recovery.png",
+      "size": 1382337,
+      "sha256": "b361f46553d32def4c88cea30df90be0368a40690d6e011b9c569589d90dd40e"
+    },
+    {
+      "path": "starter/reports/ui-v2/concept-narrow.png",
+      "size": 1511042,
+      "sha256": "10556bd0f9529d97c7fcdbd9ccdda673daa69f28139e56d725819347cc15f9cc"
+    },
+    {
+      "path": "starter/reports/ui-v2/external-audit-report.md",
+      "size": 3798,
+      "sha256": "ee751cbef641ff3a40619d1eb21abf3a0deb4e9fcd6ed5ee80a9d5ed63aeba8b"
+    },
+    {
+      "path": "starter/reports/ui-v2/external-audit-report.zh-tw.md",
+      "size": 3618,
+      "sha256": "f7541650f7c4a12c92cca6c4016dd98b343c8cd6031ecf2c0bfe6a0dfeab79eb"
+    },
+    {
+      "path": "starter/reports/ui-v2/qa-agent-workspace-390.png",
+      "size": 78282,
+      "sha256": "fb0bce3dc4bfbc3a4801a8a8f845c9c1fe78827b89ca87f0c70623eb46123c4b"
+    },
+    {
+      "path": "starter/reports/ui-v2/qa-workflow-desktop-500.png",
+      "size": 89812,
+      "sha256": "2fa8bdff01454cfd26727ed49dcd7979dcdfce9e9037cbb62ce6b8ef574709bb"
+    },
+    {
+      "path": "starter/reports/ui-v2/qa-workflow-short-430x600.png",
+      "size": 51098,
+      "sha256": "e3456de4cdc33112a5ec2d6330999d423739954e1a273ab87da7706f55e52ea5"
+    },
+    {
+      "path": "starter/reports/ui-v2/README.md",
+      "size": 3878,
+      "sha256": "c4d776b5096b90d126ef9e751fdc6767563b2648e448ec69b600aca1568238c0"
+    },
+    {
+      "path": "starter/reports/ui-v2/README.zh-tw.md",
+      "size": 3667,
+      "sha256": "0905b7868a318c26ef0a6ff1cdf41bdc498cb0e41dec5ea37a72bac011e635b0"
+    },
+    {
+      "path": "starter/reports/ui-v2/runtime-reset-manifest.json",
+      "size": 167631,
+      "sha256": "78b3319d9fe4c1c7b885da1e45233f6b2b7f78b5a7da69a75e2fbc17ff91f960"
+    },
+    {
+      "path": "starter/reports/ui-v2/runtime-smoke.json",
+      "size": 6321,
+      "sha256": "b9cb32a557b9517f9f553b6a22d987e1c6aa41713efd1894392b7307719f2ef6"
+    }
+  ]
+}

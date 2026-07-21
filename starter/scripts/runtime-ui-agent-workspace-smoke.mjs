@@ -2,15 +2,20 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
+
+import { AsyncResourceScope, throwWithCleanupFailures } from './async-resource-scope.mjs';
 
 const cwd = resolve(import.meta.dirname, '..');
 const electronPath = resolve(cwd, 'node_modules/electron/dist/electron.exe');
-const screenshotRoot = resolve(cwd, 'workspace/state');
-const desktopScreenshot = resolve(screenshotRoot, 'qa-agent-workspace-430.png');
+const screenshotRoot = resolve(cwd, 'reports/ui-v2');
+const desktopScreenshot = resolve(screenshotRoot, 'qa-workflow-desktop-500.png');
 const narrowScreenshot = resolve(screenshotRoot, 'qa-agent-workspace-390.png');
+const shortScreenshot = resolve(screenshotRoot, 'qa-workflow-short-430x600.png');
+const runtimeSmokeEvidence = resolve(screenshotRoot, 'runtime-smoke.json');
 const cdpPort = await allocateLoopbackPort();
 const smokeNonce = randomUUID();
 const temporaryRoot = await mkdtemp(join(tmpdir(), 'blankseed-agent-ui-'));
@@ -61,6 +66,7 @@ async function connect(wsUrl) {
     if (!pending.has(message.id)) return;
     const { resolve: resolveSend, reject } = pending.get(message.id);
     pending.delete(message.id);
+    clearTimeout(resolveSend.timeoutId);
     if (message.error) reject(new Error(JSON.stringify(message.error)));
     else resolveSend(message.result);
   });
@@ -70,10 +76,20 @@ async function connect(wsUrl) {
   });
   return {
     notifications,
-    send(method, params = {}) {
+    send(method, params = {}, timeoutMs = 30000) {
       const id = nextId++;
       ws.send(JSON.stringify({ id, method, params }));
-      return new Promise((resolveSend, reject) => pending.set(id, { resolve: resolveSend, reject }));
+      return new Promise((resolveSend, reject) => {
+        const timeoutId = setTimeout(() => {
+          pending.delete(id);
+          const expressionPreview = typeof params.expression === 'string'
+            ? ` expression=${JSON.stringify(params.expression.trim().slice(0, 120))}`
+            : '';
+          reject(new Error(`CDP ${method} timed out after ${timeoutMs}ms.${expressionPreview}`));
+        }, timeoutMs);
+        resolveSend.timeoutId = timeoutId;
+        pending.set(id, { resolve: resolveSend, reject });
+      });
     },
     sendAndForget(method, params = {}) {
       ws.send(JSON.stringify({ id: nextId++, method, params }));
@@ -89,6 +105,25 @@ function assertScreenshotPath(filePath) {
   assert(!isAbsolute(scoped) && scoped !== '..' && !scoped.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`));
 }
 
+function redactLocalPaths(value) {
+  if (Array.isArray(value)) return value.map(redactLocalPaths);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, redactLocalPaths(entry)]));
+  }
+  if (typeof value !== 'string') return value;
+  const pathReplacements = [
+    [pathToFileURL(cwd).href, 'file:///<starter>'],
+    [cwd, '<starter>'],
+    [JSON.stringify(cwd).slice(1, -1), '<starter>'],
+    [temporaryRoot, '<temporary-runtime>'],
+    [JSON.stringify(temporaryRoot).slice(1, -1), '<temporary-runtime>']
+  ];
+  return pathReplacements.reduce(
+    (redacted, [localPath, replacement]) => redacted.replaceAll(localPath, replacement),
+    value
+  );
+}
+
 async function saveScreenshot(cdp, filePath) {
   assertScreenshotPath(filePath);
   await mkdir(screenshotRoot, { recursive: true });
@@ -101,6 +136,7 @@ async function saveScreenshot(cdp, filePath) {
 }
 
 async function closeOwnedElectron(electron) {
+  if (!electron?.pid) return;
   const exitPromise = electron.exitCode === null
     ? new Promise((resolveExit) => electron.once('exit', (code, signal) => resolveExit({ code, signal })))
     : Promise.resolve({ code: electron.exitCode, signal: electron.signalCode });
@@ -126,11 +162,25 @@ async function closeOwnedElectron(electron) {
   assert(exit, 'Owned Electron did not exit after Browser.close and scoped fallback.');
 }
 
-const server = createServer(async (request, response) => {
+const resources = new AsyncResourceScope();
+let server = null;
+let electron = null;
+let cdp = null;
+let stderr = '';
+let evidence = null;
+let primaryError = null;
+let cleanupFailures = [];
+let browserNonceObserved = false;
+
+resources.defer('temporary Runtime root', () => rm(temporaryRoot, { recursive: true, force: true }));
+
+try {
+server = createServer(async (request, response) => {
   if (request.url === '/v1/chat/completions' && request.method === 'POST') {
     const chunks = [];
     for await (const chunk of request) chunks.push(chunk);
-    JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    const requestBody = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    if (JSON.stringify(requestBody.messages || []).includes('請等待取消測試')) await sleep(2000);
     response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
     response.end(JSON.stringify({
       choices: [{
@@ -145,13 +195,17 @@ const server = createServer(async (request, response) => {
   response.writeHead(404);
   response.end();
 });
+resources.defer('loopback fixture server', async () => {
+  server.closeAllConnections();
+  if (server.listening) await new Promise((resolveClose) => server.close(resolveClose));
+});
 
 await new Promise((resolveListen, rejectListen) => {
   server.once('error', rejectListen);
   server.listen(0, '127.0.0.1', resolveListen);
 });
 const serverOrigin = `http://127.0.0.1:${server.address().port}`;
-const electron = spawn(electronPath, [
+electron = spawn(electronPath, [
   '--disable-gpu',
   `--remote-debugging-port=${cdpPort}`,
   `--user-data-dir=${userDataDirectory}`,
@@ -167,23 +221,38 @@ const electron = spawn(electronPath, [
   },
   stdio: ['ignore', 'ignore', 'pipe']
 });
+resources.defer('owned Electron', () => closeOwnedElectron(electron));
 
-let stderr = '';
 electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
-
-let evidence = null;
-try {
-  const targets = await waitForJson(`http://127.0.0.1:${cdpPort}/json/list`);
+  const spawnFailure = new Promise((resolveSpawn, rejectSpawn) => {
+    electron.once('error', rejectSpawn);
+  });
+  const targets = await Promise.race([
+    waitForJson(`http://127.0.0.1:${cdpPort}/json/list`),
+    spawnFailure
+  ]);
   const control = targets.find((target) => (
     target.url.startsWith('file:///')
     && target.url.includes('/src/renderer/index.html')
     && target.url.includes(`blankseedSmokeNonce=${encodeURIComponent(smokeNonce)}`)
   ));
   assert(control, `Control page target not found: ${JSON.stringify(targets)}`);
-  const cdp = await connect(control.webSocketDebuggerUrl);
+  browserNonceObserved = true;
+  cdp = await connect(control.webSocketDebuggerUrl);
+  resources.defer('CDP connection', async () => cdp.close());
   await cdp.send('Runtime.enable');
   await cdp.send('Log.enable');
   await cdp.send('Page.enable');
+  let consoleReady = false;
+  for (let attempt = 0; attempt < 100 && !consoleReady; attempt += 1) {
+    const readiness = await cdp.send('Runtime.evaluate', {
+      expression: 'window.blankseedConsoleReady === true',
+      returnByValue: true
+    });
+    consoleReady = readiness.result.value === true;
+    if (!consoleReady) await sleep(100);
+  }
+  assert.equal(consoleReady, true, `Control console did not become ready: ${JSON.stringify(cdp.notifications.slice(-10))}`);
   const railResult = await cdp.send('Runtime.evaluate', {
     expression: `
       (async () => {
@@ -207,7 +276,7 @@ try {
           main.scrollTop = main.scrollHeight;
           await new Promise((resolveWait) => setTimeout(resolveWait, 150));
         }
-        await new Promise((resolveFrame) => requestAnimationFrame(() => requestAnimationFrame(resolveFrame)));
+        await new Promise((resolveLayout) => setTimeout(resolveLayout, 200));
         const finalPanel = main.lastElementChild.getBoundingClientRect();
         const mainRect = main.getBoundingClientRect();
         const scrolled = {
@@ -228,15 +297,15 @@ try {
   });
   if (railResult.exceptionDetails) throw new Error(JSON.stringify(railResult.exceptionDetails));
   const rail = railResult.result.value;
-  assert(rail.initial.viewportWidth > 430);
-  assert(rail.initial.width <= 430);
-  assert(rail.initial.right <= 430);
+  assert(rail.initial.viewportWidth > 500);
+  assert(rail.initial.width <= 500);
+  assert(rail.initial.right <= 500);
   assert.equal(rail.initial.clientHeight, rail.initial.viewportHeight);
   assert.equal(rail.initial.overflowY, 'auto');
   assert(rail.initial.scrollHeight > rail.initial.clientHeight);
   assert(rail.scrolled.maxScroll > 0);
   assert(rail.scrolled.scrollTop > 0);
-  assert(rail.scrolled.scrollTop <= rail.scrolled.maxScroll);
+  assert(rail.scrolled.scrollTop <= rail.scrolled.maxScroll + 1);
   assert.equal(rail.scrolled.finalPanelVisible, true, JSON.stringify(rail));
   await cdp.send('Emulation.setDeviceMetricsOverride', {
     width: 430,
@@ -258,7 +327,10 @@ try {
         throw new Error('Timed out waiting for ' + label);
       };
       await waitUntil(() => window.blankseedConsoleReady, 'console readiness');
-      document.getElementById('tab-button-agent').click();
+      document.getElementById('open-model-settings').click();
+      const modelSettingsShortcutWorked = document.getElementById('tab-button-agent').getAttribute('aria-selected') === 'true'
+        && document.getElementById('model-connection').open
+        && document.activeElement === document.getElementById('model-local-endpoint');
       const syntheticCredential = 'fixture-openai-key-never-log';
       const openAIKey = document.getElementById('model-openai-key');
       openAIKey.value = syntheticCredential;
@@ -304,6 +376,48 @@ try {
         () => document.getElementById('agent-run-status').textContent.includes('已完成'),
         'Agent completion status'
       );
+      const normalAgentRunStatus = document.getElementById('agent-run-status').textContent.trim();
+      const normalMessageLabels = [...document.querySelectorAll('.message-role strong')].map((element) => element.textContent);
+      const messageNodesBeforeRefresh = [...document.querySelectorAll('#agent-messages .agent-message')];
+      await window.blankseedConsole.refreshAll();
+      const messageNodesAfterRefresh = [...document.querySelectorAll('#agent-messages .agent-message')];
+      const liveLogNodesStable = messageNodesBeforeRefresh.length === messageNodesAfterRefresh.length
+        && messageNodesBeforeRefresh.every((node, index) => node === messageNodesAfterRefresh[index]);
+      const editorAccessibleNames = {
+        page: document.getElementById('page-source').labels?.[0]?.textContent.trim() || '',
+        node: document.getElementById('utility-source').labels?.[0]?.textContent.trim() || ''
+      };
+      const workflowFocusChecks = [];
+      for (const workflowButton of document.querySelectorAll('[data-step-target]')) {
+        workflowButton.click();
+        await sleep(350);
+        const stage = document.getElementById(workflowButton.dataset.stepTarget);
+        const rect = stage.getBoundingClientRect();
+        workflowFocusChecks.push({
+          stage: stage.id,
+          focused: document.activeElement === stage,
+          visible: rect.bottom > 0 && rect.top < innerHeight
+        });
+      }
+      task.value = '請等待取消測試';
+      task.dispatchEvent(new Event('input', { bubbles: true }));
+      document.getElementById('agent-run').click();
+      await waitUntil(
+        () => document.getElementById('agent-run-status').classList.contains('running'),
+        'Agent cancellation fixture start'
+      );
+      document.getElementById('agent-cancel').click();
+      await waitUntil(
+        () => document.getElementById('agent-run-status').classList.contains('warning')
+          && document.getElementById('agent-run-status').textContent.includes('已取消'),
+        'Agent cancellation warning presentation'
+      );
+      const agentCancellation = {
+        runStatusClass: document.getElementById('agent-run-status').className,
+        runStatusText: document.getElementById('agent-run-status').textContent.trim(),
+        transcriptWarning: document.querySelector('#agent-messages .agent-message:last-child')?.classList.contains('warning') === true,
+        workflowWarning: document.querySelector('[data-workflow-step="5"]')?.classList.contains('warning') === true
+      };
       document.getElementById('tab-button-module').click();
       const automationButton = document.getElementById('module-auto-run');
       const confirmationDialog = document.getElementById('confirmation-dialog');
@@ -325,10 +439,18 @@ try {
         'module-rollback'
       ].every((id) => document.getElementById(id).disabled);
       confirmationDialog.querySelector('button[value="no"]').click();
-      await waitUntil(
-        () => document.getElementById('module-auto-status').textContent.includes('流程停在已測試候選'),
-        'Module automation NO stop'
-      );
+      try {
+        await waitUntil(
+          () => document.getElementById('module-auto-status').textContent.includes('流程停在已測試候選'),
+          'Module automation NO stop'
+        );
+      } catch (error) {
+        throw new Error(error.message
+          + '; status=' + document.getElementById('module-auto-status').textContent.trim()
+          + '; dialogOpen=' + confirmationDialog.open
+          + '; returnValue=' + confirmationDialog.returnValue
+          + '; result=' + document.getElementById('result').textContent.slice(0, 500));
+      }
       const noStatus = document.getElementById('module-auto-status').textContent.trim();
       const stoppedModules = await window.blankseed.modules.list();
       const stoppedAtTestedCandidate = stoppedModules.candidates.some((candidate) => (
@@ -360,7 +482,160 @@ try {
       ));
       const active = completedModules.active['generated.example'] === '0.1.0';
       const invoked = completedEvents.some((event) => event.type === 'module.invocation.completed');
+      document.getElementById('module-version').value = '0.2.0';
+      document.getElementById('module-description').value = '手動確認 gate fixture';
+      const previousCandidateId = document.getElementById('module-candidate').value;
+      document.getElementById('module-create').click();
+      await waitUntil(
+        () => document.getElementById('module-candidate').value.startsWith('cand_')
+          && document.getElementById('module-candidate').value !== previousCandidateId,
+        'manual Module candidate creation'
+      );
+      const manualCandidateId = document.getElementById('module-candidate').value;
+      document.getElementById('module-test').click();
+      await waitUntil(async () => (
+        (await window.blankseed.modules.list()).candidates.some((candidate) => candidate.candidateId === manualCandidateId && candidate.status === 'tested')
+      ), 'manual Module candidate test');
+      let absentConfirmationRejected = false;
+      try {
+        await window.blankseed.modules.commitCandidate(manualCandidateId, {
+          requestId: 'req_ui_missing_confirmation_fixture'
+        });
+      } catch (error) {
+        absentConfirmationRejected = /explicit operator confirmation/.test(error.message);
+      }
+      const manualCommitCountBefore = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.version.committed' && event.data?.version === '0.2.0').length;
+      document.getElementById('module-commit').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '提交所選候選？',
+        'manual Module Commit NO confirmation'
+      );
+      confirmationDialog.querySelector('button[value="no"]').click();
+      await waitUntil(() => !confirmationDialog.open, 'manual Module Commit NO close');
+      const manualCommitCountAfterNo = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.version.committed' && event.data?.version === '0.2.0').length;
+      document.getElementById('module-commit').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '提交所選候選？',
+        'manual Module Commit YES confirmation'
+      );
+      confirmationDialog.querySelector('button[value="yes"]').click();
+      await waitUntil(async () => (
+        (await window.blankseed.modules.list()).modules.some((module) => module.id === 'generated.example' && module.version === '0.2.0')
+      ), 'manual Module Commit completion');
+      const manualCommitCountAfterYes = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.version.committed' && event.data?.version === '0.2.0').length;
+      document.getElementById('module-activate').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '啟用所選版本？',
+        'manual Module Activate NO confirmation'
+      );
+      confirmationDialog.querySelector('button[value="no"]').click();
+      await waitUntil(() => !confirmationDialog.open, 'manual Module Activate NO close');
+      const activeAfterManualNo = (await window.blankseed.modules.list()).active['generated.example'];
+      const manualActivateCountBeforeYes = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.activated' && event.data?.version === '0.2.0').length;
+      document.getElementById('module-activate').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '啟用所選版本？',
+        'manual Module Activate YES confirmation'
+      );
+      confirmationDialog.querySelector('button[value="yes"]').click();
+      await waitUntil(async () => (
+        (await window.blankseed.modules.list()).active['generated.example'] === '0.2.0'
+      ), 'manual Module Activate completion');
+      const manualActivateCountAfterYes = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.activated' && event.data?.version === '0.2.0').length;
+      const manualModuleDialogs = {
+        candidateId: manualCandidateId,
+        absentConfirmationRejected,
+        commitNoMutation: manualCommitCountAfterNo === manualCommitCountBefore,
+        commitExactlyOneOnYes: manualCommitCountAfterYes === manualCommitCountBefore + 1,
+        activateNoMutation: activeAfterManualNo === '0.1.0' && manualActivateCountBeforeYes === 0,
+        activateExactlyOneOnYes: manualActivateCountAfterYes === 1
+      };
+      document.getElementById('checkpoint').click();
+      await waitUntil(
+        async () => (await window.blankseed.checkpoint.list()).length > 0,
+        'checkpoint creation'
+      );
+      await window.blankseedConsole.refreshAll();
+      document.querySelector('#checkpoint-browser .browser-row').click();
+      const selectedCheckpointId = document.getElementById('checkpoint-id').value;
+      const restoreCountBefore = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'checkpoint.restore.completed').length;
+      document.getElementById('checkpoint-restore').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '還原所選 checkpoint？',
+        'checkpoint restore NO confirmation'
+      );
+      confirmationDialog.querySelector('button[value="no"]').click();
+      await waitUntil(() => !confirmationDialog.open, 'checkpoint restore NO close');
+      const restoreCountAfterNo = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'checkpoint.restore.completed').length;
+      document.getElementById('checkpoint-restore').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '還原所選 checkpoint？',
+        'checkpoint restore YES confirmation'
+      );
+      confirmationDialog.querySelector('button[value="yes"]').click();
+      await waitUntil(async () => (
+        (await window.blankseed.events.tail()).filter((event) => event.type === 'checkpoint.restore.completed').length === restoreCountBefore + 1
+      ), 'checkpoint restore completion');
+      const checkpointDialogEvidence = {
+        selectedCheckpointId,
+        noMutationOnNo: restoreCountAfterNo === restoreCountBefore,
+        exactlyOneCompletionOnYes: true
+      };
+      document.getElementById('tab-button-node').click();
+      document.getElementById('utility-source').value = "throw new Error('fulfilled error fixture');";
+      document.getElementById('utility-execute').click();
+      await waitUntil(
+        () => document.getElementById('operation-feedback').classList.contains('error')
+          && document.getElementById('result').textContent.includes('fulfilled error fixture'),
+        'fulfilled Runtime error presentation'
+      );
+      const fulfilledErrorFeedback = {
+        className: document.getElementById('operation-feedback').className,
+        summary: document.getElementById('operation-summary').textContent,
+        result: document.getElementById('result').textContent
+      };
       document.getElementById('tab-button-agent').click();
+      const governanceDecision = document.getElementById('governance-decision-id');
+      governanceDecision.value = 'gov_missing_ui_fixture';
+      governanceDecision.dispatchEvent(new Event('input', { bubbles: true }));
+      const governanceAppliedBefore = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'governance.decision.applied').length;
+      document.getElementById('governance-apply').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '套用治理決策？',
+        'governance apply NO confirmation'
+      );
+      confirmationDialog.querySelector('button[value="no"]').click();
+      await waitUntil(() => !confirmationDialog.open, 'governance apply NO close');
+      const governanceAppliedAfterNo = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'governance.decision.applied').length;
+      document.getElementById('governance-apply').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '套用治理決策？',
+        'governance apply invalid YES confirmation'
+      );
+      const governanceResultBeforeInvalidYes = document.getElementById('result').textContent;
+      confirmationDialog.querySelector('button[value="yes"]').click();
+      await waitUntil(
+        () => !confirmationDialog.open
+          && document.getElementById('result').textContent !== governanceResultBeforeInvalidYes,
+        'governance invalid decision fail closed'
+      );
+      const governanceAppliedAfterInvalidYes = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'governance.decision.applied').length;
+      const governanceDialogEvidence = {
+        noMutationOnNo: governanceAppliedAfterNo === governanceAppliedBefore,
+        invalidYesFailedClosed: governanceAppliedAfterInvalidYes === governanceAppliedBefore
+          && document.getElementById('operation-feedback').classList.contains('error'),
+        invalidYesResult: document.getElementById('result').textContent
+      };
       const transcript = document.querySelector('.agent-transcript');
       const composer = document.querySelector('.agent-composer');
       const transcriptRect = transcript.getBoundingClientRect();
@@ -381,14 +656,19 @@ try {
           target: getComputedStyle(document.getElementById('target-panel')).display
         },
         transcriptRole: document.getElementById('agent-messages').getAttribute('role'),
-        messageLabels: [...document.querySelectorAll('.message-role strong')].map((element) => element.textContent),
+        messageLabels: normalMessageLabels,
         messageText: document.getElementById('agent-messages').textContent,
         taskCount: document.getElementById('agent-task-count').textContent,
-        runStatus: document.getElementById('agent-run-status').textContent.trim(),
-        regionsSeparated: transcriptRect.bottom <= composerRect.top,
+        runStatus: normalAgentRunStatus,
+        regionsSeparated: composerRect.bottom <= transcriptRect.top,
+        liveLogNodesStable,
+        editorAccessibleNames,
+        workflowFocusChecks,
+        agentCancellation,
         disclosureLabels: [...document.querySelectorAll('.agent-disclosure summary > span:first-child')]
           .map((element) => element.textContent),
         modelConnection: {
+          shortcutWorked: modelSettingsShortcutWorked,
           localEndpoint: document.getElementById('model-local-endpoint').value,
           localModel: document.getElementById('model-local-name').value,
           openAIKeyType: document.getElementById('model-openai-key').type,
@@ -404,6 +684,10 @@ try {
           active,
           invoked
         },
+        manualModuleDialogs,
+        fulfilledErrorFeedback,
+        checkpointDialogEvidence,
+        governanceDialogEvidence,
         horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > document.documentElement.clientWidth,
         overflowingControls: overflow
       };
@@ -413,21 +697,31 @@ try {
     expression,
     awaitPromise: true,
     returnByValue: true,
-    timeout: 30000
-  });
+    timeout: 90000
+  }, 100000);
   if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
   evidence = result.result.value;
   evidence.leftRail = rail;
   assert.equal(evidence.title, 'BlankSeed Browser 控制台');
-  assert.equal(evidence.agentMode, true);
-  assert.deepEqual(evidence.hiddenGlobalRegions, { status: 'none', target: 'none' });
+  assert.equal(evidence.agentMode, false);
+  assert.deepEqual(evidence.hiddenGlobalRegions, { status: 'grid', target: 'grid' });
   assert.equal(evidence.transcriptRole, 'log');
   assert.deepEqual(evidence.messageLabels, ['USER', 'AGENT']);
   assert.match(evidence.messageText, /快捷執行可正常回傳/);
   assert.match(evidence.runStatus, /已完成/);
   assert.equal(evidence.regionsSeparated, true);
-  assert.deepEqual(evidence.disclosureLabels, ['執行設定', 'AI 模型接入', 'Governance 治理']);
+  assert.equal(evidence.liveLogNodesStable, true);
+  assert.match(evidence.editorAccessibleNames.page, /Page JS 原始碼/);
+  assert.match(evidence.editorAccessibleNames.node, /Generated Node 原始碼/);
+  assert.equal(evidence.workflowFocusChecks.length, 6);
+  assert(evidence.workflowFocusChecks.every((check) => check.focused && check.visible), JSON.stringify(evidence.workflowFocusChecks));
+  assert.match(evidence.agentCancellation.runStatusClass, /warning/);
+  assert.match(evidence.agentCancellation.runStatusText, /已取消/);
+  assert.equal(evidence.agentCancellation.transcriptWarning, true);
+  assert.equal(evidence.agentCancellation.workflowWarning, true);
+  assert.deepEqual(evidence.disclosureLabels, ['AI 模型接入', '執行設定', 'Governance 治理']);
   assert.equal(evidence.modelConnection.localEndpoint, `${serverOrigin}/v1/chat/completions`);
+  assert.equal(evidence.modelConnection.shortcutWorked, true);
   assert.equal(evidence.modelConnection.localModel, 'agent-ui-panel-fixture');
   assert.equal(evidence.modelConnection.openAIKeyType, 'password');
   assert.match(evidence.modelConnection.openAIStatus, /尚未接入|環境變數已接入/);
@@ -439,8 +733,54 @@ try {
   assert.equal(evidence.moduleAutomation.committed, true);
   assert.equal(evidence.moduleAutomation.active, true);
   assert.equal(evidence.moduleAutomation.invoked, true);
+  assert.match(evidence.manualModuleDialogs.candidateId, /^cand_/);
+  assert.equal(evidence.manualModuleDialogs.absentConfirmationRejected, true);
+  assert.equal(evidence.manualModuleDialogs.commitNoMutation, true);
+  assert.equal(evidence.manualModuleDialogs.commitExactlyOneOnYes, true);
+  assert.equal(evidence.manualModuleDialogs.activateNoMutation, true);
+  assert.equal(evidence.manualModuleDialogs.activateExactlyOneOnYes, true);
+  assert.match(evidence.fulfilledErrorFeedback.className, /error/);
+  assert.match(evidence.fulfilledErrorFeedback.summary, /操作未完成/);
+  assert.match(evidence.fulfilledErrorFeedback.result, /fulfilled error fixture/);
+  assert.match(evidence.checkpointDialogEvidence.selectedCheckpointId, /^chk_/);
+  assert.equal(evidence.checkpointDialogEvidence.noMutationOnNo, true);
+  assert.equal(evidence.checkpointDialogEvidence.exactlyOneCompletionOnYes, true);
+  assert.equal(evidence.governanceDialogEvidence.noMutationOnNo, true);
+  assert.equal(evidence.governanceDialogEvidence.invalidYesFailedClosed, true);
+  assert.match(evidence.governanceDialogEvidence.invalidYesResult, /gov_missing_ui_fixture|governance/i);
   assert.equal(evidence.horizontalOverflow, false);
   assert.deepEqual(evidence.overflowingControls, []);
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: 500,
+    height: 920,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  const desktopLayout = await cdp.send('Runtime.evaluate', {
+    expression: `(async () => {
+      document.getElementById('model-connection').open = false;
+      document.getElementById('advanced-tools').open = false;
+      const main = document.querySelector('main');
+      main.scrollTop = 0;
+      await new Promise((resolveLayout) => setTimeout(resolveLayout, 200));
+      return {
+        width: innerWidth,
+        mainWidth: main.getBoundingClientRect().width,
+        horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > innerWidth,
+        workflowSteps: document.querySelectorAll('[data-workflow-step]').length,
+        visibleContext: getComputedStyle(document.querySelector('.status-grid')).display !== 'none'
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  assert.deepEqual(desktopLayout.result.value, {
+    width: 500,
+    mainWidth: 500,
+    horizontalOverflow: false,
+    workflowSteps: 6,
+    visibleContext: true
+  });
   await saveScreenshot(cdp, desktopScreenshot);
 
   await cdp.send('Emulation.setDeviceMetricsOverride', {
@@ -450,38 +790,99 @@ try {
     mobile: false
   });
   const narrowResult = await cdp.send('Runtime.evaluate', {
-    expression: `({
-      width: innerWidth,
-      scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
-      overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > document.documentElement.clientWidth
-    })`,
+    expression: `(async () => {
+      const longText = 'MODULE_AUTOMATION_FAILED：這是一段用來驗證窄版錯誤訊息可完整換行的長文字，包含 generated.research.module@0.1.0 與 req_ui_validation_1234567890，不得以 ellipsis 隱藏。';
+      document.getElementById('operation-next-step').textContent = longText.repeat(2);
+      document.getElementById('workflow-step-4').scrollIntoView({ block: 'start' });
+      await new Promise((resolveLayout) => setTimeout(resolveLayout, 200));
+      const detail = document.getElementById('operation-next-step');
+      const lineHeight = Number.parseFloat(getComputedStyle(detail).lineHeight);
+      return {
+        width: innerWidth,
+        scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+        overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > document.documentElement.clientWidth,
+        longTextWrapped: detail.scrollHeight > lineHeight * 2,
+        ellipsisCount: [...document.querySelectorAll('*')].filter((element) => getComputedStyle(element).textOverflow === 'ellipsis').length
+      };
+    })()`,
+    awaitPromise: true,
     returnByValue: true
   });
   assert.equal(narrowResult.result.value.width, 390);
   assert.equal(narrowResult.result.value.overflow, false);
   assert(narrowResult.result.value.scrollWidth <= narrowResult.result.value.width);
+  assert.equal(narrowResult.result.value.longTextWrapped, true);
+  assert.equal(narrowResult.result.value.ellipsisCount, 0);
   await saveScreenshot(cdp, narrowScreenshot);
+
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: 430,
+    height: 600,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  const shortResult = await cdp.send('Runtime.evaluate', {
+    expression: `(async () => {
+      const stage = document.getElementById('workflow-step-4');
+      const main = document.querySelector('main');
+      main.scrollTop = stage.offsetTop;
+      await new Promise((resolveLayout) => setTimeout(resolveLayout, 200));
+      const actionBar = document.querySelector('.primary-action-bar').getBoundingClientRect();
+      return {
+        width: innerWidth,
+        height: innerHeight,
+        actionBarVisible: actionBar.top >= 0 && actionBar.bottom <= innerHeight,
+        horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > innerWidth
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  assert.deepEqual(shortResult.result.value, {
+    width: 430,
+    height: 600,
+    actionBarVisible: true,
+    horizontalOverflow: false
+  });
+  await saveScreenshot(cdp, shortScreenshot);
 
   const relevantErrors = cdp.notifications.filter((notification) => (
     notification.method === 'Runtime.exceptionThrown'
     || (notification.method === 'Log.entryAdded' && ['error', 'warning'].includes(notification.params?.entry?.level))
   ));
   assert.deepEqual(relevantErrors, []);
-  cdp.close();
+} catch (error) {
+  primaryError = error;
 } finally {
-  await closeOwnedElectron(electron);
-  server.closeAllConnections();
-  await new Promise((resolveClose) => server.close(resolveClose));
-  await rm(temporaryRoot, { recursive: true, force: true });
+  cleanupFailures = await resources.close();
   if (stderr.trim()) console.error(stderr.trim());
 }
 
-console.log(JSON.stringify({
+throwWithCleanupFailures(primaryError, cleanupFailures);
+
+const temporaryRuntimeRemoved = await stat(temporaryRoot).then(
+  () => false,
+  (error) => {
+    if (error.code === 'ENOENT') return true;
+    throw error;
+  }
+);
+assert.equal(browserNonceObserved, true, 'The owned control target nonce was not observed before interaction.');
+assert.equal(temporaryRuntimeRemoved, true, 'The temporary Runtime root still exists after cleanup.');
+
+const finalEvidence = {
+  schema: 'blankseed-ui-runtime-smoke/1',
+  command: 'node scripts/runtime-ui-agent-workspace-smoke.mjs',
+  exitCode: 0,
   ...evidence,
-  screenshots: { desktop: desktopScreenshot, narrow: narrowScreenshot },
+  screenshots: { desktop: desktopScreenshot, narrow: narrowScreenshot, short: shortScreenshot },
   cleanup: {
-    ownershipNonceVerified: true,
-    temporaryRuntimeRemoved: true,
+    browserNonceObserved,
+    ownedChildProcessExited: electron?.exitCode !== null || electron?.signalCode !== null,
+    temporaryRuntimeRemoved,
     cdpPort
   }
-}, null, 2));
+};
+const redactedEvidence = redactLocalPaths(finalEvidence);
+await writeFile(runtimeSmokeEvidence, `${JSON.stringify(redactedEvidence, null, 2)}\n`, 'utf8');
+console.log(JSON.stringify(redactedEvidence, null, 2));

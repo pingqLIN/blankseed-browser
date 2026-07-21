@@ -117,8 +117,8 @@ contextBridge.exposeInMainWorld('blankseed', {
     list: (options) => invoke(channels.moduleList, withOptions({}, options)),
     createCandidate: (manifest, source, options) => invoke(channels.moduleCreateCandidate, withOptions({ manifest, source }, options)),
     testCandidate: (candidateId, options) => invoke(channels.moduleTestCandidate, withOptions({ candidateId }, options)),
-    commitCandidate: (candidateId, options) => invoke(channels.moduleCommitCandidate, withOptions({ candidateId }, options)),
-    activate: (id, version, options) => invoke(channels.moduleActivate, withOptions({ id, version }, options)),
+    commitCandidate: (candidateId, options) => invoke(channels.moduleCommitCandidate, withOptions({ candidateId, confirmed: options?.confirmed === true }, options)),
+    activate: (id, version, options) => invoke(channels.moduleActivate, withOptions({ id, version, confirmed: options?.confirmed === true }, options)),
     deactivate: (id, options) => invoke(channels.moduleDeactivate, withOptions({ id }, options)),
     rollback: (id, version, options) => invoke(channels.moduleRollback, withOptions({ id, version }, options)),
     invoke: (id, options) => invoke(channels.moduleInvoke, withOptions({ id }, options))

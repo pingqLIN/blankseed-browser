@@ -11,7 +11,7 @@
     "test": "node --test",
     "verify": "npm run check && npm test",
     "verify:runtime": "npm run verify && node scripts/runtime-wp10-hardening-smoke.mjs",
-    "verify:ui:agent": "npm run verify && node scripts/runtime-ui-agent-workspace-smoke.mjs",
+    "verify:ui:agent": "node scripts/verify-ui-v2.mjs",
     "verify:sandbox:ten-tasks": "npm run verify && node scripts/runtime-sandbox-ten-tasks.mjs",
     "loop:state": "node scripts/project-development-loop-state.mjs",
     "verify:wp11": "npm run verify && node scripts/runtime-wp11-evolution-loop-smoke.mjs",

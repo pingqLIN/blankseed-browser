@@ -203,10 +203,16 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
   });
   handle(channels.moduleCommitCandidate, 'module.candidate.commit', async (payload, context) => {
     assertPlainObject(payload, 'payload');
+    if (payload.confirmed !== true) {
+      throw createProtocolError(errorCodes.invalidRequest, 'Module Commit requires explicit operator confirmation.');
+    }
     return moduleStore.commitCandidate(assertString(payload.candidateId, 'candidateId', { max: 120 }), context);
   });
   handle(channels.moduleActivate, 'module.activate', async (payload, context) => {
     assertPlainObject(payload, 'payload');
+    if (payload.confirmed !== true) {
+      throw createProtocolError(errorCodes.invalidRequest, 'Module Activate requires explicit operator confirmation.');
+    }
     return moduleStore.activate({
       id: assertString(payload.id, 'id', { max: 120 }),
       version: assertString(payload.version, 'version', { max: 80 })

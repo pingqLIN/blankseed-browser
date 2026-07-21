@@ -15,8 +15,8 @@ test('renderer presents a complete Traditional Chinese control surface', async (
   for (const label of [
     'BlankSeed Browser 控制台',
     '目標頁',
-    '產生快照',
-    '執行隔離 JS',
+    '擷取頁面快照',
+    '隔離 Page JS',
     '執行 Node 程式',
     '建立候選',
     '測試候選',
@@ -26,24 +26,24 @@ test('renderer presents a complete Traditional Chinese control surface', async (
     '回復版本',
     'Agent 訊息',
     '給 Agent 的任務',
-    '>執行<',
-    '>停止<',
+    '檢查並開始執行',
+    '停止目前任務',
     '執行設定',
     'AI 模型接入',
     '本機模型',
     '接入 OpenAI',
     '清除暫時金鑰',
-    '預設使用自動化流程',
-    '開始產生與測試模組',
-    '手動操作（進階）',
+    '使用受控自動流程',
+    '開始建立並測試',
+    '手動操作',
     'Governance 治理',
     '沙盒 Agent 自動套用',
     '一般 Runtime 維持人工確認',
     '啟動受控審核',
     '確認並套用決策',
     '取消審核',
-    '建立檢查點',
-    '還原檢查點',
+    '建立 checkpoint',
+    '還原所選 checkpoint',
     '全部停止',
     '事件時間軸'
   ]) {
@@ -72,29 +72,43 @@ test('renderer presents a complete Traditional Chinese control surface', async (
 });
 
 test('renderer provides direct model configuration and default module automation with explicit gates', async () => {
-  const [html, app, preload, contracts, main] = await Promise.all([
+  const [html, app, preload, contracts, main, ipcRouter, evolutionLoop] = await Promise.all([
     readFile(resolve(starterRoot, 'src/renderer/index.html'), 'utf8'),
     readFile(resolve(starterRoot, 'src/renderer/app.js'), 'utf8'),
     readFile(resolve(starterRoot, 'src/preload/preload.cjs'), 'utf8'),
     readFile(resolve(starterRoot, 'src/shared/contracts.cjs'), 'utf8'),
-    readFile(resolve(starterRoot, 'src/main/main.cjs'), 'utf8')
+    readFile(resolve(starterRoot, 'src/main/main.cjs'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/main/ipc-router.cjs'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/main/evolution-loop.cjs'), 'utf8')
   ]);
 
   assert.match(html, /id="model-local-endpoint"/);
   assert.match(html, /id="model-openai-key" type="password"/);
+  assert.match(html, /id="open-model-settings"/);
+  assert.match(html, /尚未註冊為此程式的模型 Adapter/);
   assert.match(html, /id="module-auto-enabled" type="checkbox" checked/);
   assert.match(html, /id="confirmation-dialog"/);
-  assert.match(html, /<button value="no"[^>]*>NO<\/button>/);
-  assert.match(html, /<button value="yes"[^>]*>YES<\/button>/);
+  assert.match(html, /<button value="no"[^>]*>NO，返回檢查<\/button>/);
+  assert.match(html, /<button value="yes"[^>]*>YES，繼續<\/button>/);
   assert.match(app, /async function runModuleAutomation\(\)/);
+  assert.match(app, /function openModelSettings\(\)/);
+  assert.match(app, /\$\('open-model-settings'\)\.addEventListener\('click', openModelSettings\)/);
   assert.match(app, /await requestConfirmation\(\s*'提交版本？'/);
   assert.match(app, /await requestConfirmation\(\s*'啟用版本？'/);
+  assert.match(app, /await requestConfirmation\(\s*'提交所選候選？'/);
+  assert.match(app, /await requestConfirmation\(\s*'啟用所選版本？'/);
+  assert.match(app, /allowedTools: \[\.\.\.uiAgentTools\]/);
   assert.match(app, /createCandidate[\s\S]*testCandidate[\s\S]*commitCandidate[\s\S]*activate[\s\S]*invoke/);
   assert.match(app, /tested\.passed !== true/);
   assert.match(app, /invocation\.status !== 'ok'/);
   assert.match(preload, /setOpenAICredential/);
+  assert.match(preload, /commitCandidate:[^\n]+confirmed: options\?\.confirmed === true/);
+  assert.match(preload, /activate:[^\n]+confirmed: options\?\.confirmed === true/);
   assert.match(contracts, /modelConfigurationOpenAISet/);
   assert.match(main, /registerIpc\(\{[\s\S]*modelTurnManager,\s*modelConfiguration,/);
+  assert.match(ipcRouter, /Module Commit requires explicit operator confirmation/);
+  assert.match(ipcRouter, /Module Activate requires explicit operator confirmation/);
+  assert.match(evolutionLoop, /DEFAULT_AGENT_TOOLS[\s\S]*module_candidate_commit[\s\S]*module_activate[\s\S]*module_rollback/);
 });
 
 test('renderer separates the Agent transcript from the user instruction composer', async () => {
@@ -112,6 +126,39 @@ test('renderer separates the Agent transcript from the user instruction composer
   assert.match(app, /addAgentMessage\('agent', output/);
   assert.match(app, /event\.ctrlKey \|\| event\.metaKey/);
   assert.match(app, /event\.key === 'Enter'/);
+});
+
+test('renderer presents a guarded six-step task workflow without hiding advanced capabilities', async () => {
+  const [html, app, styles] = await Promise.all([
+    readFile(resolve(starterRoot, 'src/renderer/index.html'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/renderer/app.js'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/renderer/styles.css'), 'utf8')
+  ]);
+
+  assert.equal((html.match(/data-workflow-step="[1-6]"/g) || []).length, 6);
+  assert.equal((html.match(/id="workflow-step-[1-6]"/g) || []).length, 6);
+  assert.match(html, /id="task-no-target" type="checkbox"/);
+  assert.match(html, /id="workflow-blocker"[^>]+role="status"/);
+  assert.match(html, /id="agent-task-error"[^>]+role="alert"/);
+  assert.match(html, /id="checkpoint-error"[^>]+role="alert"/);
+  assert.match(html, /id="advanced-tools"/);
+  assert.match(html, /<label id="page-source-label" for="page-source">Page JS 原始碼/);
+  assert.match(html, /<label id="utility-source-label" for="utility-source">Generated Node 原始碼/);
+  assert.equal((html.match(/class="workflow-stage"[^>]+tabindex="-1"/g) || []).length, 6);
+  assert.match(app, /function workflowPrerequisites\(\)/);
+  assert.match(app, /function renderWorkflow\(\)/);
+  assert.match(app, /row\.dataset\.messageId = message\.id/);
+  assert.match(app, /if \(renderedIds\.has\(message\.id\)\) continue/);
+  assert.match(app, /target\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(app, /function classifyResult\(value\)/);
+  assert.match(app, /errorCode === 'EXECUTION_CANCELLED'/);
+  assert.match(app, /button\.setAttribute\('aria-label', `前往步驟/);
+  assert.match(app, /button\.setAttribute\('aria-current', 'step'\)/);
+  assert.match(app, /await requestConfirmation\(\s*'還原所選 checkpoint？'/);
+  assert.match(app, /await requestConfirmation\(\s*'套用治理決策？'/);
+  assert.doesNotMatch(app, /window\.confirm\(/);
+  assert.match(styles, /overflow-wrap:\s*anywhere/);
+  assert.doesNotMatch(styles, /text-overflow:\s*ellipsis/);
 });
 
 test('renderer tabs expose keyboard and ARIA state without translating protocol identifiers', async () => {
@@ -143,7 +190,7 @@ test('renderer keeps the complete control surface in an independently scrollable
     readFile(resolve(starterRoot, 'src/renderer/app.js'), 'utf8')
   ]);
 
-  assert.match(styles, /--control-panel-width:\s*430px/);
+  assert.match(styles, /--control-panel-width:\s*500px/);
   assert.match(styles, /main\s*\{[^}]*width:\s*min\(100%, var\(--control-panel-width\)\)/s);
   assert.match(styles, /main\s*\{[^}]*height:\s*100vh/s);
   assert.match(styles, /main\s*\{[^}]*overflow-y:\s*auto/s);

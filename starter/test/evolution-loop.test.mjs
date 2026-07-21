@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { EvolutionRunManager, RawCapabilityDispatcher, serializeToolResultForModel } = require('../src/main/evolution-loop.cjs');
+const { DEFAULT_AGENT_TOOLS, EvolutionRunManager, RawCapabilityDispatcher, TOOL_DEFINITIONS, serializeToolResultForModel } = require('../src/main/evolution-loop.cjs');
 const { ModelTurnManager } = require('../src/main/model-adapter.cjs');
 const { ModuleStore } = require('../src/main/module-store.cjs');
 const { createExecutionFailure, createExecutionResult, createProtocolError, errorCodes, sha256 } = require('../src/shared/contracts.cjs');
@@ -221,14 +221,14 @@ function createHarness(adapter = new ScriptedEvolutionAdapter(), managerOptions 
   return { adapter, dispatcher, eventStore, manager, moduleStore, processSupervisor, root, target, targetState, workspaceRoot };
 }
 
-test('raw tool catalog navigates the target, refreshes target identity, and dispatches rollback', async () => {
+test('default Agent catalog navigates the target while high-risk rollback requires an explicit profile', async () => {
   let calls = 0;
   const adapter = {
     id: 'fixture.navigate',
     async run({ messages, tools }) {
       calls += 1;
       assert.ok(tools.some((entry) => entry.function.name === 'target_navigate'));
-      assert.ok(tools.some((entry) => entry.function.name === 'module_rollback'));
+      assert.ok(!tools.some((entry) => entry.function.name === 'module_rollback'));
       if (calls === 1) return request('call_navigate_12345678', 'target_navigate', { url: 'https://example.org/next' });
       if (calls === 2) {
         assert.equal(latestToolResult(messages).result.documentGeneration, 2);
@@ -276,6 +276,7 @@ test('EvolutionRunManager feeds observable failure evidence back to the model an
   try {
     const result = await harness.manager.run({
       adapter: 'fixture.evolution',
+      allowedTools: TOOL_DEFINITIONS.map((entry) => entry.function.name),
       messages: [{ role: 'user', content: 'Create and verify a reusable capability from raw primitives.' }]
     }, {
       sessionId: 'ses_fixture_12345678',
@@ -319,6 +320,14 @@ test('EvolutionRunManager feeds observable failure evidence back to the model an
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }
+});
+
+test('default Agent profile excludes Module Commit, Activate, and Rollback', () => {
+  assert.ok(DEFAULT_AGENT_TOOLS.includes('module_candidate_create'));
+  assert.ok(DEFAULT_AGENT_TOOLS.includes('module_candidate_test'));
+  assert.ok(!DEFAULT_AGENT_TOOLS.includes('module_candidate_commit'));
+  assert.ok(!DEFAULT_AGENT_TOOLS.includes('module_activate'));
+  assert.ok(!DEFAULT_AGENT_TOOLS.includes('module_rollback'));
 });
 
 test('EvolutionRunManager serializes an unknown tool error and allows the model to recover', async () => {
@@ -440,10 +449,11 @@ test('EvolutionRunManager cancellation stops an active model turn before any act
     });
     const result = await pending;
     assert.equal(cancelled.cancelled, 1);
-    assert.equal(result.status, 'error');
+    assert.equal(result.status, 'cancelled');
     assert.equal(result.error.code, errorCodes.executionCancelled);
     assert.equal(result.metrics.actions, 0);
     assert.ok(harness.eventStore.events.some((event) => event.type === 'evolution.run.cancel.completed'));
+    assert.ok(harness.eventStore.events.some((event) => event.type === 'evolution.run.cancelled'));
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }
@@ -470,7 +480,7 @@ test('EvolutionRunManager cancellation during an action prevents later model tur
     harness.processSupervisor.releaseHeld();
     const result = await pending;
     assert.equal(cancelled.cancelled, 1);
-    assert.equal(result.status, 'error');
+    assert.equal(result.status, 'cancelled');
     assert.equal(result.error.code, errorCodes.executionCancelled);
     assert.equal(result.metrics.actions, 1);
     assert.equal(calls, 1);

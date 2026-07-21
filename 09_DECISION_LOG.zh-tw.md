@@ -249,3 +249,37 @@ ADR-016 原本只允許 Main Process 環境變數提供憑證。操作員現在�
 ### Rollback/review trigger
 
 若自動流程可略過任一確認視窗、在選擇 NO 後繼續、隱藏失敗的生命週期結果，或移除逐項復原控制，應停用此流程。自動提交、自動啟用或政策式核准前，必須重新審查。
+
+## ADR-021 — Module 發布與啟用必須通過操作員關卡
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+ADR-020 只在 Module 自動流程中對 Commit 與 Activate 設置關卡；手動按鈕與預設 Agent tool catalog 仍可在沒有同等決定的情況下跨越相同邊界。這與步驟導向介面顯示的安全說明矛盾，也可能讓操作員把未審核或已停止的路徑誤認為已核准變更。
+
+### Evidence
+
+獨立的 UX、Runtime 與 Governance reviewer 都指出手動確認缺口。Governance reviewer 也確認預設 Agent catalog 會提供 Commit 與 Activate。既有 checkpoint restore 與 governance apply 已證明可在 Main Process 使用 fail-closed 的確認檢查。
+
+### Alternatives
+
+- 只修改介面文字，保留直接變更路徑。
+- 只在手動按鈕加入 dialog，不在 IPC 強制執行決定。
+- 允許預設 Agent 先發布與啟用，再於變更後要求核准。
+
+### Decision
+
+Module Commit 與 Activate 必須在 Main Process IPC 邊界收到 `confirmed: true`。自動與手動介面路徑都必須先顯示語意化 YES／NO dialog，才能送出這個值；NO 不得產生變更。預設 Agent profile 排除 Commit、Activate 與 Rollback tool；只有另外取得授權的明確 allowlist 才能使用。Agent 仍可建立與測試 Candidate，留下可供操作員審查的內容。
+
+### Consequences
+
+- 受信任控制介面的所有發布與啟用路徑都使用相同操作員關卡。
+- 一般 Agent 可準備與測試 Candidate，但不能改變已提交或作用中的 Module 狀態。
+- 特殊研究 profile 只有在提供明確 tool allowlist 並保留完整證據時，才能維持自動生命週期測試。
+- 既有 Module 身分、checkpoint、rollback 資料與遠端內容隔離都維持不變。
+
+### Rollback/review trigger
+
+若任何介面路徑可省略確認、NO 仍產生事件或狀態變更、一般 Agent 取得高風險 Module tool，或特殊 allowlist 缺少可檢視的授權來源，必須停止 Module mutation。將 Commit、Activate 或 Rollback 委派給新的 Runtime profile 前，必須重新審查。

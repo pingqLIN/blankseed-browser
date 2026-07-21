@@ -11,6 +11,19 @@ const moduleStatusLabels = Object.freeze({
   committed: '已提交'
 });
 
+const uiAgentTools = Object.freeze([
+  'target_navigate',
+  'page_snapshot',
+  'page_execute',
+  'cdp_send',
+  'node_execute',
+  'module_list',
+  'module_candidate_create',
+  'module_candidate_test',
+  'module_invoke',
+  'checkpoint_create'
+]);
+
 const state = {
   activeTab: 'page',
   events: [],
@@ -26,7 +39,8 @@ const state = {
     status: 'idle',
     steps: {}
   },
-  stop: { state: 'idle', label: '待命' }
+  stop: { state: 'idle', label: '待命' },
+  lastOperation: { status: 'idle', summary: '尚未執行操作', nextStep: '完成前四步後開始執行；發生錯誤時可從這裡查看修正方式。' }
 };
 
 function requestId(label) {
@@ -34,18 +48,35 @@ function requestId(label) {
   return `req_ui_${label}_${suffix}`;
 }
 
-function short(value, length = 10) {
-  if (!value) return '無';
-  const text = String(value);
-  return text.length > length ? `${text.slice(0, length)}...` : text;
+function classifyResult(value) {
+  const status = String(value?.status || '').toLowerCase();
+  const errorCode = String(value?.error?.code || '').toUpperCase();
+  const stopped = ['stopped', 'cancelled', 'canceled', 'declined'].includes(status)
+    || errorCode === 'EXECUTION_CANCELLED';
+  if (stopped) return 'warning';
+  if (['error', 'failed', 'failure'].includes(status) || Boolean(value?.error)) return 'error';
+  return 'success';
 }
 
 function show(value) {
   result.textContent = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+  const presentation = classifyResult(value);
+  const isError = presentation === 'error';
+  const isStopped = presentation === 'warning';
+  state.lastOperation = {
+    status: presentation,
+    summary: operationSummary(value),
+    nextStep: isError
+      ? '操作回傳失敗狀態；尚未自動重試或套用後續變更。請查看完整結果與事件證據後修正。'
+      : (isStopped
+        ? '操作已停止，未繼續套用後續變更；請檢查目前狀態後再決定下一步。'
+        : '操作已留下完整結果；請確認結果與事件證據，必要時建立 checkpoint。')
+  };
+  renderOperationFeedback({ focus: isError });
 }
 
 function showError(error) {
-  show({
+  const normalized = {
     error: {
       code: error?.code || 'ERROR',
       name: error?.name || 'Error',
@@ -53,7 +84,39 @@ function showError(error) {
       stack: error?.stack || null,
       details: error?.details || {}
     }
-  });
+  };
+  result.textContent = JSON.stringify(normalized, null, 2);
+  state.lastOperation = {
+    status: 'error',
+    summary: `操作未完成：${normalized.error.message}`,
+    nextStep: '尚未自動重試或套用後續變更。請修正上方條件後重試，或使用 checkpoint 與事件證據復原。'
+  };
+  renderOperationFeedback({ focus: true });
+}
+
+function operationSummary(value) {
+  if (typeof value === 'string') return value || '操作已完成。';
+  const status = value?.status;
+  const kind = value?.kind;
+  if (kind === 'module.automation.result') return status === 'ok' ? 'Module 流程已完成並通過呼叫驗證。' : 'Module 流程已停止，未繼續套用後續變更。';
+  if (classifyResult(value) === 'warning') return '操作已停止；請檢查目前狀態後再繼續。';
+  if (status === 'error' || status === 'failed' || value?.error) return `操作未完成：${value?.error?.message || 'Runtime 回傳失敗狀態。'}`;
+  if (status === 'ok') return '操作已成功完成。';
+  return '操作已完成並留下結果。';
+}
+
+function renderOperationFeedback({ focus = false } = {}) {
+  const feedback = $('operation-feedback');
+  feedback.className = `operation-feedback ${state.lastOperation.status}`;
+  $('operation-summary').textContent = state.lastOperation.summary;
+  $('operation-next-step').textContent = state.lastOperation.nextStep;
+  if (focus) feedback.focus({ preventScroll: false });
+}
+
+function setFieldError(id, message = '') {
+  const field = $(id);
+  field.textContent = message;
+  field.hidden = !message;
 }
 
 async function run(operation, { skipRefresh = false } = {}) {
@@ -113,6 +176,8 @@ function renderAll() {
   renderAgentMessages();
   renderCheckpoints();
   renderTimeline();
+  renderWorkflow();
+  renderOperationFeedback();
 }
 
 function addAgentMessage(role, content, { label, detail, status = 'ok' } = {}) {
@@ -133,8 +198,9 @@ function addAgentMessage(role, content, { label, detail, status = 'ok' } = {}) {
 
 function renderAgentMessages({ scrollToEnd = false } = {}) {
   const messages = $('agent-messages');
-  messages.replaceChildren();
   if (state.agentMessages.length === 0) {
+    if (messages.querySelector('.agent-message-empty') && messages.childElementCount === 1) return;
+    messages.replaceChildren();
     const empty = document.createElement('div');
     empty.className = 'agent-message-empty';
     empty.append(
@@ -144,9 +210,19 @@ function renderAgentMessages({ scrollToEnd = false } = {}) {
     messages.append(empty);
     return;
   }
+  messages.querySelector('.agent-message-empty')?.remove();
+  const currentIds = new Set(state.agentMessages.map((message) => message.id));
+  for (const row of messages.querySelectorAll('.agent-message[data-message-id]')) {
+    if (!currentIds.has(row.dataset.messageId)) row.remove();
+  }
+  const renderedIds = new Set(
+    [...messages.querySelectorAll('.agent-message[data-message-id]')].map((row) => row.dataset.messageId)
+  );
   for (const message of state.agentMessages) {
+    if (renderedIds.has(message.id)) continue;
     const row = document.createElement('article');
-    row.className = `agent-message ${message.role} ${message.status === 'error' ? 'error' : ''}`;
+    row.className = `agent-message ${message.role} ${message.status === 'error' ? 'error' : (message.status === 'warning' ? 'warning' : '')}`;
+    row.dataset.messageId = message.id;
     const role = document.createElement('div');
     role.className = 'message-role';
     role.append(makeText('strong', message.label));
@@ -177,6 +253,77 @@ function updateTaskCount() {
   $('agent-task-count').textContent = `${agentTask.value.length} / ${agentTask.maxLength}`;
 }
 
+function workflowPrerequisites() {
+  const selectedAdapter = $('agent-adapter').selectedOptions[0];
+  const modelReady = Boolean(selectedAdapter && !selectedAdapter.disabled);
+  const targetReady = Boolean(state.status?.target?.url) || $('task-no-target').checked;
+  const taskReady = Boolean(agentTask.value.trim());
+  return {
+    modelReady,
+    targetReady,
+    taskReady,
+    ready: modelReady && targetReady && taskReady
+  };
+}
+
+function setPreflightItem(id, ready, readyText, blockedText) {
+  const item = $(id);
+  item.className = ready ? 'ready' : 'blocked';
+  item.querySelector('.check-icon').textContent = ready ? '✓' : '!';
+  item.querySelector('small').textContent = ready ? readyText : blockedText;
+}
+
+function setWorkflowStep(step, status, label) {
+  const overview = document.querySelector(`[data-workflow-step="${step}"]`);
+  const stage = $(`workflow-step-${step}`);
+  const badge = document.querySelector(`[data-stage-badge="${step}"]`);
+  if (overview) {
+    overview.className = status;
+    overview.querySelector('.step-state').textContent = label;
+    const button = overview.querySelector('button');
+    const title = overview.querySelector('strong')?.textContent || `步驟 ${step}`;
+    button.setAttribute('aria-label', `前往步驟 ${step} ${title}；狀態：${label}`);
+    if (status === 'current') button.setAttribute('aria-current', 'step');
+    else button.removeAttribute('aria-current');
+  }
+  if (stage) stage.className = `workflow-stage ${status}`;
+  if (badge) {
+    badge.className = `stage-badge ${status === 'available' ? 'available' : status}`;
+    badge.textContent = label;
+  }
+}
+
+function renderWorkflow() {
+  const readiness = workflowPrerequisites();
+  setPreflightItem('workflow-check-model', readiness.modelReady, '已選擇可用的模型 Adapter', '沒有可用的模型 Adapter；請回到步驟 1 設定模型');
+  setPreflightItem('workflow-check-target', readiness.targetReady, $('task-no-target').checked ? '已明確標記此任務不需要網頁' : '目標頁已連線', '請載入目標頁，或勾選「此任務不需要網頁」');
+  setPreflightItem('workflow-check-task', readiness.taskReady, '任務描述已提供', '任務內容不得為空');
+
+  const blockers = [];
+  if (!readiness.modelReady) blockers.push('設定可用的模型 Adapter');
+  if (!readiness.targetReady) blockers.push('載入目標頁或明確跳過網頁上下文');
+  if (!readiness.taskReady) blockers.push('輸入任務描述');
+  const blocker = $('workflow-blocker');
+  blocker.className = `workflow-blocker${readiness.ready ? ' ready' : ''}`;
+  blocker.textContent = readiness.ready
+    ? '檢查通過：可開始執行。高風險變更與 Module 提交／啟用仍會另行確認。'
+    : `尚未執行。請先${blockers.join('、')}。`;
+
+  setWorkflowStep(1, readiness.modelReady ? 'complete' : 'current', readiness.modelReady ? '完成' : '目前');
+  setWorkflowStep(2, readiness.targetReady ? 'complete' : (readiness.modelReady ? 'current' : ''), readiness.targetReady ? '完成' : '等待');
+  setWorkflowStep(3, readiness.taskReady ? 'complete' : (readiness.modelReady && readiness.targetReady ? 'current' : ''), readiness.taskReady ? '完成' : '等待');
+
+  const executionStarted = state.agent.running || state.multiAgent.running || state.moduleAutomation.running || state.agentMessages.length > 0;
+  setWorkflowStep(4, executionStarted ? 'complete' : (readiness.ready ? 'current' : ''), executionStarted ? '完成' : (readiness.ready ? '可執行' : '等待'));
+  let executionStatus = '';
+  if (state.agent.running || state.multiAgent.running || state.moduleAutomation.running) executionStatus = 'current';
+  else if (state.agent.status === 'error' || state.multiAgent.status === 'error' || state.moduleAutomation.status === 'error') executionStatus = 'error';
+  else if (state.agent.status === 'warning' || state.multiAgent.status === 'warning' || state.moduleAutomation.status === 'warning') executionStatus = 'warning';
+  else if (executionStarted) executionStatus = 'complete';
+  setWorkflowStep(5, executionStatus, executionStatus === 'current' ? '執行中' : executionStatus === 'error' ? '需處理' : executionStatus === 'warning' ? '已停止' : executionStatus === 'complete' ? '完成' : '等待');
+  setWorkflowStep(6, 'available', '隨時可用');
+}
+
 function renderAgent() {
   const catalog = Array.isArray(state.status?.modelAdapters) ? state.status.modelAdapters : [];
   const defaults = new Map([
@@ -201,7 +348,7 @@ function renderAgent() {
       if (preferred || fallback) select.value = (preferred || fallback).value;
     }
   }
-  $('agent-run').disabled = state.agent.running || !$('agent-adapter').selectedOptions[0] || $('agent-adapter').selectedOptions[0].disabled;
+  $('agent-run').disabled = state.agent.running || !workflowPrerequisites().ready;
   $('agent-cancel').disabled = !state.agent.running;
   updateRunStatus($('agent-run-status'), state.agent.label, state.agent.status);
   $('multi-agent-run').disabled = state.multiAgent.running
@@ -218,6 +365,7 @@ function renderAgent() {
     : '一般 Runtime 維持人工確認';
   updateRunStatus($('multi-agent-status'), state.multiAgent.label, state.multiAgent.status);
   updateTaskCount();
+  renderWorkflow();
 }
 
 function renderModelConfiguration() {
@@ -293,7 +441,7 @@ function renderStatus() {
     document.documentElement.style.setProperty('--control-panel-width', `${controlPanelWidth}px`);
   }
   const activeCount = Object.keys(state.modules.active || {}).length;
-  $('stat-session').textContent = short(status.sessionId, 14);
+  $('stat-session').textContent = status.sessionId || '尚無工作階段';
   $('stat-target').textContent = status.target?.documentGeneration === undefined
     ? '尚無目標頁'
     : `t${status.target.targetId}/g${status.target.documentGeneration}`;
@@ -387,7 +535,7 @@ function renderCheckpoints() {
     row.addEventListener('click', () => { $('checkpoint-id').value = checkpoint.id; });
     row.append(
       makeText('strong', checkpoint.label || '檢查點'),
-      makeText('span', short(checkpoint.id, 18)),
+      makeText('span', checkpoint.id || '無識別碼'),
       makeText('small', `${checkpoint.schema}${checkpoint.restorable ? '' : ' · 僅可擷取'}`)
     );
     browser.append(row);
@@ -407,7 +555,7 @@ function renderTimeline() {
     row.append(
       makeText('time', formatTime(event.timestamp)),
       makeText('strong', event.type || '事件'),
-      makeText('span', event.requestId ? short(event.requestId, 18) : `#${event.sequence}`),
+      makeText('span', event.requestId || `#${event.sequence}`),
       makeText('small', summarizeEvent(event))
     );
     timeline.append(row);
@@ -428,7 +576,7 @@ function summarizeEvent(event) {
   if (data.sourceHash) return data.sourceHash;
   if (data.error?.code) return `${data.error.code}: ${data.error.message}`;
   if (data.url) return data.url;
-  return JSON.stringify(data).slice(0, 160);
+  return JSON.stringify(data);
 }
 
 function formatTime(value) {
@@ -446,7 +594,7 @@ function makeText(tag, text) {
 
 function setTab(tab) {
   state.activeTab = tab;
-  document.body.classList.toggle('agent-mode', tab === 'agent');
+  $('advanced-tools').open = true;
   for (const button of document.querySelectorAll('.tab')) {
     const isActive = button.dataset.tab === tab;
     button.classList.toggle('active', isActive);
@@ -458,6 +606,14 @@ function setTab(tab) {
     panel.classList.toggle('active', isActive);
     panel.hidden = !isActive;
   }
+}
+
+function openModelSettings() {
+  setTab('agent');
+  const modelConnection = $('model-connection');
+  modelConnection.open = true;
+  modelConnection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $('model-local-endpoint').focus({ preventScroll: true });
 }
 
 function moduleManifest() {
@@ -497,13 +653,44 @@ function requestConfirmation(title, body) {
   $('confirmation-body').textContent = body;
   dialog.returnValue = '';
   return new Promise((resolve) => {
-    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'yes'), { once: true });
+    let settled = false;
+    const finish = (confirmed) => {
+      if (settled) return;
+      settled = true;
+      dialog.removeEventListener('close', handleClose);
+      dialog.removeEventListener('click', handleClick);
+      resolve(confirmed);
+    };
+    const handleClose = () => finish(dialog.returnValue === 'yes');
+    const handleClick = (event) => {
+      const button = event.target.closest('button[value]');
+      if (button) queueMicrotask(() => finish(button.value === 'yes'));
+    };
+    dialog.addEventListener('close', handleClose);
+    dialog.addEventListener('click', handleClick);
     dialog.showModal();
   });
 }
 
 async function runModuleAutomation() {
   if (state.moduleAutomation.running) return;
+  const moduleId = $('module-id').value.trim();
+  const version = $('module-version').value.trim();
+  const source = $('module-source').value.trim();
+  if (!moduleId || !version || !source) {
+    showError({ code: 'INVALID_REQUEST', message: 'Module ID、版本與 source 都是必要欄位；尚未建立候選。' });
+    if (!moduleId) $('module-id').focus();
+    else if (!version) $('module-version').focus();
+    else $('module-source').focus();
+    return;
+  }
+  try {
+    moduleEnvironment();
+  } catch {
+    showError({ code: 'INVALID_JSON', message: 'Environment JSON 格式無效；尚未建立候選。' });
+    $('module-env').focus();
+    return;
+  }
   state.moduleAutomation = {
     running: true,
     label: '正在建立候選…',
@@ -552,7 +739,8 @@ async function runModuleAutomation() {
     }
 
     const committed = await window.blankseed.modules.commitCandidate(candidate.candidateId, {
-      requestId: requestId('module_auto_commit')
+      requestId: requestId('module_auto_commit'),
+      confirmed: true
     });
     evidence.push({ step: 'commit', status: 'completed', sourceHash: committed.manifest?.sourceHash || null });
     setModuleAutomationStep('commit', 'completed');
@@ -573,7 +761,8 @@ async function runModuleAutomation() {
     }
 
     const activated = await window.blankseed.modules.activate(manifest.id, manifest.version, {
-      requestId: requestId('module_auto_activate')
+      requestId: requestId('module_auto_activate'),
+      confirmed: true
     });
     evidence.push({ step: 'activate', status: 'completed', active: activated.active || null });
     setModuleAutomationStep('activate', 'completed');
@@ -634,6 +823,7 @@ document.querySelectorAll('.tab').forEach((button) => {
 });
 
 $('refresh-all').addEventListener('click', () => refreshAll());
+$('open-model-settings').addEventListener('click', openModelSettings);
 $('model-local-endpoint').addEventListener('input', (event) => { event.currentTarget.dataset.edited = 'true'; });
 $('model-local-name').addEventListener('input', (event) => { event.currentTarget.dataset.edited = 'true'; });
 $('model-local-apply').addEventListener('click', () => run(async () => {
@@ -677,13 +867,21 @@ $('send-cdp').addEventListener('click', () => run(() => {
   return window.blankseed.cdp.send($('cdp-method').value, params, { requestId: requestId('cdp') });
 }));
 $('checkpoint').addEventListener('click', () => run(() => window.blankseed.checkpoint.create($('checkpoint-label').value, { requestId: requestId('checkpoint') })));
-$('checkpoint-restore').addEventListener('click', () => {
+$('checkpoint-restore').addEventListener('click', async () => {
   const checkpointId = $('checkpoint-id').value.trim();
   if (!checkpointId) {
-    showError({ code: 'INVALID_REQUEST', message: '請先選擇檢查點。' });
+    const message = '請先從清單選擇 checkpoint；尚未執行還原。';
+    setFieldError('checkpoint-error', message);
+    showError({ code: 'INVALID_REQUEST', message });
+    $('checkpoint-id').focus();
     return;
   }
-  if (!window.confirm('還原檢查點只會恢復已套用的模組 mapping；不會還原頁面、儲存空間、設定、憑證或外部副作用。確定繼續？')) return;
+  setFieldError('checkpoint-error');
+  const confirmed = await requestConfirmation(
+    '還原所選 checkpoint？',
+    `Checkpoint：${checkpointId}\n\n影響範圍：只恢復已套用的 Module mapping。頁面、儲存空間、設定、憑證與外部副作用都不會還原。選擇 NO 會保持目前狀態。`
+  );
+  if (!confirmed) return;
   run(() => window.blankseed.checkpoint.restore(checkpointId, {
     requestId: requestId('checkpoint_restore'),
     confirmed: true
@@ -715,8 +913,37 @@ $('module-create').addEventListener('click', () => run(async () => {
   return value;
 }));
 $('module-test').addEventListener('click', () => run(() => window.blankseed.modules.testCandidate($('module-candidate').value, { requestId: requestId('module_test') })));
-$('module-commit').addEventListener('click', () => run(() => window.blankseed.modules.commitCandidate($('module-candidate').value, { requestId: requestId('module_commit') })));
-$('module-activate').addEventListener('click', () => run(() => window.blankseed.modules.activate($('module-id').value, $('module-version').value, { requestId: requestId('module_activate') })));
+$('module-commit').addEventListener('click', async () => {
+  const candidateId = $('module-candidate').value.trim();
+  const confirmed = await requestConfirmation(
+    '提交所選候選？',
+    `YES 會將 ${candidateId || '未指定候選'} 寫成不可變版本；NO 不會變更 Module store。`
+  );
+  if (!confirmed) {
+    show({ kind: 'module.candidate.commit', status: 'declined', candidateId });
+    return;
+  }
+  await run(() => window.blankseed.modules.commitCandidate(candidateId, {
+    requestId: requestId('module_commit'),
+    confirmed: true
+  }));
+});
+$('module-activate').addEventListener('click', async () => {
+  const id = $('module-id').value.trim();
+  const version = $('module-version').value.trim();
+  const confirmed = await requestConfirmation(
+    '啟用所選版本？',
+    `YES 會把 ${id || '未指定 Module'} 的作用中版本切換為 ${version || '未指定版本'}；可用 Rollback 或 checkpoint 復原。`
+  );
+  if (!confirmed) {
+    show({ kind: 'module.activate', status: 'declined', id, version });
+    return;
+  }
+  await run(() => window.blankseed.modules.activate(id, version, {
+    requestId: requestId('module_activate'),
+    confirmed: true
+  }));
+});
 $('module-invoke').addEventListener('click', () => run(() => window.blankseed.modules.invoke($('module-id').value, {
   requestId: requestId('module_invoke'),
   environment: moduleEnvironment(),
@@ -726,9 +953,13 @@ $('module-rollback').addEventListener('click', () => run(() => window.blankseed.
 $('agent-run').addEventListener('click', async () => {
   const task = agentTask.value.trim();
   if (!task) {
-    showError({ code: 'INVALID_REQUEST', message: '任務內容不得為空。' });
+    const message = '任務內容不得為空；尚未開始執行。';
+    setFieldError('agent-task-error', message);
+    showError({ code: 'INVALID_REQUEST', message });
+    agentTask.focus();
     return;
   }
+  setFieldError('agent-task-error');
   addAgentMessage('user', task, { label: 'USER', detail: '使用者指令' });
   state.agent = { running: true, evolutionRunId: null, label: 'Agent 任務執行中…', status: 'running' };
   renderAgent();
@@ -738,19 +969,22 @@ $('agent-run').addEventListener('click', async () => {
       adapter: $('agent-adapter').value,
       maxTurns: Number($('agent-max-turns').value),
       maxActions: Number($('agent-max-actions').value),
+      allowedTools: [...uiAgentTools],
       options: { reasoningEffort: $('agent-reasoning').value }
     });
+    const presentation = classifyResult(value);
+    const stopped = presentation === 'warning';
     state.agent = {
       running: false,
       evolutionRunId: value.evolutionRunId || null,
-      label: `Agent 任務 ${value.status === 'ok' ? '已完成' : '已停止'} · ${short(value.evolutionRunId, 18)}`,
-      status: value.status === 'ok' ? 'success' : 'error'
+      label: `Agent 任務 ${presentation === 'success' ? '已完成' : (stopped ? '已取消' : '失敗')} · ${value.evolutionRunId || '無執行識別碼'}`,
+      status: presentation
     };
-    const output = value.output?.content || value.error?.message || `Agent 任務 ${value.status === 'ok' ? '已完成。' : '未完成。'}`;
+    const output = value.output?.content || value.error?.message || `Agent 任務 ${presentation === 'success' ? '已完成。' : (stopped ? '已取消。' : '未完成。')}`;
     addAgentMessage('agent', output, {
       label: 'AGENT',
-      detail: `回合 ${value.metrics?.turns ?? 0} · 動作 ${value.metrics?.actions ?? 0}`,
-      status: value.status === 'ok' ? 'ok' : 'error'
+      detail: stopped ? '使用者已要求停止' : `回合 ${value.metrics?.turns ?? 0} · 動作 ${value.metrics?.actions ?? 0}`,
+      status: presentation === 'success' ? 'ok' : presentation
     });
     show(value);
   } catch (error) {
@@ -761,16 +995,20 @@ $('agent-run').addEventListener('click', async () => {
   await refreshAll();
 });
 $('agent-cancel').addEventListener('click', () => run(async () => {
-  const value = await window.blankseed.evolution.cancel(state.agent.evolutionRunId, { requestId: requestId('agent_cancel') });
+  const value = await window.blankseed.evolution.cancel(state.agent.evolutionRunId || undefined, { requestId: requestId('agent_cancel') });
   state.agent = { running: false, evolutionRunId: null, label: `已要求取消 Agent 任務 · ${value.cancelled || 0}`, status: 'idle' };
   return value;
 }));
 $('multi-agent-run').addEventListener('click', async () => {
   const task = agentTask.value.trim();
   if (!task) {
-    showError({ code: 'INVALID_REQUEST', message: '任務內容不得為空。' });
+    const message = '任務內容不得為空；尚未啟動受控審核。';
+    setFieldError('agent-task-error', message);
+    showError({ code: 'INVALID_REQUEST', message });
+    agentTask.focus();
     return;
   }
+  setFieldError('agent-task-error');
   const moduleId = $('governance-module-id').value.trim();
   const version = $('governance-module-version').value.trim();
   addAgentMessage('user', task, { label: 'USER', detail: '受控審核指令' });
@@ -794,18 +1032,18 @@ $('multi-agent-run').addEventListener('click', async () => {
       decisionId,
       applyAvailable: value.decision?.status === 'awaiting_operator',
       label: value.status === 'ok'
-        ? `受控審核已完成 · ${value.decision.review.verdict}${value.decision.status === 'applied' ? ' · 已自動套用' : ''} · ${short(decisionId, 18)}`
+        ? `受控審核已完成 · ${value.decision.review.verdict}${value.decision.status === 'applied' ? ' · 已自動套用' : ''} · ${decisionId || '無決策識別碼'}`
         : `多代理審核失敗：${value.error?.message || '未知'}`,
       status: value.status === 'ok' ? 'success' : 'error'
     };
     if (value.status === 'ok') {
       addAgentMessage('agent', value.decision.proposal.content, {
         label: 'PROPOSER',
-        detail: short(value.decision.proposal.evolutionRunId, 22)
+        detail: value.decision.proposal.evolutionRunId || '無執行識別碼'
       });
       addAgentMessage('reviewer', value.decision.review.reason, {
         label: 'REVIEWER',
-        detail: `${value.decision.review.verdict.toUpperCase()} · ${short(decisionId, 20)}`
+        detail: `${value.decision.review.verdict.toUpperCase()} · ${decisionId || '無決策識別碼'}`
       });
       if (value.decision.status === 'applied') {
         addAgentMessage('governance', `決策 ${decisionId} 已由沙盒 Agent 政策自動套用。`, {
@@ -833,22 +1071,26 @@ $('multi-agent-cancel').addEventListener('click', () => run(async () => {
   state.multiAgent = { running: false, multiAgentRunId: null, decisionId: state.multiAgent.decisionId, applyAvailable: state.multiAgent.applyAvailable, label: `已要求取消多代理流程 · ${value.cancelled || 0}`, status: 'idle' };
   return value;
 }));
-$('governance-apply').addEventListener('click', () => {
+$('governance-apply').addEventListener('click', async () => {
   const decisionId = $('governance-decision-id').value.trim();
   if (!decisionId) {
     showError({ code: 'INVALID_REQUEST', message: '請先完成或選擇治理決策。' });
     return;
   }
-  if (!window.confirm('套用將依已審查證據，啟用指定已提交的 Module 版本。確定繼續？')) return;
+  const confirmed = await requestConfirmation(
+    '套用治理決策？',
+    `Decision：${decisionId}\n\n影響範圍：依已審查證據啟用指定、已提交的 Module 版本。Reviewer 與 operator apply 仍維持分離；選擇 NO 不會套用。`
+  );
+  if (!confirmed) return;
   run(async () => {
     const value = await window.blankseed.multiAgent.apply(decisionId, {
       requestId: requestId('governance_apply'),
       confirmed: true
     });
-    state.multiAgent = { running: false, multiAgentRunId: value.multiAgentRunId, decisionId, applyAvailable: false, label: `治理決策已套用 · ${short(decisionId, 18)}`, status: 'success' };
+    state.multiAgent = { running: false, multiAgentRunId: value.multiAgentRunId, decisionId, applyAvailable: false, label: `治理決策已套用 · ${decisionId}`, status: 'success' };
     addAgentMessage('governance', `決策 ${decisionId} 已由使用者確認並套用。`, {
       label: 'GOVERNANCE',
-      detail: short(value.multiAgentRunId, 22)
+      detail: value.multiAgentRunId || '無多代理執行識別碼'
     });
     return value;
   });
@@ -858,12 +1100,33 @@ $('governance-decision-id').addEventListener('input', () => {
   $('governance-apply').disabled = !state.multiAgent.applyAvailable;
 });
 $('refresh-events').addEventListener('click', () => refreshAll());
-$('clear-result').addEventListener('click', () => { result.textContent = '已就緒。'; });
+$('clear-result').addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  result.textContent = '已就緒。';
+  state.lastOperation = { status: 'idle', summary: '結果顯示已清除', nextStep: '事件證據仍保留；可重新執行操作或重新整理事件時間軸。' };
+  renderOperationFeedback();
+});
 $('agent-clear-messages').addEventListener('click', () => {
   state.agentMessages = [];
+  renderAgent();
   renderAgentMessages();
 });
-agentTask.addEventListener('input', updateTaskCount);
+agentTask.addEventListener('input', () => {
+  setFieldError('agent-task-error');
+  updateTaskCount();
+  renderAgent();
+});
+$('task-no-target').addEventListener('change', renderAgent);
+$('agent-adapter').addEventListener('change', renderAgent);
+$('checkpoint-id').addEventListener('input', () => setFieldError('checkpoint-error'));
+for (const button of document.querySelectorAll('[data-step-target]')) {
+  button.addEventListener('click', () => {
+    const target = $(button.dataset.stepTarget);
+    target?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    target?.focus({ preventScroll: true });
+  });
+}
 agentTask.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
     event.preventDefault();

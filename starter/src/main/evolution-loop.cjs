@@ -72,6 +72,12 @@ const TOOL_DEFINITIONS = Object.freeze([
   })
 ]);
 
+const DEFAULT_AGENT_TOOLS = Object.freeze(
+  TOOL_DEFINITIONS
+    .map((entry) => entry.function.name)
+    .filter((name) => !['module_candidate_commit', 'module_activate', 'module_rollback'].includes(name))
+);
+
 function tool(name, description, parameters) {
   return Object.freeze({ type: 'function', function: Object.freeze({ name, description, parameters }) });
 }
@@ -388,7 +394,7 @@ class EvolutionRunManager {
       : assertInteger(payload.maxActions, 'maxActions', { min: 1, max: 500 });
     const messages = Array.isArray(payload.messages) ? payload.messages.map((message) => ({ ...message })) : payload.messages;
     const allowedTools = payload.allowedTools === undefined
-      ? null
+      ? [...DEFAULT_AGENT_TOOLS]
       : [...new Set((Array.isArray(payload.allowedTools) ? payload.allowedTools : []).map((name) => assertString(name, 'allowed tool', { max: 120 })))];
     const directory = path.join(this.runsRoot, evolutionRunId);
     const evidencePath = path.join(directory, 'run.json');
@@ -536,7 +542,7 @@ class EvolutionRunManager {
       throw protocolError(`Evolution run exceeded ${maxTurns} model turns.`, { maxTurns });
     } catch (error) {
       evidence.error = serializeError(error, controller.signal.aborted ? errorCodes.executionCancelled : 'INTERNAL_ERROR');
-      return this.#finish(evidence, evidencePath, runContext, 'error');
+      return this.#finish(evidence, evidencePath, runContext, controller.signal.aborted ? 'cancelled' : 'error');
     } finally {
       this.active.delete(evolutionRunId);
       runtime.signal?.removeEventListener('abort', cancelFromParent);
@@ -599,7 +605,10 @@ class EvolutionRunManager {
       output: finalEvidence.output,
       error: finalEvidence.error
     };
-    this.eventStore.append(status === 'ok' ? 'evolution.run.completed' : 'evolution.run.failed', {
+    const eventType = status === 'ok'
+      ? 'evolution.run.completed'
+      : (status === 'cancelled' ? 'evolution.run.cancelled' : 'evolution.run.failed');
+    this.eventStore.append(eventType, {
       evolutionRunId: finalEvidence.evolutionRunId,
       status,
       checkpointId: finalEvidence.checkpoint.id,
@@ -630,6 +639,7 @@ class EvolutionRunManager {
 }
 
 module.exports = {
+  DEFAULT_AGENT_TOOLS,
   EvolutionRunManager,
   RawCapabilityDispatcher,
   RUN_SCHEMA,

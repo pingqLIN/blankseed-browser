@@ -1,0 +1,2495 @@
+{
+  "schema": "blankseed-runtime-reset-manifest/1",
+  "resetTimestamp": "2026-07-21T07:29:09+08:00",
+  "hashAlgorithm": "sha256",
+  "rootAliases": {
+    "<repo>": "BlankSeed Browser repository root",
+    "%APPDATA%": "current Windows roaming application-data root"
+  },
+  "policy": "recoverable-move-no-permanent-delete",
+  "protectedDataPreserved": [
+    "Git-tracked source and historical reports",
+    "Electron browser profile outside blankseed-data",
+    "login state, cookies, credential stores, and session storage"
+  ],
+  "preReset": {
+    "workspaceGeneratedFiles": 386,
+    "workspaceGeneratedBytes": 3643954,
+    "ignoredReportLogFiles": 8,
+    "ignoredReportLogBytes": 360,
+    "appDataRuntimeFiles": 13,
+    "appDataRuntimeBytes": 753613
+  },
+  "postReset": {
+    "evolutionRunsEntries": 0,
+    "experimentsEntries": 0,
+    "moduleStoreEntries": 0,
+    "sourceEvolutionEntries": 0,
+    "stateEntries": 0,
+    "wp12PreflightEntries": 0,
+    "activeModulesFileExists": false,
+    "appDataRuntimeRootExists": false,
+    "repoOwnedProcesses": 0
+  },
+  "quarantine": {
+    "repoFiles": 394,
+    "appDataFiles": 13,
+    "totalFiles": 407,
+    "totalBytes": 4397927,
+    "manifestDigestAlgorithm": "sha256",
+    "manifestDigestCanonicalization": "For each files[] record in array order, hash UTF-8 source + NUL + destination + NUL + decimal size + NUL + lowercase sha256 + LF.",
+    "manifestDigest": "a0d3bf5514fb4bfa25ac050ef07b1982f31d414c209ae819e92ac78b0f03eec7"
+  },
+  "rollback": {
+    "prerequisites": [
+      "Stop verified BlankSeed-owned Electron and Node processes.",
+      "Confirm each original destination is absent; never overwrite current Runtime data.",
+      "Restore only the requested quarantine batch and verify hashes after moving."
+    ],
+    "procedure": "Move each file from destination back to source using this manifest, fail on any collision, then verify size and sha256."
+  },
+  "files": [
+    {
+      "source": "<repo>/starter/reports/phase-0-electron.stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/phase-0-electron.stderr.log",
+      "size": 99,
+      "sha256": "8e4210e3ad939013300c3282539b8332444ea9ba8f836da113787c20ee509c44"
+    },
+    {
+      "source": "<repo>/starter/reports/phase-0-electron.stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/phase-0-electron.stdout.log",
+      "size": 2,
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "source": "<repo>/starter/reports/phase-0-npm-start.stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/phase-0-npm-start.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "<repo>/starter/reports/phase-0-npm-start.stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/phase-0-npm-start.stdout.log",
+      "size": 57,
+      "sha256": "b3759e10f11c0928ab6fb0de84dab64f043ce60a8358f976672d63653b02305e"
+    },
+    {
+      "source": "<repo>/starter/reports/wp-01-electron.stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/wp-01-electron.stderr.log",
+      "size": 99,
+      "sha256": "0e2433df4fba997ca6d8d7e685761baa4de68cc2c7709eccd2449f96f975cf11"
+    },
+    {
+      "source": "<repo>/starter/reports/wp-01-electron.stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/wp-01-electron.stdout.log",
+      "size": 2,
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "source": "<repo>/starter/reports/wp-02-electron.stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/wp-02-electron.stderr.log",
+      "size": 99,
+      "sha256": "c7cf2f5994c4f7df659bf98fd384d29094ea5d09ed2af1b3e93ae6e595e48972"
+    },
+    {
+      "source": "<repo>/starter/reports/wp-02-electron.stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/reports/ignored-launcher-logs/wp-02-electron.stdout.log",
+      "size": 2,
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "source": "<repo>/starter/workspace/evolution-runs/evo_1728b057-cd85-4a2b-a0f5-85c600295314/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/evolution-runs/evo_1728b057-cd85-4a2b-a0f5-85c600295314/run.json",
+      "size": 340917,
+      "sha256": "605d8ca6bdc3af3b9c10272e67612c3bcb72abba7b01fdc83fea47270c23006c"
+    },
+    {
+      "source": "<repo>/starter/workspace/evolution-runs/evo_7f2e36a3-b122-4de9-addd-3716d598dcb5/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/evolution-runs/evo_7f2e36a3-b122-4de9-addd-3716d598dcb5/run.json",
+      "size": 283211,
+      "sha256": "cdd33fa7a0c39ab4eba12b24a57dcea332de507d4dfaba76b89015b862d265c2"
+    },
+    {
+      "source": "<repo>/starter/workspace/evolution-runs/evo_b41a0cee-a436-40af-a315-e7517794d186/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/evolution-runs/evo_b41a0cee-a436-40af-a315-e7517794d186/run.json",
+      "size": 339061,
+      "sha256": "96e89118468f8ef686178c0cba2b4e178312be1feedbe47d684508dbf626689e"
+    },
+    {
+      "source": "<repo>/starter/workspace/evolution-runs/evo_d8798e01-262c-4166-99a3-6d698934a292/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/evolution-runs/evo_d8798e01-262c-4166-99a3-6d698934a292/run.json",
+      "size": 176622,
+      "sha256": "1bd6319061e0888142540f29e63bea5f18b8df60deacf84eef594d956e9de173"
+    },
+    {
+      "source": "<repo>/starter/workspace/evolution-runs/evo_e071fa99-8513-4bf5-b930-ec2b77c76251/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/evolution-runs/evo_e071fa99-8513-4bf5-b930-ec2b77c76251/run.json",
+      "size": 65965,
+      "sha256": "63742dadaefa2a6641101a348dcda9b609e1371f4aa61968fce7bc1a0817f264"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/input.json",
+      "size": 635,
+      "sha256": "ca82dd9c626835b6fcf91567568e542e1ae056ab50da80ad668835884c226da3"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/result.json",
+      "size": 531,
+      "sha256": "29523d4feb49d1d5a1137967e3d38a7e359a8352c6bfcee2d318dc7d0add3dd5"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/runtime.json",
+      "size": 174,
+      "sha256": "36909e60983c4a5ba5f3c95f3173ca0eabd01a86d7b3b3a16176dc1085554b90"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1c94544d-7fc2-434c-9adc-53370e79a108/source.cjs",
+      "size": 2039,
+      "sha256": "2a066707c31341a3d1df9f8003383dc0788bb59fed5225eae65680981322170a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/input.json",
+      "size": 638,
+      "sha256": "1a4f86ed0b981a51ecb1cdeb5d21c603cedcfb9a3e9bd067a956504a49a4b42b"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/result.json",
+      "size": 1688,
+      "sha256": "3b60da781fe5f9de930c519e0decb6c0e26e6e0f22ab32683f220883153d7a62"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/runtime.json",
+      "size": 174,
+      "sha256": "2a41c966d278a2ecf85683985be15038ff07e8a02efc49ddac0206d4cd002e41"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_1f6f5420-c442-4d3c-9b1e-e8bf2c9a1413/source.cjs",
+      "size": 274,
+      "sha256": "e5fbbfb81becf22cc53dd0c6b91c15516a82c1b59e41aa831a188ba29e2bda8a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/input.json",
+      "size": 535,
+      "sha256": "f9b2493744e77b7fa2f75d52594a15bdcf0bc0e1bac056e811f92166e26f8abd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/result.json",
+      "size": 692,
+      "sha256": "400614d4c8239d5efeaa47663d5a2ae4c8dd437e967d1522e818f365d1415700"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/runtime.json",
+      "size": 172,
+      "sha256": "25fc333da8c82647526f23ba2c4b5fed4e1d06658363d84544975ed8b57e3178"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/source.cjs",
+      "size": 149,
+      "sha256": "87b5c5b70b8741082bddaa1ce97698657ad978879dbbc45cfa50c12985557397"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_223721fb-ad7d-4e73-8c9f-8273ca398e4e/stdout.log",
+      "size": 13,
+      "sha256": "1ab5aad52447aae6cbbad3a483c2a018bc83bddc6b6ca043ae6b581fdd806e47"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/input.json",
+      "size": 505,
+      "sha256": "afcd0b107a28f13b43fa99a4d3a28a6a250f18a680a8a34ab24217430853fa6b"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/result.json",
+      "size": 571,
+      "sha256": "32f377be0cb5473df8bb7e0f9619ce948195a352d1cf17c3d2285263941512bb"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/runtime.json",
+      "size": 173,
+      "sha256": "35c1cce43bfbf7f207f6d4bdd1337658f2094238cd322d9249212ca950a7e00d"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_2396e4ab-a658-4e90-8c03-4b1713c056e1/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/input.json",
+      "size": 608,
+      "sha256": "2bf5f31f280c0008b8d867f11a5ec7aac352e86b34706391afef79ea0c90ad2e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/result.json",
+      "size": 750,
+      "sha256": "3b3ca794e2cb54f98813b80794f68db0f26ab13c04e2f7bbb93386310467cdb9"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/runtime.json",
+      "size": 174,
+      "sha256": "652a4aa936595c94659e0d53c099423e2f10a576dc795d59fa1315e722b16501"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_387e4755-0ca3-4534-b996-5cf45644c45b/source.cjs",
+      "size": 484,
+      "sha256": "f08dbbe5ba693c37e1d36e512f133bfa048b48aa8a67fbec1d387456b83e87d5"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/input.json",
+      "size": 473,
+      "sha256": "90a8719f9fe9190400d592b149d16a066909b3661e0eef44dd4c9d98409fba75"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/result.json",
+      "size": 1456,
+      "sha256": "9ec5e529a2bb5e80bff7437f1ce5b5329a67911870b2321d486fe3c45735d060"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/runtime.json",
+      "size": 174,
+      "sha256": "3779b78b9d1367bf52e355ae5a5ab933b7fe5a073a402f5b36957dc2ec4ddbb1"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3d6c6fae-8f9a-40f6-aac8-308e8bd9054b/source.cjs",
+      "size": 25,
+      "sha256": "efa719971c6931871ec1fdce237afd0f67fcb4a37a5b8a1ad4f1d87640c38a25"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/input.json",
+      "size": 638,
+      "sha256": "1d633ba2aafe58608db4109ee51ff7cbe2533e53f3b58db1a6db79bc7e2a7ebe"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/result.json",
+      "size": 572,
+      "sha256": "cdc713bd9793dc0e537503a1779a0245625245caf7a97d6845e71690fdd8e9d1"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/runtime.json",
+      "size": 173,
+      "sha256": "4ba6569b35116a03e7b3768f2732d63313bd3b20c0f9909ae78c523fd8c087a4"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_3f712af8-b89f-47e4-86e5-a9c651a2b3e0/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/input.json",
+      "size": 499,
+      "sha256": "3a447499686ab8cb9d3aa44ec5a311fe93a7705bd13bbc9fee3fcf0be4f1bdf4"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/result.json",
+      "size": 667,
+      "sha256": "8f8b5f46fc5cafd2d45cd8566c574193d31ac37ab994f863b39e1ac4087d42dd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/runtime.json",
+      "size": 174,
+      "sha256": "18a924645a03dc2a9fc520d7702c11af8c1adbf0510713753e33aedbd7a9cd0e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_468ac2ae-aa7b-4611-9630-f0a51943aa9c/source.cjs",
+      "size": 167,
+      "sha256": "0a46221591fd77209dcf03157bb5c7af71c31a37f6e54ac1ecab0e4bf2d92e40"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/input.json",
+      "size": 564,
+      "sha256": "db57dd7d11d287764be349cd00d4cc7c0c2114630501d862c7db962f1d4a3018"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/result.json",
+      "size": 577,
+      "sha256": "d79864d7f74077b8739c6acbe58ce1c26a8324bce040c3c026c21c29c7fbe48d"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/runtime.json",
+      "size": 174,
+      "sha256": "e6ab3ca7ab6072ce622d91f84ce3b99d02650e7609f9a6a5109ea0a6acc6064b"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_481bc71b-b481-4440-a4f6-ac8c89bb1ffd/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/input.json",
+      "size": 512,
+      "sha256": "303dd1d771033b30d45d857377d61544a36db4fc405cb70d5bed6ac157ea5772"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/result.json",
+      "size": 605,
+      "sha256": "a287f6c60fa3f0bdd695d36e19e2ec10ff6f6144587078e65bad05bd2bcde1a9"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/runtime.json",
+      "size": 174,
+      "sha256": "6f70a1d4b1babbab0c8ae75a91a66a0c2da24df1470775500391857cc8cdcbf3"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_4a61b8b3-4b7c-49c8-894c-3d937e2417b1/source.cjs",
+      "size": 148,
+      "sha256": "c3ca30738e41c42173969ecfdef5a88b26cba0e2c494ec876803c2c84a64fdcd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/input.json",
+      "size": 473,
+      "sha256": "e57529001116bfac9e63271a8dee5ef1a89385dc0a00a1ba6051b630c82c2ac9"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/result.json",
+      "size": 1457,
+      "sha256": "40ce149f8f44c92b5101ce5cfc60ff84af2217ca1a977659c28a12ea2852e002"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/runtime.json",
+      "size": 174,
+      "sha256": "3eafde096e884b477d6d471c7c394d5f28552ac8cbe7b0d1b61a7bec0bfc159f"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_513704bf-4105-4ca1-92fe-316ba4fb8ca3/source.cjs",
+      "size": 36,
+      "sha256": "42e7f717fdfed4e9aa21007f8d7fde1f3733748c1eb667fe9f2f2675ac8f52f0"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/input.json",
+      "size": 507,
+      "sha256": "d3eb37610b5892b5706f99b7c9920f8dd4b8655c700c6a87d92f00ade73d7383"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/result.json",
+      "size": 600,
+      "sha256": "43e48e3d604e3344cc8c5a224c2d8806b0a2f876a340445d1cbd97f183a81819"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/runtime.json",
+      "size": 173,
+      "sha256": "877e183857c2cd63fdcc7d04a1ae7b022c4e9e0baf4a30804af837b6e71f284e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_570f5375-7fd0-4116-9d30-ee17b6bc99fc/source.cjs",
+      "size": 148,
+      "sha256": "09e8a3516d348f51d73786fac645669ca70aee7a9326b83e2887d6629e5684c8"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/input.json",
+      "size": 476,
+      "sha256": "c6af93af25fd432303add899add059a3735900403f235a6c926352cd9cd1c32a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/result.json",
+      "size": 529,
+      "sha256": "1efe6d55359173d639a43fc96a40c0857a83e26444661743a7a4538009d262c4"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/runtime.json",
+      "size": 174,
+      "sha256": "d04561053a69a127cef8ee9dcedf96808a8eb586d00632769a31c3ad6e156a1c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_5cde233d-63de-4f3f-9957-bec898474fe0/source.cjs",
+      "size": 36,
+      "sha256": "12cd13ca48f4dd813d9b4668b75d67d872d35d823f3fe58f4540b614bd406ceb"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/input.json",
+      "size": 537,
+      "sha256": "94749630c40f7aaaf90c2256cfed9dfdefc8e458fbbffc12f7648f68ddb1f05e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/result.json",
+      "size": 783,
+      "sha256": "e1390d010b1150163c69f3e536c94901443d80ed6958c7e2bdba34397aecdf3e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/runtime.json",
+      "size": 173,
+      "sha256": "6436420b8791b6a169484359f0414a8fc28a7e3878cf559ec0479abdad2e8dca"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_625db64f-0f86-4273-8f76-7e11b870df00/source.cjs",
+      "size": 484,
+      "sha256": "f08dbbe5ba693c37e1d36e512f133bfa048b48aa8a67fbec1d387456b83e87d5"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/input.json",
+      "size": 564,
+      "sha256": "298c18baf50e4d2d8c51c7468afdfb7c373d992f88f1e9ed448cb9f599a009cb"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/result.json",
+      "size": 577,
+      "sha256": "c359ef3cc01e2862f218245ddf055c6167bac6b4c28bce7664836bcbc1cb6b14"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/runtime.json",
+      "size": 174,
+      "sha256": "871f9e64b60c8879d27ce9c09cdae55b591bf448ce76cfbb96873505c01e6863"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_635da0d7-2bdc-4352-acaf-98d9c127163a/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/input.json",
+      "size": 637,
+      "sha256": "ed9aa04f938ebf95702b5b1d52fa8ad864f9109d343d3069f8ba7235f7d956b0"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/result.json",
+      "size": 571,
+      "sha256": "66313faeb2778b08ee961b4ca0b8be497b4b0752bc071e27a3a8778597268ec4"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/runtime.json",
+      "size": 174,
+      "sha256": "5c9d28b8ad005a8d47258d0f52a55202acacfebbd64ca6ce4337986d58bda62e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_637746af-ca63-478d-b7b6-7470d29dd275/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/input.json",
+      "size": 507,
+      "sha256": "6ad7737ff8fc4cbf83179b6490ba0d72871f595de78e39a66612d725e26b0c06"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/result.json",
+      "size": 600,
+      "sha256": "ef68e93b965473fef95f54a569f68bed66ec399f3fc8437cea708ddad91434fd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/runtime.json",
+      "size": 174,
+      "sha256": "69d2d778025b00c84c602352541d767cbe2d6c907a5b5025a34e65c7b93e3b93"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7067f8a7-661d-4337-ae9d-087ce9800507/source.cjs",
+      "size": 148,
+      "sha256": "c3ca30738e41c42173969ecfdef5a88b26cba0e2c494ec876803c2c84a64fdcd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/input.json",
+      "size": 638,
+      "sha256": "f057f347e93d5bfc3dc1cccbaebf2226ae558b6561dab384f0fe5d6592a1399a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/result.json",
+      "size": 572,
+      "sha256": "ea335b36f4a8ce64d6962f8e22345c950652cec94dde4c11814a8e44a851ac41"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/runtime.json",
+      "size": 174,
+      "sha256": "f3f50d7f1af8c3f2d8bd279edfc36a3f846a39c2f2136deebe4d0ba2f4730b1e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_753dccbf-86a6-4f13-8faa-e25d20ff384d/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/child-pid.txt",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/child-pid.txt",
+      "size": 5,
+      "sha256": "14b80837a6e2da822ccbc83b5131805afbe55c3cb29aac61a4691effce2ad87a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/input.json",
+      "size": 507,
+      "sha256": "b0d101edf35db7da6b6f5a356303b2dd4458d4214ad9b653326e8a6562aa95e9"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/result.json",
+      "size": 1781,
+      "sha256": "0fa409f499de992f6d5b0ce80283cfa3d7c561198846ad621ae0f93c21e91cd1"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/runtime.json",
+      "size": 174,
+      "sha256": "59ffc9ce4e9678e214fcf81a94d8916238628904dd874ab2b9963794bc4918a9"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/source.cjs",
+      "size": 394,
+      "sha256": "5fee9a3f761ba0037bcfc5e00b6ff24541a456454b6321bbff18d84ed1dbc74d"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_78bc6b87-3e0b-4aa6-95e4-bd5e534c5b74/stdout.log",
+      "size": 15,
+      "sha256": "cb13449bc93f6d2975b4aed4474be617f7847d9d3561128b7e18e69532b91a50"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/input.json",
+      "size": 535,
+      "sha256": "33fa5b5b460f5ab359e58b1e3ca154d4ce57301d6272bad6313e7e82c9d2ec90"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/result.json",
+      "size": 692,
+      "sha256": "e4dc097bb144e84e9d80ff2deee55316026d1580fdb1838d06ff692c6fede910"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/runtime.json",
+      "size": 174,
+      "sha256": "59fb07010d2085bedb8ca56450ffa7093045883df156b5249b3eb9edebde052e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/source.cjs",
+      "size": 149,
+      "sha256": "87b5c5b70b8741082bddaa1ce97698657ad978879dbbc45cfa50c12985557397"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7ba5211f-1ef4-4b37-a330-f7eb72d6916d/stdout.log",
+      "size": 13,
+      "sha256": "1ab5aad52447aae6cbbad3a483c2a018bc83bddc6b6ca043ae6b581fdd806e47"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/input.json",
+      "size": 473,
+      "sha256": "f7d6409878bb40bb87dc254b8aa0167ca63654f0f821535aff607c787167d019"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/result.json",
+      "size": 1456,
+      "sha256": "d31a52888f47398e0eaf59b73b1ca4af405d69d25e20dc53ed6d5adaf7099adf"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/runtime.json",
+      "size": 174,
+      "sha256": "023b05dc6b611f6a31ebdbdbb39f228b298a7c54ad6b5be6cc34eeae5d9c2089"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_7eb9a4ec-e268-492b-b07a-56a3eb1d21c4/source.cjs",
+      "size": 25,
+      "sha256": "efa719971c6931871ec1fdce237afd0f67fcb4a37a5b8a1ad4f1d87640c38a25"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/input.json",
+      "size": 564,
+      "sha256": "f9ef3fa1df2d9cf4b6918935a6c928c546d58480c3223e7db20abb7be0589230"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/result.json",
+      "size": 577,
+      "sha256": "44a6904434a5e7f553b9751412fd229ef54d47c8016a9d86022167529a194ba5"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/runtime.json",
+      "size": 174,
+      "sha256": "fde5556939dda510c418693414ff105f0177726c1ba9ca6974244bd63fd9bd8c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8049e8ef-96d0-4881-b246-6155c717ea6f/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/input.json",
+      "size": 476,
+      "sha256": "759782dff24a791f26e1b4355a31d49bea6d3a4920abe1e925b90580abdf10ea"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/result.json",
+      "size": 529,
+      "sha256": "ba6a30b1d5705d35e55945277afa15d80af9a52e39a5cd43e46f97816e19b7f2"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/runtime.json",
+      "size": 174,
+      "sha256": "ad5d19526e5f4f9909b71ea4cf6f8c6702bd8c1f9dea6f16f84542cfc5343ec9"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_825d88b9-87ca-47af-bee7-167c44a3efb9/source.cjs",
+      "size": 36,
+      "sha256": "12cd13ca48f4dd813d9b4668b75d67d872d35d823f3fe58f4540b614bd406ceb"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/input.json",
+      "size": 538,
+      "sha256": "22575630690def4c727e41abae63edea1fc39f36120162701a92bf5530be5c8c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/result.json",
+      "size": 784,
+      "sha256": "25b3c386a13face14268c4b6a6a0f6f61783d6e0d8d7bdffdf75642f9181983e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/runtime.json",
+      "size": 174,
+      "sha256": "61e196f62a1855f0006b0123ca2efc2b32a270842e71a209eec6306cf95cd797"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_834ba6ba-37be-4bbb-adb3-60cf6dbbba00/source.cjs",
+      "size": 484,
+      "sha256": "f08dbbe5ba693c37e1d36e512f133bfa048b48aa8a67fbec1d387456b83e87d5"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/input.json",
+      "size": 643,
+      "sha256": "04e08ec82dc0b0c1e30f00ee68ec7803dbf586efba7000e47379987f1f6d037e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/result.json",
+      "size": 590,
+      "sha256": "7dbfb9784f46b6b6595358aff30863bb576dfb418cfc6131c4b2112f642fc4ec"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/runtime.json",
+      "size": 174,
+      "sha256": "2a4027f322bdba0eca7fd52843720c0eb30947fdbf3e9de4a65138d097283671"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_85def62f-20bf-4952-a456-b15b21f21ea8/source.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/input.json",
+      "size": 473,
+      "sha256": "6c0fd02b93521ae6d3871dda8d418ddbbe5f8803a59cfcef9f47008bf154d385"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/result.json",
+      "size": 1172,
+      "sha256": "7649034657b5036d77b29bbe26fdc0c74acb7460cf24e592484f205200f5ca64"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/runtime.json",
+      "size": 174,
+      "sha256": "e8033b3e144a90aada3be95c55de08d7c9d3bb59ea5324b0e709b2f9e2e888ae"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/source.cjs",
+      "size": 72,
+      "sha256": "e63433c0ba9cd9b7791e1745718f0dbcce6fed3d32cc8485a2ebcf5e6e75446e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_8be86d54-7766-45d6-8682-e228a7c35a96/stderr.log",
+      "size": 11,
+      "sha256": "1a27e71a9f11f3787ff7ac772b870259a05a94f53475e6faa1e70f58f3402b16"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/input.json",
+      "size": 638,
+      "sha256": "027e268cd11d335716e37c523a7f86065806206bc6fe541da23ca63347801a6b"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/result.json",
+      "size": 585,
+      "sha256": "590bbd5798916f6c2033723474c84533e0484e524b7a50aeb0b7653e0aa55f35"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/runtime.json",
+      "size": 174,
+      "sha256": "5828e6953955f057d5fbd0289c530a245613c0b941f815e81bb3f76e35391d6a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_90d0aab7-e585-4dd4-8ae0-734afcee83a8/source.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/input.json",
+      "size": 607,
+      "sha256": "0f069734ea962931f3a2025762aa7c18a8c94c1e564fd42ad0f9dfd80dccc699"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/result.json",
+      "size": 595,
+      "sha256": "ca3c37bcdd58abdbf213df378d4552a5d0990d9f9913988d582f9e1f305a9d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/runtime.json",
+      "size": 174,
+      "sha256": "5defdd300462c1ed5e2caf0d23f44593bd6bf0c6f284802e4d0be17a4f078812"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_93d4f250-4ee9-4cd3-b122-7df7be5cab60/source.cjs",
+      "size": 148,
+      "sha256": "09e8a3516d348f51d73786fac645669ca70aee7a9326b83e2887d6629e5684c8"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/input.json",
+      "size": 563,
+      "sha256": "5fb877066e8b4c612441927cd4faf41f73b81acccc97784a03a5469a226d7241"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/result.json",
+      "size": 576,
+      "sha256": "5fadf687b01a115fe518c94372e031262c2d6f0fce7307849366bf08b261a32d"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/runtime.json",
+      "size": 174,
+      "sha256": "e9f398b31989cd8988c49f810d1577183ea00089f96f639491967bc9e57f2e15"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_9c310ed5-4a81-4ba5-820a-641358bd8ca6/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/input.json",
+      "size": 473,
+      "sha256": "767a824dbb3c21c04b972bef657e99da1ed2bacbb3693dc02a1854ca5b75ce53"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/result.json",
+      "size": 1172,
+      "sha256": "fee7702d89fe73769a6f67dbc4ee402f8ffcfe64454bc8b0863dc4f67c22d9eb"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/runtime.json",
+      "size": 174,
+      "sha256": "d67b5bb0c10d42c45bdf7ef1b10f7978e731d453fc5eb0dd99612270d144790d"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/source.cjs",
+      "size": 72,
+      "sha256": "e63433c0ba9cd9b7791e1745718f0dbcce6fed3d32cc8485a2ebcf5e6e75446e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_a4bc4a10-7f2f-4d04-a0ea-60800eb6722f/stderr.log",
+      "size": 11,
+      "sha256": "1a27e71a9f11f3787ff7ac772b870259a05a94f53475e6faa1e70f58f3402b16"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/input.json",
+      "size": 643,
+      "sha256": "768b8415b4cdd8dbb70483a9cd9803e74b9045387c638c4d43ddba375a0bc64f"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/result.json",
+      "size": 590,
+      "sha256": "4cde74ff58553bfc6f55ec16cfa85d58c748e0239e5a9bae228618870c13f51c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/runtime.json",
+      "size": 174,
+      "sha256": "bc1bc0832a3909d9c9fe44e637e74e0d9f325f3b63862d8a16915a84335c53ea"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ace798d4-799f-4ff2-8207-283286d219a3/source.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/child-pid.txt",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/child-pid.txt",
+      "size": 5,
+      "sha256": "b9da8cfebdf57ecf6bc6bf0cf9bd2602ba4b94b25b834602ea5025b324a0f604"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/input.json",
+      "size": 507,
+      "sha256": "8c8b8f2e32a646e97b5b015782580e87bf63e70d2c3d5434497aca9c8297db3d"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/result.json",
+      "size": 1833,
+      "sha256": "f5c89598a0cc4f1f4eff952b67b6c7c4b52258b083e9d96f555860f5eba9f914"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/runtime.json",
+      "size": 174,
+      "sha256": "5ad7d7445f1d963a133e7bdacd9cf54841ca240f985c9cfb7034e12f2765ccbb"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/source.cjs",
+      "size": 394,
+      "sha256": "5fee9a3f761ba0037bcfc5e00b6ff24541a456454b6321bbff18d84ed1dbc74d"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_b02bcd88-b631-4a29-8ba6-08895dd6e387/stdout.log",
+      "size": 15,
+      "sha256": "ba4848f85e235eb82a8a9f54ba51fd5713d287588c97e536b50248117b1336f2"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/input.json",
+      "size": 513,
+      "sha256": "09fd445620dec2aa6834b0d4ff15c67e20a5a356a838f5ac951d88d58fd33269"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/result.json",
+      "size": 606,
+      "sha256": "3aba17f5cef231cca314d80a8ac1d0dcae0c0f384bf26c9a83da28b9dcdd653b"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/runtime.json",
+      "size": 173,
+      "sha256": "3f8ec7d978033ce545bf2a1baa3e118bb291d0535740dcc033f1cfb424e49dc3"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_bacca9eb-b93b-41a6-8b7f-eb23f1e456ec/source.cjs",
+      "size": 148,
+      "sha256": "c3ca30738e41c42173969ecfdef5a88b26cba0e2c494ec876803c2c84a64fdcd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/input.json",
+      "size": 538,
+      "sha256": "27543dc822a9a1083e0fec26801ae4b4938d5931798d806e425bab6b06c04de2"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/result.json",
+      "size": 538,
+      "sha256": "9c3d8cf5bb3e9761b0dded2eac2da19581be2bfca8cdf0c2442af824068ae486"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/runtime.json",
+      "size": 174,
+      "sha256": "d59940a9caf112c8e330b66b1195a9b23498b94eb4ba340d2ec1994216950996"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_c67a2ffb-84e3-495e-8333-498a0021ae65/source.cjs",
+      "size": 2039,
+      "sha256": "2a066707c31341a3d1df9f8003383dc0788bb59fed5225eae65680981322170a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/input.json",
+      "size": 536,
+      "sha256": "d8bd39d2d67ad8a8d80548aec0953c7d97b590294535287748c345d90f4e04ab"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/result.json",
+      "size": 918,
+      "sha256": "b2c6f3bd92e13fc52d114a7ba7181d7fadd2693612ab17ee733548cbf00c2177"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/runtime.json",
+      "size": 174,
+      "sha256": "5a3e7ae9f0118637c3fbd504079e7b42bb8f9d23a522b7b3a22a17cfe9621da7"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_cd040539-51fe-452d-a7bd-0150dca61dc6/source.cjs",
+      "size": 484,
+      "sha256": "f08dbbe5ba693c37e1d36e512f133bfa048b48aa8a67fbec1d387456b83e87d5"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/input.json",
+      "size": 539,
+      "sha256": "973b967773b1d9eb83f52cd376408aaa888c1855acd07d8e5b5149279ff9a35a"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/result.json",
+      "size": 962,
+      "sha256": "aaae46ad79045a53b21aee4b361a7f8e0862c2c87c561cf7798eb6222fa6e63e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/runtime.json",
+      "size": 174,
+      "sha256": "e81c4b7386c49118db1d6f8fee127029978e3d1a2fb25cae6ae43885562f5aaf"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d624b4ef-0b3f-4d95-8e59-1eb89b6c6313/source.cjs",
+      "size": 484,
+      "sha256": "f08dbbe5ba693c37e1d36e512f133bfa048b48aa8a67fbec1d387456b83e87d5"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/input.json",
+      "size": 635,
+      "sha256": "373f50b0209d2995a57d4cc7d96b7d864423932f707e219d3d97e963a802b068"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/result.json",
+      "size": 531,
+      "sha256": "f8d08e7ddbd7703b3476aaebf0c5b4f000b9f5ed9c52b9d7e71469583a603f82"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/runtime.json",
+      "size": 174,
+      "sha256": "dd49c00356729610266b4bcd2fffa752c9ae3819463c2c679309cc897b44f324"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_d96e71c6-ceae-40c4-beac-44e730beebe3/source.cjs",
+      "size": 1522,
+      "sha256": "374185bf47dbca3057bb1ecb30064ab9783aa87ddb3ea62993059c3cd6d4dcb3"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/input.json",
+      "size": 607,
+      "sha256": "af22dfd6a94ef07d6917ce56809d24dbda4fa224c8e09c2764f3f4c558165d95"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/result.json",
+      "size": 595,
+      "sha256": "68c4b45f86edade3761b0126e61bf550603eb9b7eef0bf8b924ba617a07bca3e"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/runtime.json",
+      "size": 174,
+      "sha256": "1387ac5dfdce1a77ab10feda54e869043418a492ff341a4c83d7976c77e6d83c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_e6082994-c9b3-4eaa-a754-0ee5167e0f75/source.cjs",
+      "size": 148,
+      "sha256": "c3ca30738e41c42173969ecfdef5a88b26cba0e2c494ec876803c2c84a64fdcd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/input.json",
+      "size": 638,
+      "sha256": "e1c01e97e51284812255618ce8236ad82e99540b66a1a7f88413d8b23f98f9bd"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/result.json",
+      "size": 572,
+      "sha256": "b7f5680c0be3317ce218f3a46e4af9571f96fec3ba41b34d362376aa1df3a097"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/runtime.json",
+      "size": 174,
+      "sha256": "f226e34bab1c0800c0cb0548b2d4b9bce057d665ded656c193aa9e80349f0326"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ed472168-211b-4fa1-b8f9-dac8a2b1dcc2/source.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/input.json",
+      "size": 473,
+      "sha256": "5757ab50fe83c59c6cde65311a1fc759225604aa390ee78d8ee8d6730a4365f4"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/result.json",
+      "size": 1607,
+      "sha256": "7b8979957026b228074fcc9096309f9a00f383d8eaf5175d37bbcc515c3ee405"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/runtime.json",
+      "size": 174,
+      "sha256": "7c222fc22acee0b274761b832d0e05895286612b5ffe19d70d3e883eeb44f21b"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_ee2fb2dd-4e2c-4df8-b690-53ed89f835fc/source.cjs",
+      "size": 36,
+      "sha256": "42e7f717fdfed4e9aa21007f8d7fde1f3733748c1eb667fe9f2f2675ac8f52f0"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/input.json",
+      "size": 609,
+      "sha256": "8c830792a20ee8b61f2c2fa3da0c7a71d82af4d0ea625b22a2167920654d160c"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/result.json",
+      "size": 1659,
+      "sha256": "fbe667511a92bd11fef160560861324d638f625f5a03d9e56cdb731b754beb69"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/runtime.json",
+      "size": 174,
+      "sha256": "ca8040413c13b772081e62a556ef1ac1588f8e23197202254345cc1fa127ac25"
+    },
+    {
+      "source": "<repo>/starter/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/experiments/exe_f95e1db6-8811-4b80-b33a-9892380bada3/source.cjs",
+      "size": 274,
+      "sha256": "e5fbbfb81becf22cc53dd0c6b91c15516a82c1b59e41aa831a188ba29e2bda8a"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_031430fc-78dc-4068-9143-965bd2cb9a0d/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_031430fc-78dc-4068-9143-965bd2cb9a0d/index.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_031430fc-78dc-4068-9143-965bd2cb9a0d/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_031430fc-78dc-4068-9143-965bd2cb9a0d/manifest.json",
+      "size": 744,
+      "sha256": "25e4d8adf5d96be3e5c9d1ff89a4448833caae2a1717a7ca297c99baef62f6c9"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_031430fc-78dc-4068-9143-965bd2cb9a0d/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_031430fc-78dc-4068-9143-965bd2cb9a0d/test-result.json",
+      "size": 585,
+      "sha256": "590bbd5798916f6c2033723474c84533e0484e524b7a50aeb0b7653e0aa55f35"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_0ed5f76c-f174-44ea-8537-fdd80f789af3/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_0ed5f76c-f174-44ea-8537-fdd80f789af3/index.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_0ed5f76c-f174-44ea-8537-fdd80f789af3/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_0ed5f76c-f174-44ea-8537-fdd80f789af3/manifest.json",
+      "size": 586,
+      "sha256": "b7932aea60ad1d52ae761781321fb98ee2874587d15e061d152a5dfa2dd0bc58"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_10206595-f5fc-471c-895c-7add0733cf09/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_10206595-f5fc-471c-895c-7add0733cf09/index.cjs",
+      "size": 2039,
+      "sha256": "2a066707c31341a3d1df9f8003383dc0788bb59fed5225eae65680981322170a"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_10206595-f5fc-471c-895c-7add0733cf09/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_10206595-f5fc-471c-895c-7add0733cf09/manifest.json",
+      "size": 1177,
+      "sha256": "9f1982c3bb119f29f6ef2c76e374d0f66e00ef98cf0cd7936c1122dabdb2d0d4"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_10206595-f5fc-471c-895c-7add0733cf09/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_10206595-f5fc-471c-895c-7add0733cf09/test-result.json",
+      "size": 531,
+      "sha256": "29523d4feb49d1d5a1137967e3d38a7e359a8352c6bfcee2d318dc7d0add3dd5"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_1ce57782-d65f-4c4f-bc7b-8a9ade5dd855/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_1ce57782-d65f-4c4f-bc7b-8a9ade5dd855/index.cjs",
+      "size": 148,
+      "sha256": "09e8a3516d348f51d73786fac645669ca70aee7a9326b83e2887d6629e5684c8"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_1ce57782-d65f-4c4f-bc7b-8a9ade5dd855/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_1ce57782-d65f-4c4f-bc7b-8a9ade5dd855/manifest.json",
+      "size": 763,
+      "sha256": "960b0353a70b5bcc0203469a0d6f4c4a069ef5016d0383214f03adcd1cf347b4"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_1ce57782-d65f-4c4f-bc7b-8a9ade5dd855/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_1ce57782-d65f-4c4f-bc7b-8a9ade5dd855/test-result.json",
+      "size": 595,
+      "sha256": "ca3c37bcdd58abdbf213df378d4552a5d0990d9f9913988d582f9e1f305a9d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_3522a8f8-bc2c-4dab-ae3b-ecfa7d321391/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_3522a8f8-bc2c-4dab-ae3b-ecfa7d321391/index.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_3522a8f8-bc2c-4dab-ae3b-ecfa7d321391/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_3522a8f8-bc2c-4dab-ae3b-ecfa7d321391/manifest.json",
+      "size": 744,
+      "sha256": "dacfe9b019c7da3b8166342564c6f1fab015cd450b5623669449d82d71999b4d"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_3522a8f8-bc2c-4dab-ae3b-ecfa7d321391/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_3522a8f8-bc2c-4dab-ae3b-ecfa7d321391/test-result.json",
+      "size": 590,
+      "sha256": "7dbfb9784f46b6b6595358aff30863bb576dfb418cfc6131c4b2112f642fc4ec"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_3c103d8d-1904-4a06-ba9a-1f22aa8d013c/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_3c103d8d-1904-4a06-ba9a-1f22aa8d013c/index.cjs",
+      "size": 274,
+      "sha256": "e5fbbfb81becf22cc53dd0c6b91c15516a82c1b59e41aa831a188ba29e2bda8a"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_3c103d8d-1904-4a06-ba9a-1f22aa8d013c/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_3c103d8d-1904-4a06-ba9a-1f22aa8d013c/manifest.json",
+      "size": 963,
+      "sha256": "3dc72e2113fa605d20ac86371ddcfd1a2a01e7a1a192ecd31e93e9465b1fec0d"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_3c103d8d-1904-4a06-ba9a-1f22aa8d013c/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_3c103d8d-1904-4a06-ba9a-1f22aa8d013c/test-result.json",
+      "size": 1688,
+      "sha256": "3b60da781fe5f9de930c519e0decb6c0e26e6e0f22ab32683f220883153d7a62"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_5bc57726-e894-4af8-9fef-fab1c27f3008/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_5bc57726-e894-4af8-9fef-fab1c27f3008/index.cjs",
+      "size": 2242,
+      "sha256": "e805adbd2860a45fec691d9037229ba05caa49d56435e6228c433ddbc321c900"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_5bc57726-e894-4af8-9fef-fab1c27f3008/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_5bc57726-e894-4af8-9fef-fab1c27f3008/manifest.json",
+      "size": 1081,
+      "sha256": "80de9d73a33d14c2d919c527cd3ba22f0ff2ea4820c985a33336716e048f568b"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_63aeb881-2801-4fef-9a2d-04c01f5bc58b/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_63aeb881-2801-4fef-9a2d-04c01f5bc58b/index.cjs",
+      "size": 1522,
+      "sha256": "374185bf47dbca3057bb1ecb30064ab9783aa87ddb3ea62993059c3cd6d4dcb3"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_63aeb881-2801-4fef-9a2d-04c01f5bc58b/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_63aeb881-2801-4fef-9a2d-04c01f5bc58b/manifest.json",
+      "size": 1143,
+      "sha256": "db1bc7bad101a097982654ab05a2a307e92935b7de483c52b5c50e1be58b7d62"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_63aeb881-2801-4fef-9a2d-04c01f5bc58b/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_63aeb881-2801-4fef-9a2d-04c01f5bc58b/test-result.json",
+      "size": 531,
+      "sha256": "f8d08e7ddbd7703b3476aaebf0c5b4f000b9f5ed9c52b9d7e71469583a603f82"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_6dd1bac2-ef34-4264-84df-4169f20d20b9/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_6dd1bac2-ef34-4264-84df-4169f20d20b9/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_6dd1bac2-ef34-4264-84df-4169f20d20b9/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_6dd1bac2-ef34-4264-84df-4169f20d20b9/manifest.json",
+      "size": 761,
+      "sha256": "dd7ea7c541bfd9b1f3ecf54cdb519f6f3a1c2ecd7c64b3c1ffe94739cdc844e6"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_6dd1bac2-ef34-4264-84df-4169f20d20b9/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_6dd1bac2-ef34-4264-84df-4169f20d20b9/test-result.json",
+      "size": 572,
+      "sha256": "cdc713bd9793dc0e537503a1779a0245625245caf7a97d6845e71690fdd8e9d1"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_802b8f62-f764-4dc9-8c29-4557851b9da9/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_802b8f62-f764-4dc9-8c29-4557851b9da9/index.cjs",
+      "size": 484,
+      "sha256": "f08dbbe5ba693c37e1d36e512f133bfa048b48aa8a67fbec1d387456b83e87d5"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_802b8f62-f764-4dc9-8c29-4557851b9da9/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_802b8f62-f764-4dc9-8c29-4557851b9da9/manifest.json",
+      "size": 897,
+      "sha256": "8403dfd11cd56c49fc1f7008fd9f46bbc6898afc5a609f60b4c3275d036fcdf8"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_802b8f62-f764-4dc9-8c29-4557851b9da9/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_802b8f62-f764-4dc9-8c29-4557851b9da9/test-result.json",
+      "size": 750,
+      "sha256": "3b3ca794e2cb54f98813b80794f68db0f26ab13c04e2f7bbb93386310467cdb9"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_9ef4712d-9795-4d03-a6b1-46b7f9052dfc/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_9ef4712d-9795-4d03-a6b1-46b7f9052dfc/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_9ef4712d-9795-4d03-a6b1-46b7f9052dfc/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_9ef4712d-9795-4d03-a6b1-46b7f9052dfc/manifest.json",
+      "size": 761,
+      "sha256": "0aa7e8c7bcbbbd81fb5e25ad3ae45207b95f7a60af12712f1a354bff3dcc99bd"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_9ef4712d-9795-4d03-a6b1-46b7f9052dfc/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_9ef4712d-9795-4d03-a6b1-46b7f9052dfc/test-result.json",
+      "size": 572,
+      "sha256": "ea335b36f4a8ce64d6962f8e22345c950652cec94dde4c11814a8e44a851ac41"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_bda4926a-4140-4d70-81b0-54acb2c02a96/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_bda4926a-4140-4d70-81b0-54acb2c02a96/index.cjs",
+      "size": 148,
+      "sha256": "c3ca30738e41c42173969ecfdef5a88b26cba0e2c494ec876803c2c84a64fdcd"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_bda4926a-4140-4d70-81b0-54acb2c02a96/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_bda4926a-4140-4d70-81b0-54acb2c02a96/manifest.json",
+      "size": 763,
+      "sha256": "64bbc5286b7b1ab3af040395c6e81b83af9186c782428be3c2c5eab50efa21fb"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_bda4926a-4140-4d70-81b0-54acb2c02a96/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_bda4926a-4140-4d70-81b0-54acb2c02a96/test-result.json",
+      "size": 595,
+      "sha256": "68c4b45f86edade3761b0126e61bf550603eb9b7eef0bf8b924ba617a07bca3e"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cabc3f98-a7c4-46e2-9208-5485108c35ff/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cabc3f98-a7c4-46e2-9208-5485108c35ff/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cabc3f98-a7c4-46e2-9208-5485108c35ff/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cabc3f98-a7c4-46e2-9208-5485108c35ff/manifest.json",
+      "size": 761,
+      "sha256": "5a4e7fe38570e0ba0377fc14fc9d6c8393845c0530856474bcc669fea7d964db"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cabc3f98-a7c4-46e2-9208-5485108c35ff/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cabc3f98-a7c4-46e2-9208-5485108c35ff/test-result.json",
+      "size": 572,
+      "sha256": "b7f5680c0be3317ce218f3a46e4af9571f96fec3ba41b34d362376aa1df3a097"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cc709bff-a292-4382-803c-392247f4c5c1/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cc709bff-a292-4382-803c-392247f4c5c1/index.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cc709bff-a292-4382-803c-392247f4c5c1/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cc709bff-a292-4382-803c-392247f4c5c1/manifest.json",
+      "size": 744,
+      "sha256": "e35e04a105f716328ad3035b402e3d1202544ed4dd5c7c8f044b0575c527e590"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cc709bff-a292-4382-803c-392247f4c5c1/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cc709bff-a292-4382-803c-392247f4c5c1/test-result.json",
+      "size": 590,
+      "sha256": "4cde74ff58553bfc6f55ec16cfa85d58c748e0239e5a9bae228618870c13f51c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cd3a4a04-9742-45d7-8927-6798847d1daa/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cd3a4a04-9742-45d7-8927-6798847d1daa/index.cjs",
+      "size": 106,
+      "sha256": "dbc5ba41811c71a11d547e4ae45486db38de3c02272c4e34754baf16dca7c97c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_cd3a4a04-9742-45d7-8927-6798847d1daa/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_cd3a4a04-9742-45d7-8927-6798847d1daa/manifest.json",
+      "size": 606,
+      "sha256": "460e79fbf3781aefddaf1c5c2940a593177f53adb8216dee06ddca1faca8093c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_d5433687-1c1b-4918-9c0f-91bec52599bc/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_d5433687-1c1b-4918-9c0f-91bec52599bc/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_d5433687-1c1b-4918-9c0f-91bec52599bc/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_d5433687-1c1b-4918-9c0f-91bec52599bc/manifest.json",
+      "size": 761,
+      "sha256": "4c70b69f6eb458fccb363da7b3b640d4df130b4a13e991243bc09599179f54cc"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/.candidates/cand_d5433687-1c1b-4918-9c0f-91bec52599bc/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/.candidates/cand_d5433687-1c1b-4918-9c0f-91bec52599bc/test-result.json",
+      "size": 571,
+      "sha256": "66313faeb2778b08ee961b4ca0b8be497b4b0752bc071e27a3a8778597268ec4"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.google.safe-login.1784540055569/versions/0.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.google.safe-login.1784540055569/versions/0.1.0/index.cjs",
+      "size": 2039,
+      "sha256": "2a066707c31341a3d1df9f8003383dc0788bb59fed5225eae65680981322170a"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.google.safe-login.1784540055569/versions/0.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.google.safe-login.1784540055569/versions/0.1.0/manifest.json",
+      "size": 1225,
+      "sha256": "01769c33d99d17e97eee8da7080a453642a4f91e5420d0f9a6e295e5d6e73a0b"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.1.0/index.cjs",
+      "size": 148,
+      "sha256": "c3ca30738e41c42173969ecfdef5a88b26cba0e2c494ec876803c2c84a64fdcd"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.1.0/manifest.json",
+      "size": 811,
+      "sha256": "87ba0134da80ddab691a7ea1078256e3d3b12deb022265d4ef2ce336b07f2e77"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.2.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.2.0/index.cjs",
+      "size": 148,
+      "sha256": "09e8a3516d348f51d73786fac645669ca70aee7a9326b83e2887d6629e5684c8"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.2.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp05.smoke.1783926574802/versions/0.2.0/manifest.json",
+      "size": 811,
+      "sha256": "18458078a4e663c90de40e9e37bda89cbe4c7e9f5f361eef2e222e409340c899"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1783927330246/versions/0.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1783927330246/versions/0.1.0/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1783927330246/versions/0.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1783927330246/versions/0.1.0/manifest.json",
+      "size": 809,
+      "sha256": "df048c427dd657c750a865406c4fcebefc2f996419567809f2b19bbf1946196b"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1783927369713/versions/0.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1783927369713/versions/0.1.0/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1783927369713/versions/0.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1783927369713/versions/0.1.0/manifest.json",
+      "size": 809,
+      "sha256": "24dcaf1a63af65664e2ea18b3339d821664781d5c71f5441020717a28624d476"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1784535575295/versions/0.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1784535575295/versions/0.1.0/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1784535575295/versions/0.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1784535575295/versions/0.1.0/manifest.json",
+      "size": 809,
+      "sha256": "29bee8e6d77fdd4e38d7ed0faf8d25115bfacb2e5ae45457e7719fc9efe9389c"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1784535629142/versions/0.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1784535629142/versions/0.1.0/index.cjs",
+      "size": 89,
+      "sha256": "df308851f2356215622797e53dbd3eb7620f862bd39eb24dac77ef501a254710"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp06.console.1784535629142/versions/0.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp06.console.1784535629142/versions/0.1.0/manifest.json",
+      "size": 809,
+      "sha256": "e888a436706cd11a54417d52ead9af6936b22e1a16a1667f511fdfe3eb629fca"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp07.summary.1783927621783/versions/0.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp07.summary.1783927621783/versions/0.1.0/index.cjs",
+      "size": 484,
+      "sha256": "f08dbbe5ba693c37e1d36e512f133bfa048b48aa8a67fbec1d387456b83e87d5"
+    },
+    {
+      "source": "<repo>/starter/workspace/modules/generated.wp07.summary.1783927621783/versions/0.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/modules/generated.wp07.summary.1783927621783/versions/0.1.0/manifest.json",
+      "size": 945,
+      "sha256": "6a6a90a23957fbe91abe528607cbc73524072df82e1bd0ce6dc321204c7e4747"
+    },
+    {
+      "source": "<repo>/starter/workspace/source-evolution/runs/wp09-2026-07-13T07-42-55-662Z/candidate.patch",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/source-evolution/runs/wp09-2026-07-13T07-42-55-662Z/candidate.patch",
+      "size": 529,
+      "sha256": "ff42fb1ffb5ac3e25f1fa34a9eb6552af92f85ee8448e9a9fc7448e00cb049de"
+    },
+    {
+      "source": "<repo>/starter/workspace/source-evolution/runs/wp09-2026-07-13T07-42-55-662Z/failure.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/source-evolution/runs/wp09-2026-07-13T07-42-55-662Z/failure.json",
+      "size": 1709,
+      "sha256": "0e546e25e21c5106b8a4f85a935e2ef8c15b9c892ee87985d144c20bcc12a9f6"
+    },
+    {
+      "source": "<repo>/starter/workspace/source-evolution/runs/wp09-2026-07-13T07-44-53-185Z/candidate.patch",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/source-evolution/runs/wp09-2026-07-13T07-44-53-185Z/candidate.patch",
+      "size": 529,
+      "sha256": "ff42fb1ffb5ac3e25f1fa34a9eb6552af92f85ee8448e9a9fc7448e00cb049de"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/active-modules.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/active-modules.json",
+      "size": 363,
+      "sha256": "480746907007ef4e30fb473a9253543454f184189659c8f0250099c8b8519560"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/app-launcher/launch-20260721-063642.stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/app-launcher/launch-20260721-063642.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/app-launcher/launch-20260721-063642.stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/app-launcher/launch-20260721-063642.stdout.log",
+      "size": 57,
+      "sha256": "b3759e10f11c0928ab6fb0de84dab64f043ce60a8358f976672d63653b02305e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/project-development-loop.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/project-development-loop.json",
+      "size": 899,
+      "sha256": "b83cd50c017e5e3bd9f436fee63f7facf621798c1877135edc12d822c4f1bd27"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/qa-agent-workspace-430.png",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/qa-agent-workspace-430.png",
+      "size": 61317,
+      "sha256": "d93989a182c057394591627e1a42d4c0f3d5dda12e0841fb9584b642512c4f4b"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_00750f48-8ec7-4d41-9b14-ca5f450f98cf.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_00750f48-8ec7-4d41-9b14-ca5f450f98cf.json",
+      "size": 4480,
+      "sha256": "e785e55683d55a1c4f5d98c630fc00619b73b600987abb5aef46d41f76b4322c"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_20f4d39f-8b83-446a-b5de-4ecb712905df.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_20f4d39f-8b83-446a-b5de-4ecb712905df.json",
+      "size": 4490,
+      "sha256": "9d2c812198c8683db7c38406cb04a6b41d4be77dea40bb1de7b5e1592dcbf4df"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_395e27cd-d6b1-4423-bb9e-4dc1d776af7d.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_395e27cd-d6b1-4423-bb9e-4dc1d776af7d.json",
+      "size": 4428,
+      "sha256": "07159c391a35b5b2dc14807e855fa0e091257a2477e8ef251f09d7e6c49c6800"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_39663905-254e-4e19-923f-00dcd70adc85.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_39663905-254e-4e19-923f-00dcd70adc85.json",
+      "size": 4480,
+      "sha256": "772c1d8de69f58978121a41d9dc2464e34634a4c400bb6b89f31da34640301ab"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_3f1e73ce-6004-47a6-a0d7-36a7ec909768.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_3f1e73ce-6004-47a6-a0d7-36a7ec909768.json",
+      "size": 4428,
+      "sha256": "72512fffc4638326bc1bbc22d7b92e3a69bffb5aca29e531d1490d5943e79f85"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_8f0e0c4d-9115-471b-ba24-fc4f56f4bd18.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_8f0e0c4d-9115-471b-ba24-fc4f56f4bd18.json",
+      "size": 4428,
+      "sha256": "7d8d7c1408f8d17ee5e88463202a3febb021f586d038e5b773404994f881f6a1"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_9ec98104-ab76-45fd-99f6-a554ec657067.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_9ec98104-ab76-45fd-99f6-a554ec657067.json",
+      "size": 4428,
+      "sha256": "e9d8d7d1ccf791865c64f0d6d8354d7a20a2897c19fd156f858b4d0a4cd7628c"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_d852fbcd-3431-47c6-a9ee-7f5ad62ab182.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_d852fbcd-3431-47c6-a9ee-7f5ad62ab182.json",
+      "size": 4428,
+      "sha256": "e06b004ae4378a3f42b1ee93388d134c275b88636d152844b491792ccb97316a"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_dd1e74ee-9418-4f89-aa38-adce7200ecfa.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_dd1e74ee-9418-4f89-aa38-adce7200ecfa.json",
+      "size": 4428,
+      "sha256": "11cd37a1d03ff05de26e989ec8f206f244009a33a3ac6f58adf9d50295c5381e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_e5b8a04d-5997-4d26-8f66-19158f150c67.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_e5b8a04d-5997-4d26-8f66-19158f150c67.json",
+      "size": 4428,
+      "sha256": "28eab08c13f45ee4120725f921b414b85a7016a1be1a117096bb3048872da7f3"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_e9e3d9ec-1938-4ee4-baf9-93ab6f19b252.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_e9e3d9ec-1938-4ee4-baf9-93ab6f19b252.json",
+      "size": 4480,
+      "sha256": "ad3c7699896790c4745e7739e3834184520dea007ddb54ea1f629d31376f686a"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_fc2b2964-b1a3-4f38-9fa6-3b1f1a91769a.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/checkpoints/chk_fc2b2964-b1a3-4f38-9fa6-3b1f1a91769a.json",
+      "size": 4428,
+      "sha256": "c4e8315d49a2a55f9efd207ca2577457bd650d04830e65f4834bdce061fe90ba"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/events/events.jsonl",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/data/events/events.jsonl",
+      "size": 183889,
+      "sha256": "edb1c17c63bb5e7ea4431dee0f532b032ada90a56de5ec3483aad0061f95caaf"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/summary.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/summary.json",
+      "size": 5583,
+      "sha256": "332addb764e7ec7533d5c4e4149742241b37c6da72f9c523f2ce17518e07aa7c"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_15b83ca4-c4ff-4a91-9f27-3b44d14eba1d/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_15b83ca4-c4ff-4a91-9f27-3b44d14eba1d/run.json",
+      "size": 144329,
+      "sha256": "4de017cb17afe3c8052af03a5af0792d216ae2f804c47ac11c78651d1b2fab87"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_2d3dac0a-ea65-4c5c-9e48-c0e2557723ef/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_2d3dac0a-ea65-4c5c-9e48-c0e2557723ef/run.json",
+      "size": 35216,
+      "sha256": "7148fc2dea7e63bef4ddd737ff98473197d407eed206840d442b471617099a64"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_30c72ee0-48bb-4a64-807e-d39e457cebf3/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_30c72ee0-48bb-4a64-807e-d39e457cebf3/run.json",
+      "size": 98630,
+      "sha256": "44351b8b6142976f06304cfd17f51340c78b42b225a50458ac8f8f873748ea48"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_37680e7b-67a9-4120-bca6-3f1b8b957c60/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_37680e7b-67a9-4120-bca6-3f1b8b957c60/run.json",
+      "size": 37304,
+      "sha256": "337ad52f2d4cbb2ca56681a17f2271d6dd730612483adaa455fb3decd5d81294"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_600546a0-8229-4e1e-b3bf-00221c1955fa/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_600546a0-8229-4e1e-b3bf-00221c1955fa/run.json",
+      "size": 37228,
+      "sha256": "797cad152ebfa4adfd5c9ab16805bb23db66010dca8c1ac516655793214b3b0a"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_7de6b83e-4d61-4a33-b6a4-c4c7a7172b2e/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_7de6b83e-4d61-4a33-b6a4-c4c7a7172b2e/run.json",
+      "size": 147766,
+      "sha256": "908d176efecd63673f53d86a06a2f45ab338bb35e92ab1187fd632dfe89a6e4e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_861dd8e5-7b9c-46d8-8d0b-392fa1b81b24/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_861dd8e5-7b9c-46d8-8d0b-392fa1b81b24/run.json",
+      "size": 106638,
+      "sha256": "e72069bb0d1693037d20f95826abe1ee12a3beb5cf5ac79c459fa119d01360da"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_b219f499-e4e8-43d7-acfd-0c14dc97415f/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_b219f499-e4e8-43d7-acfd-0c14dc97415f/run.json",
+      "size": 65534,
+      "sha256": "ff95804179746a6e099f22c0438d3201f04f78a1283f328d3ce260ce6ae336c5"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_d3ce1590-fcc7-47f1-b7e0-aefdfc71b4d5/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_d3ce1590-fcc7-47f1-b7e0-aefdfc71b4d5/run.json",
+      "size": 62623,
+      "sha256": "5d8fdc07ed944c5e86cb2d6e80f061f32092c8c0340c6c90e911f8fa1ed07e05"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_d64bf1c2-4ce3-4f9b-86d2-8f2e52d0afb7/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_d64bf1c2-4ce3-4f9b-86d2-8f2e52d0afb7/run.json",
+      "size": 64696,
+      "sha256": "fb3744c9c0cb44b9a44492247ba3c977a5000cb92c400f36df6eeadc623809df"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_eee18098-48a3-4d57-a842-275aeae0d6d2/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/evolution-runs/evo_eee18098-48a3-4d57-a842-275aeae0d6d2/run.json",
+      "size": 56040,
+      "sha256": "49cfd91c520c1a5688ee1076e20de715df793354d433966737cce3fe439cc2de"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/input.json",
+      "size": 627,
+      "sha256": "7771aa7169f05a00719f0d785941ff77347db6e29afaf30a5fca238077bb2aa9"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/result.json",
+      "size": 546,
+      "sha256": "cf78a58a21472b2f5524c7d450a9a195c4fbcfa4b449c3f77c4817f1b0cd4f62"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/runtime.json",
+      "size": 174,
+      "sha256": "3af05c589d1595b3a84fb58079d299e2eefd992a9ee7aa2e1843cf9dbe83576d"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_55b727dd-98e2-4967-b94a-ad3ea82adf73/source.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/input.json",
+      "size": 496,
+      "sha256": "e5015e6decce92a21c4f8974cb57f649f1a3dedddf3c477af2abbdce8f8260aa"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/result.json",
+      "size": 525,
+      "sha256": "90d808a628574146e6120f63c3ba08b2e42ec75d77dd308cb323115aeb1d54ce"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/runtime.json",
+      "size": 174,
+      "sha256": "2b8eaeb8b474acfa715e6e378a3d5d1f1a2c1fac52392d11e333e66b7d7611b5"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_7a2e2e96-22f8-4b5e-bdfc-e7dad8a4f527/source.cjs",
+      "size": 25,
+      "sha256": "1f0d9aed6650658694c3e170051993feed636785fecffc157bbd3c79bed88b64"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/input.json",
+      "size": 496,
+      "sha256": "b8b53d876c29e039131a72966b75a891def79ac573f3f7ed3551ce96ae30c289"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/result.json",
+      "size": 530,
+      "sha256": "ec0b3a6beb1b5b9c9296635ddb689175bb7ca7fec3c8e959f13d9b17fae1c6e3"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/runtime.json",
+      "size": 174,
+      "sha256": "c801c09ce22c9da591fb1391d74b9fff1d89633d8b55a746ccfa5ded0042671e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_83cb318b-1039-401b-b4a6-d8ecfd3cb6f2/source.cjs",
+      "size": 27,
+      "sha256": "e76500a23f282845e05b8e6c87e851a2baa1e1e8104ffc81040cc9489d152c5e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/input.json",
+      "size": 627,
+      "sha256": "482d1a6a021fac94035422314463101581c55b0a8a1b28b0bc849d50ef90dd63"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/result.json",
+      "size": 546,
+      "sha256": "12a779f08e6f4546e0b36c1056510b5823b0d2f18d5b108768afaf7c119b5ebe"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/runtime.json",
+      "size": 174,
+      "sha256": "0cedea99e53974ca03882a8711dce4b6d4fa39814e33693e2084f466c85d9b32"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_beb812ab-fb46-441a-a067-16e462e643a8/source.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/input.json",
+      "size": 496,
+      "sha256": "d00b29376c243091e4bc370f00e93a66ac84f9d12a807e722e0d41651f125feb"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/result.json",
+      "size": 1218,
+      "sha256": "20c96dfc1304078a4fe20280d0d622826ae637a913441dfeed9f9a1e35635898"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/runtime.json",
+      "size": 174,
+      "sha256": "1dc4e5eed0557c68aa16902b3c09261b125a76cb490681e4d2a474f19112fb0c"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_c41afa08-0726-4731-8300-a11701f6940f/source.cjs",
+      "size": 52,
+      "sha256": "00390b64248ed2c418bf543916409383946dc43785796bf845f4177b4d348cee"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/input.json",
+      "size": 523,
+      "sha256": "b09b4ec3ed2068fc51b74869b69224946ba5c00b8919b28eabffd833e3fc0a25"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/result.json",
+      "size": 547,
+      "sha256": "a76875ceaea278a87dfee1910868793a387b4027c1ef0bba32448e286f9af651"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/runtime.json",
+      "size": 174,
+      "sha256": "53c73778d1d57b2e3dabc748bdbc7bc995bfd8866bab419c8e20b7e917a4b4a2"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_d87b59fd-d524-4ff8-8da1-800752b38935/source.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/input.json",
+      "size": 525,
+      "sha256": "5ce0e02317c4987e7881cbb78aa175a7c2659e75a84daf90e3562137c23bbc4a"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/result.json",
+      "size": 549,
+      "sha256": "9afcbf0fe52965bbcbd58f78d8bb0f930892e18b7cd78a16430bb6c0b62721f9"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/runtime.json",
+      "size": 174,
+      "sha256": "0500435911cd7c320a86b9669d0ba049ad2d6ebf8ef4b6f71da0fe896ccb1070"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/experiments/exe_ef5a4ef1-4c32-4373-8984-97fb69b46d1e/source.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/governance/decisions/gov_7c778c16-a2ca-45aa-a4b0-92cbfbb102b0.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/governance/decisions/gov_7c778c16-a2ca-45aa-a4b0-92cbfbb102b0.json",
+      "size": 3097,
+      "sha256": "af4913806069b616642cccb984c8d95f605a35f54675fbb9939024b945269814"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_73bb3ff6-0afd-46ce-9819-3bd8add3790a/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_73bb3ff6-0afd-46ce-9819-3bd8add3790a/index.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_73bb3ff6-0afd-46ce-9819-3bd8add3790a/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_73bb3ff6-0afd-46ce-9819-3bd8add3790a/manifest.json",
+      "size": 1036,
+      "sha256": "2926d2d0d53fd96aac6405af7b917a999e438d2fe5f9e352c35d6c6d71f5ec25"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_73bb3ff6-0afd-46ce-9819-3bd8add3790a/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_73bb3ff6-0afd-46ce-9819-3bd8add3790a/test-result.json",
+      "size": 546,
+      "sha256": "12a779f08e6f4546e0b36c1056510b5823b0d2f18d5b108768afaf7c119b5ebe"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_dfca76d9-fa8d-431f-b12a-ac2657220362/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_dfca76d9-fa8d-431f-b12a-ac2657220362/index.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_dfca76d9-fa8d-431f-b12a-ac2657220362/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_dfca76d9-fa8d-431f-b12a-ac2657220362/manifest.json",
+      "size": 1045,
+      "sha256": "e011fa9343dd7465cafd8efa075cb77a5da9aa6594921fdf173b9e4acc0cd255"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_dfca76d9-fa8d-431f-b12a-ac2657220362/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/.candidates/cand_dfca76d9-fa8d-431f-b12a-ac2657220362/test-result.json",
+      "size": 546,
+      "sha256": "cf78a58a21472b2f5524c7d450a9a195c4fbcfa4b449c3f77c4817f1b0cd4f62"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/index.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/manifest.json",
+      "size": 1084,
+      "sha256": "298fc21dda7f51d6f32611226d6b7298fdd567cba6b75c52f7226d0c49305542"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/index.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/manifest.json",
+      "size": 1093,
+      "sha256": "f3165a1761eb1e690e6ef108479345f1f359662448332f67f6e98fe3e5fd9ce6"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/multi-agent-runs/mar_5f104a61-db61-44a4-8f18-d195994cd074/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/multi-agent-runs/mar_5f104a61-db61-44a4-8f18-d195994cd074/run.json",
+      "size": 8177,
+      "sha256": "10e8b2a086da3a19fb51fda104ae3a2a6092d1f23597e91f3a1feb3bc100af05"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/state/active-modules.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-07-42-771Z/workspace/state/active-modules.json",
+      "size": 43,
+      "sha256": "ff4de7efd8d9585f84870ad32ce0d775dbfd219596b493d5689e7b8cdabbb7d7"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_09c41b7d-62ff-4914-ab7e-af2932cd40ba.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_09c41b7d-62ff-4914-ab7e-af2932cd40ba.json",
+      "size": 4428,
+      "sha256": "8c6c8864903ac5697c8e76622ebba540abbc5d43b23cd6e6b06d02e89e0e23fc"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_1bd785f2-dbe8-4cba-9aee-6ee01813f1c0.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_1bd785f2-dbe8-4cba-9aee-6ee01813f1c0.json",
+      "size": 4428,
+      "sha256": "c7fcf3c648033d5d3b2f8bf7ee259c16a0400c2b4bb7e273da543ad7557c9bfe"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_22b3cc17-637e-46b7-a9df-07eb2ec0e42a.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_22b3cc17-637e-46b7-a9df-07eb2ec0e42a.json",
+      "size": 4428,
+      "sha256": "4e405d9654099c8b0ffa49d70aafe7c00f50bfe3f15c673fb8de9f85f200871a"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_88d85e4d-56f5-49f5-ae9e-9b195ff5cb27.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_88d85e4d-56f5-49f5-ae9e-9b195ff5cb27.json",
+      "size": 4490,
+      "sha256": "682bd71e4c1ad187a866877f3f386e81e2c84c559508006eaac6a11936e7d6e5"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_9f626ba8-32c1-449a-b3e3-09c77373085f.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_9f626ba8-32c1-449a-b3e3-09c77373085f.json",
+      "size": 4428,
+      "sha256": "3f64e1f0508c616f886f791e480acfab3cf36cac0d1e12bbd67078527638c480"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_a638073b-681b-4681-adcc-5f9f5b837986.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_a638073b-681b-4681-adcc-5f9f5b837986.json",
+      "size": 4480,
+      "sha256": "40ad547421db3790c0e340e24abfb3e9695532d6b23b72271d230e7df9aa748c"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_a8d9ed4b-d5ad-40c8-86c8-3041bcc21580.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_a8d9ed4b-d5ad-40c8-86c8-3041bcc21580.json",
+      "size": 4428,
+      "sha256": "c8f4584bc965fea73ccd553a2de8462510ec4ac0020d2bafdec4716010422287"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_a9820228-19ed-45a4-b39b-9adc8e539c02.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_a9820228-19ed-45a4-b39b-9adc8e539c02.json",
+      "size": 4480,
+      "sha256": "1f18419d378f4c84567601c57703b4ad6e1ba46da47047fbca246ed56adb1477"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_b5b1c78e-ad3b-4f61-b430-5774b2e85ce5.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_b5b1c78e-ad3b-4f61-b430-5774b2e85ce5.json",
+      "size": 4428,
+      "sha256": "b37d2b220fcecb6374520479130277784995979fb83a693b8292c18d0edd4a46"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_b7b8982c-f5f8-490e-9306-8eac3877c0eb.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_b7b8982c-f5f8-490e-9306-8eac3877c0eb.json",
+      "size": 4428,
+      "sha256": "a41a1d56cd8774b834193c43d634425fd81a83f0ffc22a0e150f08172097c189"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_c43949fa-8ed9-425b-a2b9-4ecc1ce4e3a0.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_c43949fa-8ed9-425b-a2b9-4ecc1ce4e3a0.json",
+      "size": 4428,
+      "sha256": "60bbc4d79cacc3ff986b212d35f057348c34b1fbae6ed982567f9d1d45eaffea"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_e9b954ef-c5df-4428-900d-86b64a22be70.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/checkpoints/chk_e9b954ef-c5df-4428-900d-86b64a22be70.json",
+      "size": 4480,
+      "sha256": "4c8dfad7ee4ceb3eff61468f2745f1da0c9d17e295abe9b1ecae8d991f4f4ded"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/events/events.jsonl",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/data/events/events.jsonl",
+      "size": 183889,
+      "sha256": "f8c4957fb96c1d831a19be78efc54a4d7a63ea5d098f5b5242dab154837f61ea"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/summary.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/summary.json",
+      "size": 5583,
+      "sha256": "7bbd2de8aabc614f7e193a0b5ffa3f2ba0df8ba05ef42bd98f175105d161b356"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_02976403-de9c-461f-a7ed-efa24d9358ed/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_02976403-de9c-461f-a7ed-efa24d9358ed/run.json",
+      "size": 56040,
+      "sha256": "94fd4d7d1c5ee6606baea63c523cb16ac982b87be2bc244a84b61f8bb40ceced"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_40951a4d-ff99-431c-9dd9-d873cface046/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_40951a4d-ff99-431c-9dd9-d873cface046/run.json",
+      "size": 35216,
+      "sha256": "49d3f2b16203d9c60ec7c3005c7aacd78b2c0f99fb1ef00b48d810b9a454732a"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_4af299fd-030f-4d5d-a08f-812ec56e4d50/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_4af299fd-030f-4d5d-a08f-812ec56e4d50/run.json",
+      "size": 65534,
+      "sha256": "058850d0d3ef64aac389c6db48e2fbf3cbb1da98867d1956747ffd4b221de11a"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_55c8951b-55b5-45a4-8883-e29e5a7bd1a7/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_55c8951b-55b5-45a4-8883-e29e5a7bd1a7/run.json",
+      "size": 62623,
+      "sha256": "9e97f2bff8febf64b5a6c92546adb09c2a353b31080ce6a104bec0e7a719e242"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_6940a630-c78f-427e-a624-298dcef64d53/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_6940a630-c78f-427e-a624-298dcef64d53/run.json",
+      "size": 64696,
+      "sha256": "773a51a57db2004784bbde13e7212c51ff3d4a4227ca9b108ff16eb59286b0c2"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_78fa395c-7355-4860-be19-46be46c01b72/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_78fa395c-7355-4860-be19-46be46c01b72/run.json",
+      "size": 98630,
+      "sha256": "732921292c0e555f0ac619446f1e40dca945e2b271b80ede9463b86e58459687"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_895ae027-b69f-4aba-ab64-67f02e3e8bca/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_895ae027-b69f-4aba-ab64-67f02e3e8bca/run.json",
+      "size": 37228,
+      "sha256": "dd41310e65dd640380a53a04b8543bf72782b58bc334d7cd6afa12606d8224f5"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_9d335ee4-1f53-461a-9e2d-53c0ca35f5c5/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_9d335ee4-1f53-461a-9e2d-53c0ca35f5c5/run.json",
+      "size": 37304,
+      "sha256": "49789eb821d4b05886f5eea9cc355ca0e26a0e9cc03ee30a090dc0c9d00635f9"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_a8875afe-39e2-4b6f-8b86-abd778e6bb87/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_a8875afe-39e2-4b6f-8b86-abd778e6bb87/run.json",
+      "size": 147766,
+      "sha256": "afe263ab3c28dd4b749ec797cda8ec81e9033b345bed31e41cb64cde61525c20"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_d05b3809-b600-424b-a16b-0dd4bea62ae8/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_d05b3809-b600-424b-a16b-0dd4bea62ae8/run.json",
+      "size": 144329,
+      "sha256": "40db0966376e793e907f682cbc3b31e3657f8a00b7265c2d79934d006f94c430"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_d708204c-2317-4fe7-be93-e2955b0c05b2/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/evolution-runs/evo_d708204c-2317-4fe7-be93-e2955b0c05b2/run.json",
+      "size": 106638,
+      "sha256": "f0e293b7f0b4b5c067ec883a59dda8c594dd0a20c4bfa54691e38045adc4c947"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/input.json",
+      "size": 496,
+      "sha256": "e26142243e5e9d346484227220eb8142624c5513cf59f13460d09f10806e5c81"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/result.json",
+      "size": 1218,
+      "sha256": "fc068167becd21efc1149b1a8de42209d6585ae950a19d71e93f60bd35b4d9ef"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/runtime.json",
+      "size": 174,
+      "sha256": "61a07c5f705401be33ee67032ee41211eb670140df21f83c2abac784e062f607"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_0b314bbc-252c-4fc7-8127-bb5d46046bed/source.cjs",
+      "size": 52,
+      "sha256": "00390b64248ed2c418bf543916409383946dc43785796bf845f4177b4d348cee"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/input.json",
+      "size": 525,
+      "sha256": "8d5a0e9460a84aa282b69ed5a36bca521744d698f8aea93f8748af4f8fc11337"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/result.json",
+      "size": 549,
+      "sha256": "7b34a5321401a7259364eb34e6f71e777124de66d5e5b78c7bd2793edc9a4632"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/runtime.json",
+      "size": 174,
+      "sha256": "be6576ae11130982213497ec0bd5b7ce13219c0ca0cabb051852fd30b48b0f7f"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_1abddb41-157f-429d-be60-64ae0494180b/source.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/input.json",
+      "size": 627,
+      "sha256": "1c58092e371682eccb3ea0e70d4865261d65739eeba04f7a7c46a42472cd7e89"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/result.json",
+      "size": 546,
+      "sha256": "f5896341abb74b4297e206c433553a46cf9915a633d5a814a49b62e116ae6afe"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/runtime.json",
+      "size": 174,
+      "sha256": "6e9b107a1c1c08fc28a1d661067ce31031473698bea598da097a0bcd9439ee26"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_47a4acd9-9249-4ad8-8d1a-49ce231922d3/source.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/input.json",
+      "size": 496,
+      "sha256": "2475ab1515cababfe6342c5ba04eb6d197b55a4a9138c9a6013997ba2e790668"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/result.json",
+      "size": 525,
+      "sha256": "d009d42e34ea3307fc3890eb0337e37e69233cfbe8f8975799938aeb9012d0c8"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/runtime.json",
+      "size": 174,
+      "sha256": "87e2c66bf7ba0a9d364c8dbc1c72f33b84185da88a3d3377cf30253b3993cd12"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_72752ad6-a339-4e36-a87d-50d3c44bdf55/source.cjs",
+      "size": 25,
+      "sha256": "1f0d9aed6650658694c3e170051993feed636785fecffc157bbd3c79bed88b64"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/input.json",
+      "size": 627,
+      "sha256": "97aef2c670c54b6094a3bdd05fefd1f57dacb7861342de645656772af4421994"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/result.json",
+      "size": 546,
+      "sha256": "a2ca3d100b74760d768a40431fda937a18e0c3180975e58b031d4aa2777e1c0e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/runtime.json",
+      "size": 174,
+      "sha256": "ddcb43361d9b90f067202a6153f0e26db3c779a50c9d029573ecb604c9dcf553"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_7b278779-034f-47c6-b13c-2467a2503f4a/source.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/input.json",
+      "size": 496,
+      "sha256": "da09a59ce13650e07123779690a8b7b94c21db8896eef75487476e2192e9a7c2"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/result.json",
+      "size": 530,
+      "sha256": "342073b1820166ddd5026cacd3fc599296984c4c347f638fb521da2f6f36264f"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/runtime.json",
+      "size": 174,
+      "sha256": "54ff3b606d8842ba826845558cec77eaaf3cd14cb8ea05294b500cc740a94d4b"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_9f940bc6-de90-4943-af9f-90b8887b1731/source.cjs",
+      "size": 27,
+      "sha256": "e76500a23f282845e05b8e6c87e851a2baa1e1e8104ffc81040cc9489d152c5e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/input.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/input.json",
+      "size": 523,
+      "sha256": "07c4915d58cd44011f713df426cfa3261412ab1def3289fae2815c2c24dfc0d6"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/result.json",
+      "size": 547,
+      "sha256": "95f75ce0d1fadd0709ac60c78beadb7d0e1ca2cbd219c4bb6fc550120a89f1c6"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/runtime.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/runtime.json",
+      "size": 174,
+      "sha256": "c750a87e94a4646aa5845f0237d98dbda0085c784869dcb84e7cf63912866d78"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/source.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/experiments/exe_f05cec31-f673-48b2-90c5-c9fe3259ff70/source.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/governance/decisions/gov_859f26a3-1a34-41d4-9364-ca2d7f55f69a.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/governance/decisions/gov_859f26a3-1a34-41d4-9364-ca2d7f55f69a.json",
+      "size": 3097,
+      "sha256": "7391933cf62d307908ab5d9e2d9dac460be434c1572e7265d8461c4cd91f0015"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_32bd5493-95d4-4c65-8f26-f6d81a364b37/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_32bd5493-95d4-4c65-8f26-f6d81a364b37/index.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_32bd5493-95d4-4c65-8f26-f6d81a364b37/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_32bd5493-95d4-4c65-8f26-f6d81a364b37/manifest.json",
+      "size": 1045,
+      "sha256": "18856d46342192cc5bf717e993d6f75a87c3a44128884975d68e941c85ad43b5"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_32bd5493-95d4-4c65-8f26-f6d81a364b37/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_32bd5493-95d4-4c65-8f26-f6d81a364b37/test-result.json",
+      "size": 546,
+      "sha256": "f5896341abb74b4297e206c433553a46cf9915a633d5a814a49b62e116ae6afe"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_ef3897fd-3675-4c98-af02-8b8310ae4330/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_ef3897fd-3675-4c98-af02-8b8310ae4330/index.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_ef3897fd-3675-4c98-af02-8b8310ae4330/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_ef3897fd-3675-4c98-af02-8b8310ae4330/manifest.json",
+      "size": 1036,
+      "sha256": "1c8b57de25f50dc271ffc0a1853c741f5236baa6bb650d61e77cf4fcaf0db68e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_ef3897fd-3675-4c98-af02-8b8310ae4330/test-result.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/.candidates/cand_ef3897fd-3675-4c98-af02-8b8310ae4330/test-result.json",
+      "size": 546,
+      "sha256": "a2ca3d100b74760d768a40431fda937a18e0c3180975e58b031d4aa2777e1c0e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/index.cjs",
+      "size": 71,
+      "sha256": "231f90a033b277843bec03d7484e0bc8af084b9db13dd95766954ac8ff504879"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.0.0/manifest.json",
+      "size": 1084,
+      "sha256": "154ae6b1284601d7787c9845e380765bccd4606ce2885c8fc132ba71eb734f3e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/index.cjs",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/index.cjs",
+      "size": 71,
+      "sha256": "a7c4b8847f315d4c4a0c947b6d0b48cbf73a213df9edc91850cff5cbdc010d09"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/manifest.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/modules/generated.sandbox.counter/versions/1.1.0/manifest.json",
+      "size": 1093,
+      "sha256": "cbfbeeafd2a4e44379e5f2a168220abf16fac0bf2981a20103f470c8e6e9261e"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/multi-agent-runs/mar_5900c29a-567f-4c29-b4eb-aff644394199/run.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/multi-agent-runs/mar_5900c29a-567f-4c29-b4eb-aff644394199/run.json",
+      "size": 8177,
+      "sha256": "7eebb3dec71a9812f146ba4d1e24ea80e0c083cc3904d48129c3143b71e94bca"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/state/active-modules.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/sandbox-ten-task-evidence/2026-07-20T11-15-22-543Z/workspace/state/active-modules.json",
+      "size": 43,
+      "sha256": "ff4de7efd8d9585f84870ad32ce0d775dbfd219596b493d5689e7b8cdabbb7d7"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/tutorial-launcher/server-4173.pid",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/tutorial-launcher/server-4173.pid",
+      "size": 7,
+      "sha256": "c4721ce75c85547566603f34e9b9cd2d33d0dd85cdb1eb80892d844d84b1f621"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/tutorial-launcher/server-4173.stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/tutorial-launcher/server-4173.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/tutorial-launcher/server-4173.stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/tutorial-launcher/server-4173.stdout.log",
+      "size": 74,
+      "sha256": "50e55c1445df0ceb849c8814629a3d2d9ffead3168a04c2695cb980d64901407"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/tutorial-launcher/server-4174.stderr.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/tutorial-launcher/server-4174.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/tutorial-launcher/server-4174.stdout.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/tutorial-launcher/server-4174.stdout.log",
+      "size": 74,
+      "sha256": "0a54223ed12ae8b29c59ce8a55494a55d0fcb2587c891f42a46f30eab2e73161"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/ui-smoke-rerun.error.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/ui-smoke-rerun.error.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "<repo>/starter/workspace/state/ui-smoke-rerun.log",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/state/ui-smoke-rerun.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "<repo>/starter/workspace/wp12-preflight/preflight.json",
+      "destination": "<repo>/.del/runtime-reset-20260721-072909/workspace/wp12-preflight/preflight.json",
+      "size": 4628,
+      "sha256": "eee78e5a021f28936f454fdb6d8df8de637182e2681aa49d51ead3db0ce34705"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_09d79013-ebbf-47a4-8e73-1e85d49ef1cb.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_09d79013-ebbf-47a4-8e73-1e85d49ef1cb.json",
+      "size": 3025,
+      "sha256": "e6ea078135395b082770c7b741762b0c76c6e67f431b64ef6183e100526752b4"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_31edf58b-12b1-4936-8b28-5e43f5d2fea8.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_31edf58b-12b1-4936-8b28-5e43f5d2fea8.json",
+      "size": 4109,
+      "sha256": "c34cb183a8bbee5c7be9d527d11b11dfe9059da4fa6f55ba5e3ca1c72c9c43e6"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_396d4dba-c661-4154-9a33-e16fb8bb552a.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_396d4dba-c661-4154-9a33-e16fb8bb552a.json",
+      "size": 3082,
+      "sha256": "ae6a4e65b1ca5795e2521cb5eecb785f4a5584b13ac44f595e95b56911ef29cf"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_42b75f89-56d0-4a88-bfef-a0e8d0b05e5a.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_42b75f89-56d0-4a88-bfef-a0e8d0b05e5a.json",
+      "size": 3045,
+      "sha256": "1dbbbd09afa4f8aec6304dbf041108b88e9e3fe8fb8acdd1522d0f8ba5f086d4"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_5bf1ddb7-a6b5-41b1-b4d9-c4fa145bc204.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_5bf1ddb7-a6b5-41b1-b4d9-c4fa145bc204.json",
+      "size": 3903,
+      "sha256": "ff9077cb407c179d51e4309b095f56834d74c27ee323e7f00878dcc19e78c100"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_8ededdc7-9252-46cf-9786-40127b49c84d.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_8ededdc7-9252-46cf-9786-40127b49c84d.json",
+      "size": 3909,
+      "sha256": "8364ca3d88cdd1f08b774bcd5e632b6c30fcc8a467e712e6c8c6e6b385b217e6"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_ae41f367-83c4-41dc-91d1-112190af88dc.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_ae41f367-83c4-41dc-91d1-112190af88dc.json",
+      "size": 4109,
+      "sha256": "253847a58418fe699742da2650ec3d3b153afccf6af0dcc6340ce85452c0b11c"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_c2eae20e-1e03-4e7e-8a74-2db7bf167787.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_c2eae20e-1e03-4e7e-8a74-2db7bf167787.json",
+      "size": 5003,
+      "sha256": "363f66a7b0ee82517a2e185fa06253a39d4d414da463b29fa72df3565e6741cf"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_c2ff58ea-9f27-4acf-858e-5a9eac64930f.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_c2ff58ea-9f27-4acf-858e-5a9eac64930f.json",
+      "size": 3102,
+      "sha256": "82b08c26597f84764be9552f18be1dab73a4e44f5d6f55693583f78250815b98"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_e248fd51-aaf8-4cc8-a912-fd824dc65bf0.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_e248fd51-aaf8-4cc8-a912-fd824dc65bf0.json",
+      "size": 4091,
+      "sha256": "8f4dfe30c501279dc19d753715c44a217a6780f68d634669c452603f5c63de93"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_fdd12d78-f0d9-4d1d-b8d0-b066a1c9d763.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_fdd12d78-f0d9-4d1d-b8d0-b066a1c9d763.json",
+      "size": 4090,
+      "sha256": "98d6565760551637e4e8c72dbb07da5f8c9d70e77a971d7dfd2fd03af4b968e8"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/checkpoints/chk_fefaee5e-2865-4363-ab38-7c4977d0cf7c.json",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/checkpoints/chk_fefaee5e-2865-4363-ab38-7c4977d0cf7c.json",
+      "size": 4109,
+      "sha256": "2b56445115e9726fb17a32f0ce27dfd386098a3f8ba3130b9eaee19a830b947c"
+    },
+    {
+      "source": "%APPDATA%/blankseed-browser-starter/blankseed-data/events/events.jsonl",
+      "destination": "%APPDATA%/blankseed-browser-starter/.del/blankseed-data-reset-20260721-072909/events/events.jsonl",
+      "size": 708036,
+      "sha256": "77e72a9a42bed330959acedf8f2175ff184d3c4a2edf10c7c8b72172965f86a8"
+    }
+  ]
+}

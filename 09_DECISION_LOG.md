@@ -922,6 +922,64 @@ Review before automatic Commit, automatic Activate, or policy-based approval.
 
 ---
 
+## ADR-021 — Require operator gates for Module publication and activation
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+ADR-020 gated Commit and Activate in the automated Module sequence but left the
+manual buttons and the default Agent tool catalog able to cross the same
+boundaries without an equivalent decision. This contradicted the task-guided
+UI's safety message and could let an operator mistake a stopped or unreviewed
+path for an approved mutation.
+
+### Evidence
+
+Independent UX, Runtime, and Governance reviewers each identified the missing
+manual confirmation. The Governance reviewer also confirmed that the default
+Agent catalog exposed Commit and Activate. Existing checkpoint restore and
+governance apply routes already demonstrate fail-closed Main Process
+confirmation checks.
+
+### Alternatives
+
+- Change only the UI wording and keep direct mutation paths.
+- Add dialogs to manual buttons without enforcing the decision at IPC.
+- Allow the default Agent to publish and activate, then ask for approval after
+  mutation.
+
+### Decision
+
+Require `confirmed: true` at the Main Process IPC boundary for Module Commit and
+Activate. Both automated and manual UI paths must show the semantic YES/NO
+dialog before sending this value. NO performs no mutation. The default Agent
+profile excludes Commit, Activate, and Rollback tools; these tools are available
+only to a separately authorized explicit allowlist. Candidate creation and
+testing remain available so an Agent can prepare inspectable work for operator
+review.
+
+### Consequences
+
+- All trusted-control UI paths use the same operator gate for publication and
+  activation.
+- The ordinary Agent can prepare and test a Candidate but cannot change the
+  committed or active Module state.
+- Specialized research profiles may retain autonomous lifecycle tests only by
+  supplying an explicit tool allowlist and preserving full evidence.
+- Existing Module identity, checkpoints, rollback data, and remote-content
+  isolation remain unchanged.
+
+### Rollback/review trigger
+
+Stop Module mutation if any UI path can omit confirmation, if NO produces an
+event or state change, if an ordinary Agent receives a high-risk Module tool, or
+if a specialized allowlist is applied without an inspectable authority source.
+Review before delegating Commit, Activate, or Rollback to a new runtime profile.
+
+---
+
 ## ADR template
 
 ```markdown

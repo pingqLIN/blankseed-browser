@@ -1,0 +1,146 @@
+{
+  "schema": "blankseed-ui-runtime-smoke/1",
+  "command": "node scripts/runtime-ui-agent-workspace-smoke.mjs",
+  "exitCode": 0,
+  "title": "BlankSeed Browser 控制台",
+  "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=75435f05-56aa-467e-b54d-176bac1e3f1b",
+  "viewport": {
+    "width": 430,
+    "height": 920
+  },
+  "agentMode": false,
+  "hiddenGlobalRegions": {
+    "status": "grid",
+    "target": "grid"
+  },
+  "transcriptRole": "log",
+  "messageLabels": [
+    "USER",
+    "AGENT"
+  ],
+  "messageText": "USER使用者指令11:26:07請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 011:26:07已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER使用者指令11:26:14請等待取消測試AGENT使用者已要求停止11:26:14cancel",
+  "taskCount": "7 / 12000",
+  "runStatus": "Agent 任務 已完成 · evo_5a96020f-fc87-4e3d-8ea5-dd6b89815463",
+  "regionsSeparated": true,
+  "liveLogNodesStable": true,
+  "editorAccessibleNames": {
+    "page": "Page JS 原始碼",
+    "node": "Generated Node 原始碼"
+  },
+  "workflowFocusChecks": [
+    {
+      "stage": "workflow-step-1",
+      "focused": true,
+      "visible": true
+    },
+    {
+      "stage": "workflow-step-2",
+      "focused": true,
+      "visible": true
+    },
+    {
+      "stage": "workflow-step-3",
+      "focused": true,
+      "visible": true
+    },
+    {
+      "stage": "workflow-step-4",
+      "focused": true,
+      "visible": true
+    },
+    {
+      "stage": "workflow-step-5",
+      "focused": true,
+      "visible": true
+    },
+    {
+      "stage": "workflow-step-6",
+      "focused": true,
+      "visible": true
+    }
+  ],
+  "agentCancellation": {
+    "runStatusClass": "run-status warning",
+    "runStatusText": "Agent 任務 已取消 · evo_7f7e8c8d-400c-4393-8a9d-71e863beea57",
+    "transcriptWarning": true,
+    "workflowWarning": true
+  },
+  "disclosureLabels": [
+    "AI 模型接入",
+    "執行設定",
+    "Governance 治理"
+  ],
+  "modelConnection": {
+    "shortcutWorked": true,
+    "localEndpoint": "http://127.0.0.1:65297/v1/chat/completions",
+    "localModel": "agent-ui-panel-fixture",
+    "openAIKeyType": "password",
+    "openAIStatus": "環境變數已接入",
+    "configurationRoundTrip": true
+  },
+  "moduleAutomation": {
+    "automationControlsLocked": true,
+    "stoppedAtTestedCandidate": true,
+    "noStatus": "使用者選擇 NO；流程停在已測試候選。",
+    "completedStatus": "自動化流程已完成 · generated.example@0.1.0",
+    "committed": true,
+    "active": true,
+    "invoked": true
+  },
+  "manualModuleDialogs": {
+    "candidateId": "cand_d6f18b3d-445f-4935-bced-afec0607dd4c",
+    "absentConfirmationRejected": true,
+    "commitNoMutation": true,
+    "commitExactlyOneOnYes": true,
+    "activateNoMutation": true,
+    "activateExactlyOneOnYes": true
+  },
+  "fulfilledErrorFeedback": {
+    "className": "operation-feedback error",
+    "summary": "操作未完成：fulfilled error fixture",
+    "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_52b9141c-dd99-437d-8e8c-3c77ebe9ddf4\",\n  \"requestId\": \"req_ui_node_1784604385670_26bbb28563ea9\",\n  \"executionId\": \"exe_0f18be71-5a77-4cf3-be62-6e4d02c87c0b\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-21T03:26:25.670Z\",\n  \"finishedAt\": \"2026-07-21T03:26:26.051Z\",\n  \"durationMs\": 381,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:38:16), <anonymous>:4:7)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:49:25)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:96:8)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
+  },
+  "checkpointDialogEvidence": {
+    "selectedCheckpointId": "chk_2f00d031-93e7-478d-bdfc-bcbc7b2b7da7",
+    "noMutationOnNo": true,
+    "exactlyOneCompletionOnYes": true
+  },
+  "governanceDialogEvidence": {
+    "noMutationOnNo": true,
+    "invalidYesFailedClosed": true,
+    "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:124:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:319:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:312:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:292:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
+  },
+  "horizontalOverflow": false,
+  "overflowingControls": [],
+  "leftRail": {
+    "initial": {
+      "viewportWidth": 1486,
+      "viewportHeight": 858,
+      "width": 500,
+      "right": 500,
+      "clientHeight": 858,
+      "scrollHeight": 3223,
+      "overflowY": "auto"
+    },
+    "scrolled": {
+      "scrollTop": 2365.333251953125,
+      "maxScroll": 2365,
+      "finalPanelVisible": true,
+      "mainTop": 0,
+      "mainBottom": 858,
+      "finalPanelTop": 796.40625,
+      "finalPanelBottom": 843.7395858764648
+    }
+  },
+  "screenshots": {
+    "desktop": "<starter>\\reports\\ui-v2\\qa-workflow-desktop-500.png",
+    "narrow": "<starter>\\reports\\ui-v2\\qa-agent-workspace-390.png",
+    "short": "<starter>\\reports\\ui-v2\\qa-workflow-short-430x600.png"
+  },
+  "cleanup": {
+    "browserNonceObserved": true,
+    "ownedChildProcessExited": true,
+    "temporaryRuntimeRemoved": true,
+    "cdpPort": 65296
+  }
+}
