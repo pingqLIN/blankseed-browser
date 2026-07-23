@@ -30,6 +30,9 @@ class FakeDebugger extends EventEmitter {
     this.attached = false;
     this.sendCommandImpl = sendCommand;
     this.attachImpl = attach;
+    this.attachCalls = 0;
+    this.detachCalls = 0;
+    this.sendCalls = [];
   }
 
   isAttached() {
@@ -37,17 +40,20 @@ class FakeDebugger extends EventEmitter {
   }
 
   attach() {
+    this.attachCalls += 1;
     this.attachImpl();
     this.attached = true;
   }
 
   detach() {
+    this.detachCalls += 1;
     this.attached = false;
     this.emit('detach', {}, 'broker detach');
   }
 
   sendCommand(method, params) {
-    return this.sendCommandImpl(method, params);
+    this.sendCalls.push({ method, params });
+    return this.sendCommandImpl(method, params, this.sendCalls.length);
   }
 }
 
@@ -243,4 +249,106 @@ test('CapabilityBroker records unexpected CDP detach and recovers on the next co
   assert.ok(eventStore.events.some((event) => event.type === 'cdp.detached.unexpected'));
   assert.ok(eventStore.events.some((event) => event.type === 'cdp.recovery.started'));
   assert.ok(eventStore.events.some((event) => event.type === 'cdp.recovery.completed'));
+});
+
+test('CapabilityBroker reattaches and retries once after an invalid CDP session', async () => {
+  const { broker, debuggerApi, eventStore } = createHarness({
+    debuggerOptions: {
+      sendCommand: async (_method, _params, attempt) => {
+        if (attempt === 1) throw new Error('No session with given id');
+        return { recovered: true };
+      }
+    }
+  });
+
+  const result = await broker.sendCdp('Runtime.evaluate', { expression: '2 + 2' }, {
+    sessionId: 'ses_12345678',
+    requestId: 'req_cdp_session_recover_12345678'
+  });
+
+  assert.equal(result.status, 'ok');
+  assert.equal(result.result.recovered, true);
+  assert.equal(debuggerApi.sendCalls.length, 2);
+  assert.equal(debuggerApi.attachCalls, 2);
+  assert.equal(debuggerApi.isAttached(), false);
+  const invalid = eventStore.events.find((event) => event.type === 'cdp.session.invalid');
+  assert.equal(invalid.data.status, 'SESSION_INVALID');
+  assert.equal(invalid.data.attempt, 1);
+  const recovered = eventStore.events.find((event) => event.type === 'cdp.recovery.completed' && event.data.policy === 'retry-session-invalid-once');
+  assert.equal(recovered.data.status, 'RECOVERED');
+  assert.equal(recovered.data.attempts, 2);
+});
+
+test('CapabilityBroker fails cleanly after one unsuccessful invalid-session retry', async () => {
+  const { broker, debuggerApi, eventStore } = createHarness({
+    debuggerOptions: {
+      sendCommand: async () => {
+        throw new Error('No session with given id: stale fixture');
+      }
+    }
+  });
+
+  const result = await broker.sendCdp('Page.getNavigationHistory', {}, {
+    sessionId: 'ses_12345678',
+    requestId: 'req_cdp_session_fail_12345678'
+  });
+
+  assert.equal(result.status, 'error');
+  assert.equal(result.error.code, 'CDP_SESSION_INVALID');
+  assert.equal(result.error.retryable, true);
+  assert.equal(result.error.details.attempts, 2);
+  assert.equal(debuggerApi.sendCalls.length, 2);
+  assert.equal(debuggerApi.isAttached(), false);
+  const failed = eventStore.events.find((event) => event.type === 'cdp.recovery.failed');
+  assert.equal(failed.data.status, 'FAILED');
+  assert.equal(failed.data.attempts, 2);
+});
+
+test('CapabilityBroker does not detach or replay an invalid externally attached CDP session', async () => {
+  const { broker, debuggerApi, eventStore } = createHarness({
+    debuggerOptions: {
+      sendCommand: async () => {
+        throw new Error('No session with given id: external fixture');
+      }
+    }
+  });
+  debuggerApi.attached = true;
+
+  const result = await broker.sendCdp('Runtime.evaluate', { expression: '1' }, {
+    sessionId: 'ses_12345678',
+    requestId: 'req_cdp_external_session_12345678'
+  });
+
+  assert.equal(result.status, 'error');
+  assert.equal(result.error.code, 'CDP_SESSION_INVALID');
+  assert.equal(result.error.retryable, true);
+  assert.equal(result.error.details.recoverySkipped, true);
+  assert.equal(result.error.details.reason, 'attachment-not-owned');
+  assert.equal(debuggerApi.sendCalls.length, 1);
+  assert.equal(debuggerApi.detachCalls, 0);
+  assert.equal(debuggerApi.isAttached(), true);
+  assert.equal(eventStore.events.some((event) => event.type === 'cdp.recovery.started'), false);
+  const failed = eventStore.events.find((event) => event.type === 'cdp.recovery.failed');
+  assert.equal(failed.data.recoverySkipped, true);
+  assert.equal(failed.data.attempts, 1);
+});
+
+test('CapabilityBroker does not replay unrelated CDP command failures', async () => {
+  const { broker, debuggerApi, eventStore } = createHarness({
+    debuggerOptions: {
+      sendCommand: async () => {
+        throw new Error('CDP method failed for an unrelated reason');
+      }
+    }
+  });
+
+  const result = await broker.sendCdp('Runtime.evaluate', { expression: 'throw 1' }, {
+    sessionId: 'ses_12345678',
+    requestId: 'req_cdp_no_replay_12345678'
+  });
+
+  assert.equal(result.status, 'error');
+  assert.equal(debuggerApi.sendCalls.length, 1);
+  assert.equal(eventStore.events.some((event) => event.type === 'cdp.session.invalid'), false);
+  assert.equal(eventStore.events.some((event) => event.type === 'cdp.recovery.started'), false);
 });

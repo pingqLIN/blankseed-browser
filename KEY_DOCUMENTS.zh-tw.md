@@ -21,6 +21,7 @@
 - [驗收與停止條件](04_ACCEPTANCE_AND_STOP_CONDITIONS.zh-tw.md)
 - [實驗治理與復原](05_EXPERIMENT_GOVERNANCE_AND_RECOVERY.zh-tw.md)
 - [協定與資料契約](06_PROTOCOL_AND_DATA_CONTRACTS.zh-tw.md)
+- [Module Runtime Contract v1.2](MODULE_RUNTIME_CONTRACT.zh-tw.md)
 - [WP-12 真實本機模型評估協定](11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.zh-tw.md)
 - [代理工作包](08_AGENT_WORK_PACKAGES.zh-tw.md)
 - [架構決策紀錄](09_DECISION_LOG.zh-tw.md)
@@ -35,6 +36,8 @@
 - [WP-11 自動化本機演化迴圈證據](starter/reports/wp-11-automated-evolution-loop.zh-tw.md)
 - [Sandbox 十任務 Agent Auto-Apply 證據](starter/reports/sandbox-ten-task-agent-auto-apply.zh-tw.md)
 - [WP-12A 預檢與證據基礎](starter/reports/wp-12-preflight-foundation.zh-tw.md)
+- [Module Runtime Contract v1.1 Phase 0 安全基線](starter/reports/module-runtime-contract-phase-0.zh-tw.md)
+- [Module Runtime Contract v1.1 最終報告](starter/reports/module-runtime-contract-v1.1-final.zh-tw.md)
 
 ## 維護規則
 

@@ -1,0 +1,8 @@
+flowchart LR
+    Need[Observe a capability gap] --> Candidate[Create a versioned candidate]
+    Candidate --> Execute[Test through observable Runtime]
+    Execute --> Evidence[Capture result, error, and identity]
+    Evidence --> Decision{Operator decision}
+    Decision -->|retain| Reuse[Commit, activate, and reuse]
+    Decision -->|revise| Candidate
+    Decision -->|reject or recover| Rollback[Keep evidence; rollback active mapping]

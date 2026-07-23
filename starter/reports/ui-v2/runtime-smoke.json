@@ -3,7 +3,7 @@
   "command": "node scripts/runtime-ui-agent-workspace-smoke.mjs",
   "exitCode": 0,
   "title": "BlankSeed Browser 控制台",
-  "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=61b5751c-bb02-4a05-bf8f-8f91ebb1bed9",
+  "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=c5ff5fb8-12af-461e-a08a-44dc4e0f5656",
   "viewport": {
     "width": 430,
     "height": 920
@@ -18,9 +18,9 @@
     "USER",
     "AGENT"
   ],
-  "messageText": "USER使用者指令12:05:45請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 012:05:45已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER受控審核指令12:05:56請以唯讀方式審查 capability handoff。PROPOSERevo_de5792a7-ced6-43e8-a0b5-3a3aa39f7a2112:05:56保留唯讀能力邊界，並由獨立 Reviewer 驗證 handoff identity。REVIEWERAPPROVE · gov_32bba658-792f-44bb-9cfe-159c7431352612:05:56Proposal hash and bounded read-only scope are consistent.USER使用者指令12:05:57請等待取消測試AGENT使用者已要求停止12:05:57cancel",
+  "messageText": "USER使用者指令13:45:51請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 013:45:51已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER受控審核指令13:45:54請以唯讀方式審查 capability handoff。PROPOSERevo_a051ccf6-45fc-4a17-ac45-9d456447565413:45:54保留唯讀能力邊界，並由獨立 Reviewer 驗證 handoff identity。REVIEWERAPPROVE · gov_80e68feb-a2b1-43f4-aac3-3707c5bbfbf413:45:54Proposal hash and bounded read-only scope are consistent.USER使用者指令13:45:54請等待取消測試AGENT使用者已要求停止13:45:54cancel",
   "taskCount": "7 / 12000",
-  "runStatus": "Agent 任務 已完成 · evo_1c2f4aab-5486-484b-9668-10ab1c9649b4",
+  "runStatus": "Agent 任務 已完成 · evo_a022e655-0eb1-4dfb-85da-88922c5a7f8b",
   "regionsSeparated": true,
   "liveLogNodesStable": true,
   "editorAccessibleNames": {
@@ -92,7 +92,7 @@
     }
   ],
   "capabilityEvidence": {
-    "targetUrl": "http://127.0.0.1:30436/target",
+    "targetUrl": "http://127.0.0.1:38753/target",
     "pageStatus": "ok",
     "pageTitle": "BlankSeed Capability Fixture",
     "pageHeading": "Capability fixture ready",
@@ -102,14 +102,14 @@
     "nodeValue": 42
   },
   "multiAgentEvidence": {
-    "status": "受控審核已完成 · approve · gov_32bba658-792f-44bb-9cfe-159c74313526",
-    "decisionId": "gov_32bba658-792f-44bb-9cfe-159c74313526",
+    "status": "受控審核已完成 · approve · gov_80e68feb-a2b1-43f4-aac3-3707c5bbfbf4",
+    "decisionId": "gov_80e68feb-a2b1-43f4-aac3-3707c5bbfbf4",
     "proposerVisible": true,
     "reviewerVisible": true
   },
   "agentCancellation": {
     "runStatusClass": "run-status warning",
-    "runStatusText": "Agent 任務 已取消 · evo_3b5eb866-d6fe-4034-a8f0-f4b4c9d9d966",
+    "runStatusText": "Agent 任務 已取消 · evo_bbbd0042-93ba-4635-89bc-f555edfb7310",
     "transcriptWarning": true,
     "workflowWarning": true
   },
@@ -120,7 +120,7 @@
   ],
   "modelConnection": {
     "shortcutWorked": true,
-    "localEndpoint": "http://127.0.0.1:30436/v1/chat/completions",
+    "localEndpoint": "http://127.0.0.1:38753/v1/chat/completions",
     "localModel": "agent-ui-panel-fixture",
     "openAIKeyType": "password",
     "openAIStatus": "環境變數已接入",
@@ -128,6 +128,14 @@
   },
   "moduleAutomation": {
     "automationControlsLocked": true,
+    "confirmationPresentationOpen": {
+      "overlayActive": true,
+      "visible": false
+    },
+    "confirmationPresentationClosed": {
+      "overlayActive": false,
+      "visible": true
+    },
     "stoppedAtTestedCandidate": true,
     "noStatus": "使用者選擇 NO；流程停在已測試候選。",
     "completedStatus": "自動化流程已完成 · generated.example@0.1.0",
@@ -136,7 +144,7 @@
     "invoked": true
   },
   "manualModuleDialogs": {
-    "candidateId": "cand_2ca4e034-81b9-4d98-92c7-295de15043a8",
+    "candidateId": "cand_a2851e1e-b53a-4d2d-aaf6-25dab393ba4a",
     "absentConfirmationRejected": true,
     "absentRollbackConfirmationRejected": true,
     "commitNoMutation": true,
@@ -149,38 +157,38 @@
   "fulfilledErrorFeedback": {
     "className": "operation-feedback error",
     "summary": "操作未完成：fulfilled error fixture",
-    "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_b9a71746-27e3-429f-a35e-eca57d1ccc41\",\n  \"requestId\": \"req_ui_node_1784606765915_7a79c0453c6bf8\",\n  \"executionId\": \"exe_71c9e9b4-cefa-4625-897a-e0b22ec4d047\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-21T04:06:05.916Z\",\n  \"finishedAt\": \"2026-07-21T04:06:06.266Z\",\n  \"durationMs\": 350,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:38:16), <anonymous>:4:7)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:49:25)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:96:8)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
+    "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_0d52dbba-41a9-4422-ac62-f1af862b03a7\",\n  \"requestId\": \"req_ui_node_1784612758271_37af13c42cf32\",\n  \"executionId\": \"exe_ebc678ef-5ae9-4cf0-89bd-09d21fdccfd2\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-21T05:45:58.272Z\",\n  \"finishedAt\": \"2026-07-21T05:45:58.639Z\",\n  \"durationMs\": 367,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:38:16), <anonymous>:4:7)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:49:25)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:96:8)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
   },
   "checkpointDialogEvidence": {
-    "selectedCheckpointId": "chk_505c84b1-1e5a-4ecf-9cff-f1ff741713f8",
+    "selectedCheckpointId": "chk_52f9ee46-470c-4eba-b5c6-8befa22c066c",
     "noMutationOnNo": true,
     "exactlyOneCompletionOnYes": true
   },
   "governanceDialogEvidence": {
     "noMutationOnNo": true,
     "invalidYesFailedClosed": true,
-    "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:124:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:319:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:312:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:295:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
+    "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:125:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:319:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:312:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:302:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
   },
   "horizontalOverflow": false,
   "overflowingControls": [],
   "leftRail": {
     "initial": {
       "viewportWidth": 1486,
-      "viewportHeight": 858,
+      "viewportHeight": 857,
       "width": 500,
       "right": 500,
-      "clientHeight": 858,
+      "clientHeight": 857,
       "scrollHeight": 3223,
       "overflowY": "auto"
     },
     "scrolled": {
-      "scrollTop": 2365.333251953125,
-      "maxScroll": 2365,
+      "scrollTop": 2366,
+      "maxScroll": 2366,
       "finalPanelVisible": true,
       "mainTop": 0,
-      "mainBottom": 858,
-      "finalPanelTop": 796.40625,
-      "finalPanelBottom": 843.7395858764648
+      "mainBottom": 857.3333740234375,
+      "finalPanelTop": 795.7396240234375,
+      "finalPanelBottom": 843.0729598999023
     }
   },
   "screenshots": {
@@ -192,6 +200,6 @@
     "browserNonceObserved": true,
     "ownedChildProcessExited": true,
     "temporaryRuntimeRemoved": true,
-    "cdpPort": 30435
+    "cdpPort": 38752
   }
 }

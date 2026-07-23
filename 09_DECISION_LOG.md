@@ -980,6 +980,325 @@ Review before delegating Commit, Activate, or Rollback to a new runtime profile.
 
 ---
 
+## ADR-022 — Retry only a command rejected by an invalid CDP session
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+ADR-008 forbids replaying a failed raw CDP command because an unexpected detach
+does not prove whether Chromium already applied a stateful command. A long Agent
+run produced the narrower `No session with given id` rejection. That rejection
+identifies a stale transient debugger session before the broker receives a CDP
+result, so the Runtime needs a bounded recovery path without creating a general
+command replay policy.
+
+### Evidence
+
+The existing broker reattached only on the next independent command. It did not
+classify `No session with given id`, refresh the broker-owned attachment, or
+retry the rejected command. Regression fixtures now prove that the exact error
+causes one detach/reattach and one retry, that a second rejection produces a
+structured `CDP_SESSION_INVALID` failure, and that unrelated CDP failures are
+never replayed.
+
+### Alternatives
+
+- Keep failing the evolution action and require a completely new run.
+- Replay every command after any debugger error or detach.
+- Reload or recreate the target view whenever a session becomes invalid.
+
+### Decision
+
+Treat only an error whose cause contains `No session with given id` as an
+invalid-session rejection. Record `SESSION_INVALID`, refresh the broker-owned
+debugger attachment, and retry the same command once. Record `RECOVERED` on
+success. If the retry fails, return a retryable `CDP_SESSION_INVALID` error with
+both causes and `attempts: 2`. Do not retry a third time, and do not extend this
+exception to timeouts, unexpected detach, method errors, or other CDP failures.
+
+### Consequences
+
+- Long runs can recover from one known transient session-identity failure.
+- The original ADR-008 no-replay rule remains the default for ambiguous or
+  potentially already-applied commands.
+- Recovery adds one bounded command latency and emits an auditable event chain.
+- Target freshness validation still runs after the recovered result.
+
+### Rollback/review trigger
+
+Remove the exception if Electron can execute a command before returning this
+specific rejection, if debugger ownership becomes shared, if recovery can issue
+more than two total attempts, or if tests show unrelated errors entering the
+retry path.
+
+---
+
+## ADR-023 — Compress large observations only at the model-context boundary
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+Long evolution runs stored complete Node, CDP, and DOM snapshot results in
+durable evidence and also copied those results back into later model turns.
+Large outputs therefore accumulated in the conversation and increased model
+latency. Replacing the durable result would weaken auditability and violate the
+evidence-before-claims boundary.
+
+### Evidence
+
+The failed YOUTUBE-AOPass run contained individual action records above 30,000
+characters. The existing generic model serializer allowed up to 12,000
+characters per tool result and had no lower observation-specific budget.
+Regression tests now feed 50,000-character Node, CDP, and page snapshot results
+through the model-facing serializer and retain a full 50,000-character Node
+result in `run.json`.
+
+### Alternatives
+
+- Truncate or reject large action evidence before persistence.
+- Keep the 12,000-character generic preview for every tool kind.
+- Add an external semantic summarization model to the Runtime.
+
+### Decision
+
+Apply deterministic observation compression only when `node.execute`,
+`cdp.send`, or `page.snapshot` model feedback exceeds
+`evolutionObservationMaxChars`, initially 4,000 characters. Preserve status,
+identity, error code, retryability, hashes, bounded structural keys, scalar
+previews, and metrics where present. Keep the full action result in durable run
+evidence. Small observations remain byte-equivalent to the previous model
+feedback.
+
+### Consequences
+
+- Per-action observation growth is bounded for the three high-volume tools.
+- Durable evidence remains complete and independently inspectable.
+- The summary is deterministic structural compression, not a semantic claim.
+- A model may need a narrower follow-up observation when omitted detail matters.
+
+### Rollback/review trigger
+
+Review if compressed output exceeds its configured budget, if error identity or
+metrics disappear, if durable evidence is altered, or if a workflow repeatedly
+requires fields that the structural summary omits.
+
+---
+
+## ADR-024 — Select model-turn timeouts from evolution work state
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+All evolution model turns inherited the direct-model default of 30 seconds.
+That budget was suitable for a simple request but repeatedly expired during
+long analysis, code generation, and verification turns. Node, page, and CDP
+execution already have separate bounded timeouts and must not be silently
+replayed or extended by a model policy.
+
+### Evidence
+
+The failed YOUTUBE-AOPass run ended when turn 18 exceeded 30,000 ms even though
+the adapter marked the timeout retryable. Before this decision, the evolution
+IPC inserted the 30,000-ms default before `EvolutionRunManager` could select a
+turn-specific budget. Regression tests now verify that the manager passes
+90,000, 120,000, and 180,000 ms to consecutive analysis, code-generation, and
+verification turns and records the same decisions in events and `run.json`.
+
+### Alternatives
+
+- Raise every model turn to one fixed large timeout.
+- Let model-generated text choose arbitrary timeouts.
+- Extend page, CDP, and Node action timeouts together with model inference.
+
+### Decision
+
+Use policy `blankseed-adaptive-timeout/0.1` for evolution model turns:
+
+- simple: 30,000 ms;
+- analysis: 90,000 ms;
+- code generation/correction: 120,000 ms;
+- verification: 180,000 ms.
+
+Classify the first evolution turn as analysis. Classify the next turn from the
+last broker action and its status: observation inputs lead to code generation,
+Node/candidate test/invoke results lead to verification, and an action failure
+leads to correction. Preserve an explicit operator `timeoutMs` from 1 through
+300,000 ms. Record every selection before the model turn. Do not change action
+timeouts or add automatic retries.
+
+### Consequences
+
+- Long inference receives a bounded budget appropriate to its work state.
+- Direct non-evolution model calls retain their existing 30-second default.
+- Operators can still provide an explicit bounded override.
+- Timeout decisions are reproducible from events and run evidence.
+
+### Rollback/review trigger
+
+Review if classification repeatedly selects the wrong work state, if any value
+exceeds 300,000 ms, if explicit overrides are ignored, or if the policy begins
+to alter or replay Page, CDP, Node, or Module actions.
+
+---
+
+## ADR-025 — Resolve generated Module results through API v1.1 entry-point precedence
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+The generated Node runtime supplied CommonJS-shaped `module` and `exports`
+objects but used only the direct return value of `AsyncFunction(source)`.
+Committed generated modules that exposed behavior through
+`module.exports.evaluate` therefore loaded successfully and then reported a
+successful `null` result after implicit `undefined` normalization. Editing an
+existing committed module would violate immutable version governance.
+
+### Evidence
+
+`youtube-aopass@1.0.0` has verified source hash
+`sha256:dd90a4facd06c1ff1657cc030c63f908840164b186a5a1f1cb419a2f351bd8ec`
+and exports `evaluate` without a top-level return. Focused contract tests prove
+direct return, asynchronous `execute`, legacy `evaluate`, invalid-module
+errors, precedence, and undefined-result rejection. The governed migration
+created, tested, committed, and activated `youtube-aopass@1.0.1`; both its
+candidate test and a real YouTube-page invocation returned a structured result.
+
+### Alternatives
+
+- Require every generated module to use a top-level direct return.
+- Modify committed module source in place.
+- Invoke every exported function and merge their results.
+- Continue accepting implicit `undefined` as a successful `null` result.
+
+### Decision
+
+Adopt Module Runtime API v1.1. After top-level source evaluation, await exactly
+one result source in this order: callable `module.exports.execute(context)`,
+callable `module.exports.evaluate(context.observation, context.environment)`,
+then a defined direct return value. Resolve `context.observation` from
+`input.observation`, then `environment.observation`, then the entire
+environment. An explicit `null` remains valid; a missing entry point or final
+`undefined` fails with structured code `MODULE_CONTRACT_INVALID`. Preserve the
+existing execution envelope and JSON serialization rules.
+
+Allow optional `parentVersion` and `migrationReason` manifest fields and
+preserve them through candidate, test, and commit states. Corrective Module
+source must still follow `candidate -> test -> commit -> activate`; committed
+versions are never rewritten.
+
+### Consequences
+
+- Existing direct-return modules continue to work.
+- Modern and legacy CommonJS modules receive deterministic dispatch.
+- Invalid generated source no longer succeeds with a silent `null` caused by
+  implicit `undefined`.
+- Migration lineage is inspectable without changing the existing manifest
+  schema identifier.
+- Runtime compatibility does not establish live website behavior or
+  YouTube-AOPass 3/3 acceptance.
+
+### Rollback/review trigger
+
+Rollback the active Module mapping to `youtube-aopass@1.0.0` if `1.0.1`
+invocation fails. Review or supersede this decision if precedence breaks an
+existing direct-return module, if context resolution exposes unintended data,
+if undefined rejection blocks a documented valid contract, or if manifest
+migration fields are lost during any lifecycle transition.
+
+---
+
+## ADR-026 — Resize the control and target panes through the brokered layout boundary
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+The control renderer and native target `WebContentsView` used one configured,
+fixed split. A renderer-only CSS resize would leave the native view bounds out
+of sync and could let it cover the divider or control content.
+
+### Evidence
+
+Focused tests prove bounded layout calculation and the emitted
+`target.layout.changed` event. An isolated Electron smoke used real CDP mouse
+input to drag the separator from 500 px to 640 px; renderer width, main-process
+layout, native target width, and ARIA state agreed afterward.
+
+### Alternatives
+
+- Resize only the control renderer with CSS.
+- Expose direct renderer access to the native `WebContentsView`.
+- Keep a fixed configured split.
+
+### Decision
+
+Expose one explicit preload/IPC resize operation. The main process owns the
+accepted control-panel width, clamps both panes to a 320 px minimum, updates the
+native view bounds, returns the canonical layout, and records a brokered event.
+The renderer may update optimistically while dragging but reconciles to the
+returned canonical width. Support pointer drag plus keyboard Arrow, Home, and
+End controls on an accessible vertical separator. Width remains session-scoped.
+
+### Consequences
+
+- The control and target panes remain synchronized during resizing.
+- Remote pages retain sandbox isolation and receive no Node or layout authority.
+- Operators can resize with mouse or keyboard without hiding either pane.
+- A new session starts from the configured default width.
+
+### Rollback/review trigger
+
+Remove the separator and resize IPC together if native and renderer bounds can
+diverge, pointer capture fails across the view boundary, accessibility state is
+stale, or minimum widths prevent required content access.
+
+---
+
+## ADR-027 — Verify generated page behavior through a candidate-bound broker bridge
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+A generated overlay-ad candidate returned an installer string through an unsupported `run()` export. Its Node-only candidate test correctly rejected the module, and even a corrected Node result would not prove that the installer had run on the remote page or that it could restore the page afterwards.
+
+### Evidence
+
+The supervised Module Runtime accepts `execute`, `evaluate`, or a direct return only. The existing isolated-world page broker already records source hashes, target identity, timeouts, cancellation, and page execution events without giving remote content Node access. Focused tests now prove that a tested candidate is re-evaluated into a four-phase plan and that the dispatcher runs install, verify, uninstall, and rollback verification against one expected target identity.
+
+### Alternatives
+
+- Treat a Node candidate test as proof of page behavior.
+- Let the model submit an arbitrary installer directly to `page_execute` after candidate testing.
+- Run generated page source in the Node utility runtime.
+
+### Decision
+
+Add `module_candidate_page_test`. It accepts only a tested candidate ID, re-evaluates the stored source under the existing Module Runtime contract, and requires a `pageTest` descriptor with `installSource`, `verifySource`, `uninstallSource`, and `rollbackVerifySource`. Each script runs through the existing isolated-world page broker and must return `{ ok: true }`. The dispatcher retains candidate ID, source hash, plan execution ID, target identity, phase execution IDs, and any failure in the event pipeline.
+
+### Consequences
+
+- Candidate provenance remains bound to the executed page code.
+- Remote pages remain sandboxed with `nodeIntegration: false`.
+- A successful candidate test no longer implies page success without install and rollback evidence.
+- Candidate page testing remains reversible and does not commit or activate a module.
+
+### Rollback/review trigger
+
+Remove the bridge if it can execute source not derived from the stored candidate, loses target-identity checks, omits an uninstall attempt after installation, or lets a remote renderer obtain Node authority.
+
+---
+
 ## ADR template
 
 ```markdown

@@ -126,6 +126,18 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
   handle(channels.targetBack, 'target.back', async () => ({ changed: target.back() }));
   handle(channels.targetForward, 'target.forward', async () => ({ changed: target.forward() }));
   handle(channels.targetReload, 'target.reload', async () => { target.reload(); return { changed: true }; });
+  handle(channels.targetOverlaySet, 'target.overlay.set', async (payload) => {
+    assertPlainObject(payload, 'payload');
+    if (typeof payload.active !== 'boolean') {
+      throw createProtocolError(errorCodes.invalidRequest, 'Target overlay active state must be a boolean.');
+    }
+    return target.setOverlayActive(payload.active);
+  });
+  handle(channels.targetPanelResize, 'target.panel.resize', async (payload, context) => {
+    assertPlainObject(payload, 'payload');
+    const width = assertInteger(payload.width, 'width', { min: 320, max: 10_000 });
+    return target.setControlPanelWidth(width, context);
+  });
   handle(channels.targetSnapshot, 'page.snapshot', async (payload = {}, context) => {
     if (payload !== undefined) assertPlainObject(payload, 'payload');
     return target.snapshot({
@@ -264,9 +276,12 @@ function registerIpc({ trustedWebContents, target, checkpointStore, eventStore, 
   handle(channels.evolutionRun, 'evolution.run', async (payload, context) => {
     assertPlainObject(payload, 'payload');
     const timeoutMs = payload.timeoutMs === undefined
-      ? config.modelTurnTimeoutMs
+      ? undefined
       : assertInteger(payload.timeoutMs, 'timeoutMs', { min: 1, max: 300000 });
-    return evolutionRunManager.run({ ...payload, timeoutMs }, context);
+    return evolutionRunManager.run(
+      timeoutMs === undefined ? payload : { ...payload, timeoutMs },
+      context
+    );
   });
   handle(channels.evolutionCancel, 'evolution.cancel', async (payload = {}, context) => {
     assertPlainObject(payload, 'payload');

@@ -36,6 +36,16 @@ class FakeSupervisor {
   async execute({ source, environment }, context = {}) {
     this.calls.push({ source, environment, context });
     const executionId = `exe_module_${String(this.calls.length).padStart(8, '0')}`;
+    const result = source.includes('PAGE_TEST_PLAN')
+      ? {
+          pageTest: {
+            installSource: 'return { ok: true, phase: "install" };',
+            verifySource: 'return { ok: true, phase: "verify" };',
+            uninstallSource: 'return { ok: true, phase: "uninstall" };',
+            rollbackVerifySource: 'return { ok: true, phase: "rollbackVerify" };'
+          }
+        }
+      : { ok: true, call: this.calls.length };
     return createExecutionResult({
       sessionId: context.sessionId,
       requestId: context.requestId,
@@ -44,7 +54,7 @@ class FakeSupervisor {
       startedAt: '2026-07-13T00:00:00.000Z',
       finishedAt: '2026-07-13T00:00:00.010Z',
       sourceHash: sha256(source),
-      result: { ok: true, call: this.calls.length }
+      result
     });
   }
 }
@@ -147,6 +157,30 @@ test('ModuleStore commits immutable tested versions and invokes active module', 
   }
 });
 
+test('ModuleStore prepares a tested candidate page-test plan without exposing the candidate source as a page command', async () => {
+  const harness = createHarness();
+  try {
+    const candidate = harness.store.createCandidate({
+      manifest: manifest('0.1.0'),
+      source: 'PAGE_TEST_PLAN'
+    });
+    await harness.store.testCandidate(candidate.candidateId);
+    const plan = await harness.store.prepareCandidatePageTest(candidate.candidateId, {
+      sessionId: 'ses_12345678',
+      requestId: 'req_page_plan_12345678'
+    });
+    assert.equal(plan.status, 'ok');
+    assert.equal(plan.candidateId, candidate.candidateId);
+    assert.match(plan.sourceHash, /^sha256:/);
+    assert.match(plan.pageTest.installSource, /phase: "install"/);
+    assert.equal(harness.processSupervisor.calls.length, 2);
+    assert.match(harness.processSupervisor.calls[1].source, /PAGE_TEST_PLAN/);
+    assert.equal(harness.processSupervisor.calls[1].environment.BLANKSEED_MODULE_PAGE_TEST, '1');
+  } finally {
+    harness.cleanup();
+  }
+});
+
 test('ModuleStore activates a newer version and rolls back to an older version', async () => {
   const harness = createHarness();
   try {
@@ -167,6 +201,29 @@ test('ModuleStore activates a newer version and rolls back to an older version',
     assert.equal(rollback.toVersion, '0.1.0');
     assert.equal(harness.store.getState().active['generated.wp05'], '0.1.0');
     assert.ok(harness.eventStore.events.some((event) => event.type === 'module.rollback.completed'));
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('ModuleStore preserves optional version migration metadata', async () => {
+  const harness = createHarness();
+  try {
+    const candidate = harness.store.createCandidate({
+      manifest: {
+        ...manifest('0.2.0'),
+        parentVersion: '0.1.0',
+        migrationReason: 'runtime contract compatibility'
+      },
+      source: 'return { status: "ok" };'
+    });
+    assert.equal(candidate.manifest.parentVersion, '0.1.0');
+    assert.equal(candidate.manifest.migrationReason, 'runtime contract compatibility');
+
+    await harness.store.testCandidate(candidate.candidateId);
+    const committed = harness.store.commitCandidate(candidate.candidateId);
+    assert.equal(committed.manifest.parentVersion, '0.1.0');
+    assert.equal(committed.manifest.migrationReason, 'runtime contract compatibility');
   } finally {
     harness.cleanup();
   }

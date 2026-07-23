@@ -17,6 +17,7 @@ const authoritativeFiles = [
   '11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md',
   '08_AGENT_WORK_PACKAGES.md',
   '09_DECISION_LOG.md',
+  'MODULE_RUNTIME_CONTRACT.md',
   'USER_GUIDE.md',
   'docs/ARCHITECTURE.md',
   'docs/AGENT_CAPABILITY_LIFECYCLE.md',
@@ -27,7 +28,9 @@ const authoritativeFiles = [
   'starter/reports/wp-10-operational-hardening.md',
   'starter/reports/wp-11-automated-evolution-loop.md',
   'starter/reports/sandbox-ten-task-agent-auto-apply.md',
-  'starter/reports/wp-12-preflight-foundation.md'
+  'starter/reports/wp-12-preflight-foundation.md',
+  'starter/reports/module-runtime-contract-phase-0.md',
+  'starter/reports/module-runtime-contract-v1.1-final.md'
 ];
 
 let failed = false;

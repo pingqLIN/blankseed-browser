@@ -98,7 +98,10 @@ test('renderer provides direct model configuration and default module automation
   assert.match(app, /await requestConfirmation\(\s*'提交所選候選？'/);
   assert.match(app, /await requestConfirmation\(\s*'啟用所選版本？'/);
   assert.match(app, /await requestConfirmation\(\s*'回復所選版本？'/);
+  assert.match(app, /await window\.blankseed\.target\.setOverlayActive\(true/);
+  assert.match(app, /finally \{[\s\S]*await window\.blankseed\.target\.setOverlayActive\(false/);
   assert.match(app, /allowedTools: \[\.\.\.uiAgentTools\]/);
+  assert.match(app, /'module_candidate_page_test'/);
   assert.match(app, /createCandidate[\s\S]*testCandidate[\s\S]*commitCandidate[\s\S]*activate[\s\S]*invoke/);
   assert.match(app, /tested\.passed !== true/);
   assert.match(app, /invocation\.status !== 'ok'/);
@@ -106,6 +109,8 @@ test('renderer provides direct model configuration and default module automation
   assert.match(preload, /commitCandidate:[^\n]+confirmed: options\?\.confirmed === true/);
   assert.match(preload, /activate:[^\n]+confirmed: options\?\.confirmed === true/);
   assert.match(preload, /rollback:[^\n]+confirmed: options\?\.confirmed === true/);
+  assert.match(preload, /setOverlayActive/);
+  assert.match(contracts, /targetOverlaySet: 'blankseed:target:overlay:set'/);
   assert.match(contracts, /modelConfigurationOpenAISet/);
   assert.match(main, /registerIpc\(\{[\s\S]*modelTurnManager,\s*modelConfiguration,/);
   assert.match(ipcRouter, /Module Commit requires explicit operator confirmation/);

@@ -14,6 +14,7 @@ const {
   serializeError,
   sha256
 } = require('../shared/contracts.cjs');
+const { POLICY_VERSION: TIMEOUT_POLICY_VERSION, selectEvolutionTurnTimeout } = require('./adaptive-timeout-policy.cjs');
 
 const PROTOCOL = 'blankseed/0.1';
 const RUN_SCHEMA = 'blankseed-evolution-run/0.1';
@@ -46,7 +47,10 @@ const TOOL_DEFINITIONS = Object.freeze([
       manifest: { type: 'object' }, source: { type: 'string' }
     }
   }),
-  tool('module_candidate_test', 'Test a generated capability candidate in the supervised utility runtime.', {
+  tool('module_candidate_test', 'Test a generated capability candidate in the supervised utility runtime. Source must provide module.exports.execute(context), module.exports.evaluate(observation, environment), or a defined top-level return value; exporting run() alone is invalid.', {
+    type: 'object', additionalProperties: false, required: ['candidateId'], properties: { candidateId: { type: 'string' } }
+  }),
+  tool('module_candidate_page_test', 'Run a tested candidate page test through the observable isolated-world broker. The candidate execute result must contain pageTest.installSource, verifySource, uninstallSource, and rollbackVerifySource; every page script must return { ok: true } only when its phase succeeds.', {
     type: 'object', additionalProperties: false, required: ['candidateId'], properties: { candidateId: { type: 'string' } }
   }),
   tool('module_candidate_commit', 'Commit a tested candidate as an immutable generated capability version.', {
@@ -103,9 +107,181 @@ function classifyActionValue(value) {
   return { status: 'ok', error: null };
 }
 
-function serializeToolResultForModel(actionResult, maxChars = 12000) {
+function serializeEvolutionError(error, metadata = {}, fallbackCode = 'INTERNAL_ERROR') {
+  const serialized = serializeError(error, fallbackCode);
+  const checkpointId = metadata.checkpointId ?? serialized.checkpointId ?? serialized.details?.checkpointId ?? null;
+  const turnId = metadata.turnId ?? serialized.turnId ?? serialized.details?.turnId ?? null;
+  const actionId = metadata.actionId ?? serialized.actionId ?? serialized.details?.actionId ?? null;
+  const cause = {
+    code: serialized.code,
+    name: serialized.name,
+    message: serialized.message,
+    details: serialized.details,
+    retryable: serialized.retryable
+  };
+  return {
+    ...serialized,
+    checkpointId,
+    turnId,
+    actionId,
+    details: {
+      ...serialized.details,
+      checkpointId,
+      turnId,
+      actionId,
+      cause
+    }
+  };
+}
+
+function summarizeObservationValue(value, depth = 0) {
+  if (value === null || value === undefined || typeof value === 'boolean' || typeof value === 'number') return value ?? null;
+  if (typeof value === 'string') {
+    return value.length <= 240
+      ? value
+      : { type: 'string', originalChars: value.length, preview: value.slice(0, 240) };
+  }
+  if (Array.isArray(value)) {
+    return {
+      type: 'array',
+      length: value.length,
+      items: depth >= 3 ? [] : value.slice(0, 3).map((entry) => summarizeObservationValue(entry, depth + 1))
+    };
+  }
+  if (typeof value === 'object') {
+    const keys = Object.keys(value);
+    if (depth >= 3) return { type: 'object', keys: keys.slice(0, 20), omittedKeys: Math.max(0, keys.length - 20) };
+    const fields = {};
+    for (const key of keys.slice(0, 16)) {
+      if (key === 'stack') continue;
+      fields[key] = summarizeObservationValue(value[key], depth + 1);
+    }
+    return {
+      type: 'object',
+      keys: keys.slice(0, 32),
+      omittedKeys: Math.max(0, keys.length - 32),
+      fields
+    };
+  }
+  return { type: typeof value, preview: String(value).slice(0, 240) };
+}
+
+function compactObservationError(error, messageChars = 1000) {
+  if (!error) return null;
+  return {
+    code: error.code,
+    name: error.name,
+    message: String(error.message || '').slice(0, messageChars),
+    retryable: Boolean(error.retryable),
+    checkpointId: error.checkpointId ?? error.details?.checkpointId ?? null,
+    turnId: error.turnId ?? error.details?.turnId ?? null,
+    actionId: error.actionId ?? error.details?.actionId ?? null,
+    details: summarizeObservationValue(error.details || {})
+  };
+}
+
+function boundedString(value, maxChars) {
+  if (value === null || value === undefined) return null;
+  return String(value).slice(0, maxChars);
+}
+
+function compactFallbackError(error) {
+  if (!error) return null;
+  const rawCode = String(error.code || 'INTERNAL_ERROR');
+  const rawName = String(error.name || 'Error');
+  return {
+    code: rawCode.slice(0, 120),
+    codeHash: rawCode.length > 120 ? sha256(rawCode) : null,
+    name: rawName.slice(0, 120),
+    nameHash: rawName.length > 120 ? sha256(rawName) : null,
+    message: String(error.message || '').slice(0, 200),
+    retryable: Boolean(error.retryable),
+    checkpointId: boundedString(error.checkpointId ?? error.details?.checkpointId, 120),
+    turnId: boundedString(error.turnId ?? error.details?.turnId, 120),
+    actionId: boundedString(error.actionId ?? error.details?.actionId, 120)
+  };
+}
+
+function serializeCompressedObservation(actionResult, serialized, maxChars) {
+  const buildEnvelope = (observation, error, minimal = false) => ({
+    protocol: actionResult.protocol,
+    kind: actionResult.kind,
+    actionId: actionResult.actionId,
+    toolCallId: actionResult.toolCallId,
+    name: actionResult.name,
+    actionKind: actionResult.actionKind,
+    status: actionResult.status,
+    result: {
+      compressed: true,
+      originalChars: serialized.length,
+      originalBytes: measureJsonBytes(actionResult),
+      originalHash: sha256(serialized),
+      observation
+    },
+    error,
+    sourceHash: actionResult.sourceHash,
+    ...(minimal ? { compressionFallback: true } : {})
+  });
+  let envelope = buildEnvelope(
+    summarizeObservationValue(actionResult.result),
+    compactObservationError(actionResult.error)
+  );
+  let output = JSON.stringify(envelope);
+  if (output.length <= maxChars) return output;
+
+  const value = actionResult.result;
+  const observation = value && typeof value === 'object'
+    ? {
+        type: Array.isArray(value) ? 'array' : 'object',
+        keys: Array.isArray(value) ? [] : Object.keys(value).slice(0, 16),
+        length: Array.isArray(value) ? value.length : undefined
+      }
+    : summarizeObservationValue(value, 2);
+  envelope = buildEnvelope(observation, compactObservationError(actionResult.error, 300), true);
+  output = JSON.stringify(envelope);
+  if (output.length <= maxChars) return output;
+
+  const fallback = {
+    protocol: boundedString(actionResult.protocol, 80),
+    kind: boundedString(actionResult.kind, 80),
+    actionId: boundedString(actionResult.actionId, 120),
+    toolCallId: boundedString(actionResult.toolCallId, 120),
+    name: boundedString(actionResult.name, 120),
+    actionKind: boundedString(actionResult.actionKind, 120),
+    status: actionResult.status,
+    result: {
+      compressed: true,
+      originalChars: serialized.length,
+      originalHash: sha256(serialized)
+    },
+    error: compactFallbackError(actionResult.error),
+    sourceHash: boundedString(actionResult.sourceHash, 160),
+    compressionFallback: true
+  };
+  const fallbackOutput = JSON.stringify(fallback);
+  if (fallbackOutput.length <= maxChars) return fallbackOutput;
+  return JSON.stringify({
+    protocol: 'blankseed/0.1',
+    kind: 'model.action.result',
+    status: actionResult.status === 'error' ? 'error' : 'ok',
+    result: {
+      compressed: true,
+      originalChars: serialized.length,
+      originalHash: sha256(serialized)
+    },
+    error: compactFallbackError(actionResult.error),
+    compressionFallback: true
+  });
+}
+
+function serializeToolResultForModel(actionResult, maxChars = 12000, maxObservationChars = 4000) {
   const serialized = JSON.stringify(actionResult);
-  if (serialized.length <= maxChars) return serialized;
+  const observationKinds = new Set(['node.execute', 'cdp.send', 'page.snapshot', 'module.list']);
+  const limit = observationKinds.has(actionResult.actionKind) ? maxObservationChars : maxChars;
+  if (serialized.length <= limit) return serialized;
+  if (observationKinds.has(actionResult.actionKind)) {
+    return serializeCompressedObservation(actionResult, serialized, limit);
+  }
   return JSON.stringify({
     protocol: actionResult.protocol,
     kind: actionResult.kind,
@@ -173,6 +349,13 @@ class RawCapabilityDispatcher {
     try {
       const value = await this.#invoke(kind, payload, eventContext);
       const classification = classifyActionValue(value);
+      const actionError = classification.error
+        ? serializeEvolutionError(classification.error, {
+            checkpointId: eventContext.checkpointId,
+            turnId: eventContext.turnId,
+            actionId
+          })
+        : null;
       let result = {
         protocol: PROTOCOL,
         kind: 'model.action.result',
@@ -182,7 +365,7 @@ class RawCapabilityDispatcher {
         actionKind: kind,
         status: classification.status,
         result: value,
-        error: classification.error,
+        error: actionError,
         sourceHash: value?.sourceHash ?? value?.manifest?.sourceHash ?? null
       };
       result = this.#boundResult(result);
@@ -219,6 +402,7 @@ class RawCapabilityDispatcher {
       ['module_list', 'module.list'],
       ['module_candidate_create', 'module.candidate.create'],
       ['module_candidate_test', 'module.candidate.test'],
+      ['module_candidate_page_test', 'module.candidate.page-test'],
       ['module_candidate_commit', 'module.candidate.commit'],
       ['module_activate', 'module.activate'],
       ['module_rollback', 'module.rollback'],
@@ -284,6 +468,8 @@ class RawCapabilityDispatcher {
       }
       case 'module.candidate.test':
         return this.moduleStore.testCandidate(assertString(payload.candidateId, 'candidateId', { max: 120 }), { ...context, kind });
+      case 'module.candidate.page-test':
+        return this.#runCandidatePageTest(assertString(payload.candidateId, 'candidateId', { max: 120 }), context);
       case 'module.candidate.commit':
         return this.moduleStore.commitCandidate(assertString(payload.candidateId, 'candidateId', { max: 120 }), { ...context, kind });
       case 'module.activate':
@@ -313,8 +499,80 @@ class RawCapabilityDispatcher {
     }
   }
 
+  async #runCandidatePageTest(candidateId, context) {
+    const prepared = await this.moduleStore.prepareCandidatePageTest(candidateId, {
+      ...context,
+      kind: 'module.candidate.page-test.plan'
+    });
+    if (prepared.status !== 'ok') return prepared;
+
+    const target = context.expectedTarget || (() => {
+      const state = this.target.getState();
+      return { targetId: state.targetId, documentGeneration: state.documentGeneration };
+    })();
+    const phases = {};
+    const phaseError = (phase, result) => {
+      if (result?.status !== 'ok') return result?.error || protocolError(`Page Module ${phase} execution failed.`, { phase });
+      if (result?.result?.ok !== true) {
+        return protocolError(`Page Module ${phase} did not return { ok: true }.`, {
+          phase,
+          result: result?.result ?? null
+        });
+      }
+      return null;
+    };
+    const executePhase = async (phase, source) => {
+      const result = await this.target.execute(source, {
+        ...context,
+        kind: 'module.candidate.page-test',
+        phase,
+        expectedTarget: target
+      });
+      phases[phase] = result;
+      return phaseError(phase, result);
+    };
+
+    let failure = await executePhase('install', prepared.pageTest.installSource);
+    if (!failure) failure = await executePhase('verify', prepared.pageTest.verifySource);
+    const uninstallFailure = await executePhase('uninstall', prepared.pageTest.uninstallSource);
+    if (!failure && uninstallFailure) failure = uninstallFailure;
+    const rollbackVerifyFailure = await executePhase('rollbackVerify', prepared.pageTest.rollbackVerifySource);
+    if (!failure && rollbackVerifyFailure) failure = rollbackVerifyFailure;
+
+    const value = {
+      status: failure ? 'error' : 'ok',
+      passed: !failure,
+      candidateId: prepared.candidateId,
+      moduleId: prepared.moduleId,
+      version: prepared.version,
+      sourceHash: prepared.sourceHash,
+      planExecutionId: prepared.execution.executionId,
+      target,
+      phases,
+      error: failure
+    };
+    this.eventStore.append(failure ? 'module.candidate.page-test.failed' : 'module.candidate.page-test.completed', {
+      candidateId: prepared.candidateId,
+      moduleId: prepared.moduleId,
+      version: prepared.version,
+      sourceHash: prepared.sourceHash,
+      planExecutionId: prepared.execution.executionId,
+      target,
+      phases: Object.fromEntries(Object.entries(phases).map(([phase, result]) => [phase, {
+        executionId: result?.executionId ?? null,
+        status: result?.status ?? 'error'
+      }])),
+      error: failure
+    }, context);
+    return value;
+  }
+
   #failure({ actionId, toolCallId, name, kind, error }, context) {
-    const serialized = serializeError(error, errorCodes.invalidRequest);
+    const serialized = serializeEvolutionError(error, {
+      checkpointId: context.checkpointId,
+      turnId: context.turnId,
+      actionId
+    }, errorCodes.invalidRequest);
     const result = {
       protocol: PROTOCOL,
       kind: 'model.action.result',
@@ -364,6 +622,8 @@ class EvolutionRunManager {
     workspaceRoot,
     defaultMaxTurns = 12,
     defaultMaxActions = 32,
+    maxObservationChars = 4000,
+    timeoutPolicyMs = null,
     maxEvidenceBytes = 16_777_216
   }) {
     this.eventStore = eventStore;
@@ -373,6 +633,8 @@ class EvolutionRunManager {
     this.runsRoot = path.join(path.resolve(workspaceRoot), 'evolution-runs');
     this.defaultMaxTurns = defaultMaxTurns;
     this.defaultMaxActions = defaultMaxActions;
+    this.maxObservationChars = maxObservationChars;
+    this.timeoutPolicyMs = timeoutPolicyMs;
     this.maxEvidenceBytes = maxEvidenceBytes;
     this.active = new Map();
     fs.mkdirSync(this.runsRoot, { recursive: true });
@@ -400,6 +662,7 @@ class EvolutionRunManager {
     const evidencePath = path.join(directory, 'run.json');
     const runContext = { ...context, evolutionRunId, adapter, allowedTools };
     const checkpoint = this.checkpointStore.create(`evolution run ${evolutionRunId}`, runContext);
+    runContext.checkpointId = checkpoint.id;
     const evidence = {
       schema: RUN_SCHEMA,
       protocol: PROTOCOL,
@@ -417,7 +680,7 @@ class EvolutionRunManager {
       startedAt,
       finishedAt: null,
       status: 'running',
-      limits: { maxTurns, maxActions },
+      limits: { maxTurns, maxActions, timeoutPolicyVersion: TIMEOUT_POLICY_VERSION },
       checkpoint,
       inputMessages: messages,
       transcript: [],
@@ -439,23 +702,42 @@ class EvolutionRunManager {
 
     const conversation = messages;
     const seenToolCallIds = new Set();
+    let currentTurnId = null;
+    let currentActionId = null;
+    let previousAction = null;
     try {
       for (let turnSequence = 1; turnSequence <= maxTurns; turnSequence += 1) {
         this.#throwIfCancelled(controller.signal);
+        currentTurnId = null;
+        currentActionId = null;
+        const timeoutPolicy = selectEvolutionTurnTimeout({
+          explicitTimeoutMs: payload.timeoutMs,
+          policy: this.timeoutPolicyMs,
+          previousAction,
+          turnSequence
+        });
+        this.eventStore.append('evolution.turn.timeout.selected', {
+          evolutionRunId,
+          turnSequence,
+          previousAction,
+          ...timeoutPolicy
+        }, runContext);
         const turn = await this.modelTurnManager.turn({
           adapter,
           messages: conversation,
           options: payload.options || {},
-          timeoutMs: payload.timeoutMs
+          timeoutMs: timeoutPolicy.timeoutMs
         }, runContext, {
           signal: controller.signal,
           tools: this.dispatcher.getToolDefinitions(allowedTools)
         });
+        currentTurnId = turn.turnId ?? null;
         evidence.metrics.turns += 1;
         evidence.transcript.push({
           sequence: turnSequence,
           turnId: turn.turnId,
           status: turn.status,
+          timeoutPolicy,
           contextHash: turn.contextHash,
           inputHash: turn.inputHash,
           messages: turn.messages,
@@ -465,7 +747,12 @@ class EvolutionRunManager {
         });
         this.#persist(evidencePath, evidence);
         if (turn.status !== 'ok') {
-          throw createProtocolError(turn.error?.code || errorCodes.modelAdapterFailed, turn.error?.message || 'Model turn failed.', turn.error?.details || {});
+          throw createProtocolError(
+            turn.error?.code || errorCodes.modelAdapterFailed,
+            turn.error?.message || 'Model turn failed.',
+            turn.error?.details || {},
+            Boolean(turn.error?.retryable)
+          );
         }
 
         const rawRequests = Array.isArray(turn.output?.toolRequests) ? turn.output.toolRequests : [];
@@ -497,6 +784,7 @@ class EvolutionRunManager {
             throw protocolError(`Evolution run exceeded ${maxActions} actions.`, { maxActions });
           }
           const actionId = `act_${crypto.randomUUID()}`;
+          currentActionId = actionId;
           let actionResult;
           const duplicate = seenToolCallIds.has(request.id);
           seenToolCallIds.add(request.id);
@@ -517,6 +805,10 @@ class EvolutionRunManager {
           }
           evidence.metrics.actions += 1;
           if (actionResult.status === 'error') evidence.metrics.failedActions += 1;
+          previousAction = {
+            actionKind: actionResult.actionKind,
+            status: actionResult.status
+          };
           evidence.actions.push({
             sequence: evidence.metrics.actions,
             turnId: turn.turnId,
@@ -534,15 +826,33 @@ class EvolutionRunManager {
             role: 'tool',
             name: request.name,
             toolCallId: request.id,
-            content: serializeToolResultForModel(actionResult)
+            content: serializeToolResultForModel(actionResult, 12000, this.maxObservationChars)
           });
           this.#persist(evidencePath, evidence);
         }
       }
       throw protocolError(`Evolution run exceeded ${maxTurns} model turns.`, { maxTurns });
     } catch (error) {
-      evidence.error = serializeError(error, controller.signal.aborted ? errorCodes.executionCancelled : 'INTERNAL_ERROR');
-      return this.#finish(evidence, evidencePath, runContext, controller.signal.aborted ? 'cancelled' : 'error');
+      const status = controller.signal.aborted ? 'cancelled' : 'error';
+      evidence.error = serializeEvolutionError(error, {
+        checkpointId: checkpoint.id,
+        turnId: currentTurnId,
+        actionId: currentActionId
+      }, controller.signal.aborted ? errorCodes.executionCancelled : 'INTERNAL_ERROR');
+      this.eventStore.append('evolution.run.retry.decided', {
+        evolutionRunId,
+        decision: status === 'cancelled'
+          ? 'cancelled'
+          : (evidence.error.retryable ? 'checkpoint-recovery-eligible' : 'not-retryable'),
+        automaticRetry: false,
+        code: evidence.error.code,
+        retryable: evidence.error.retryable,
+        checkpointId: evidence.error.checkpointId,
+        turnId: evidence.error.turnId,
+        actionId: evidence.error.actionId,
+        evidencePath
+      }, { ...runContext, turnId: currentTurnId, actionId: currentActionId });
+      return this.#finish(evidence, evidencePath, runContext, status);
     } finally {
       this.active.delete(evolutionRunId);
       runtime.signal?.removeEventListener('abort', cancelFromParent);

@@ -507,6 +507,7 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
       const confirmationDialog = document.getElementById('confirmation-dialog');
       automationButton.click();
       await waitUntil(() => confirmationDialog.open, 'Module Commit confirmation');
+      const confirmationPresentationOpen = (await window.blankseed.status.get()).target.presentation;
       const automationControlsLocked = [
         'module-id',
         'module-version',
@@ -536,6 +537,7 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
           + '; result=' + document.getElementById('result').textContent.slice(0, 500));
       }
       const noStatus = document.getElementById('module-auto-status').textContent.trim();
+      const confirmationPresentationClosed = (await window.blankseed.status.get()).target.presentation;
       const stoppedModules = await window.blankseed.modules.list();
       const stoppedAtTestedCandidate = stoppedModules.candidates.some((candidate) => (
         candidate.id === 'generated.example'
@@ -799,6 +801,8 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
         },
         moduleAutomation: {
           automationControlsLocked,
+          confirmationPresentationOpen,
+          confirmationPresentationClosed,
           stoppedAtTestedCandidate,
           noStatus,
           completedStatus,
@@ -866,6 +870,14 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
   assert.match(evidence.modelConnection.openAIStatus, /尚未接入|環境變數已接入/);
   assert.equal(evidence.modelConnection.configurationRoundTrip, true);
   assert.equal(evidence.moduleAutomation.automationControlsLocked, true);
+  assert.deepEqual(evidence.moduleAutomation.confirmationPresentationOpen, {
+    overlayActive: true,
+    visible: false
+  });
+  assert.deepEqual(evidence.moduleAutomation.confirmationPresentationClosed, {
+    overlayActive: false,
+    visible: true
+  });
   assert.equal(evidence.moduleAutomation.stoppedAtTestedCandidate, true);
   assert.match(evidence.moduleAutomation.noStatus, /流程停在已測試候選/);
   assert.match(evidence.moduleAutomation.completedStatus, /自動化流程已完成/);

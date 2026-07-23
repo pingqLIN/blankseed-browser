@@ -1,0 +1,33 @@
+{
+  "schema": "blankseed-workspace-resizer-smoke/1",
+  "command": "node scripts/runtime-workspace-resizer-smoke.mjs",
+  "status": "PASS",
+  "input": {
+    "kind": "cdp-pointer-drag",
+    "deltaX": 140
+  },
+  "before": {
+    "separator": {
+      "left": 480,
+      "right": 500,
+      "width": 20
+    },
+    "mainWidth": 500,
+    "ariaValue": 500
+  },
+  "after": {
+    "statusWidth": 640,
+    "targetWidth": 846,
+    "mainWidth": 640,
+    "ariaValue": 640,
+    "ariaText": "控制介面寬度 640 像素",
+    "role": "separator"
+  },
+  "assertions": {
+    "pointerDragUpdatedRuntimeLayout": true,
+    "rendererAndNativeBoundsAgree": true,
+    "targetMinimumWidthPreserved": true,
+    "separatorAccessibilityStateUpdated": true
+  },
+  "screenshot": "reports/ui-v2/qa-workspace-resizer.png"
+}

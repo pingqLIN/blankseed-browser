@@ -56,6 +56,13 @@ if (!Number.isInteger(defaults.modelTurnTimeoutMs) || defaults.modelTurnTimeoutM
   failed = true;
   console.error('modelTurnTimeoutMs must be a positive integer.');
 }
+const timeoutPolicy = defaults.modelTurnTimeoutPolicyMs;
+for (const name of ['simple', 'analysis', 'codeGeneration', 'verification']) {
+  if (!Number.isInteger(timeoutPolicy?.[name]) || timeoutPolicy[name] < 1 || timeoutPolicy[name] > 300000) {
+    failed = true;
+    console.error(`modelTurnTimeoutPolicyMs.${name} must be an integer from 1 to 300000.`);
+  }
+}
 if (!Number.isInteger(defaults.modelContextEventLimit) || defaults.modelContextEventLimit <= 0) {
   failed = true;
   console.error('modelContextEventLimit must be a positive integer.');
@@ -67,6 +74,10 @@ if (!Number.isInteger(defaults.evolutionMaxTurns) || defaults.evolutionMaxTurns 
 if (!Number.isInteger(defaults.evolutionMaxActions) || defaults.evolutionMaxActions <= 0) {
   failed = true;
   console.error('evolutionMaxActions must be a positive integer.');
+}
+if (!Number.isInteger(defaults.evolutionObservationMaxChars) || defaults.evolutionObservationMaxChars < 1024) {
+  failed = true;
+  console.error('evolutionObservationMaxChars must be an integer of at least 1024.');
 }
 if (!Number.isInteger(defaults.evolutionActionResultLimitBytes) || defaults.evolutionActionResultLimitBytes <= 0) {
   failed = true;

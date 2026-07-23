@@ -156,6 +156,8 @@ function createWindow() {
     workspaceRoot,
     defaultMaxTurns: config.evolutionMaxTurns,
     defaultMaxActions: config.evolutionMaxActions,
+    maxObservationChars: config.evolutionObservationMaxChars,
+    timeoutPolicyMs: config.modelTurnTimeoutPolicyMs,
     maxEvidenceBytes: config.evolutionMaxEvidenceBytes
   });
   multiAgentRuntime = new MultiAgentRuntime({

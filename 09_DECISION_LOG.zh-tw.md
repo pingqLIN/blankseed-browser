@@ -283,3 +283,220 @@ Module Commit、Activate 與 Rollback 必須在 Main Process IPC 邊界收到 `c
 ### Rollback/review trigger
 
 若任何介面路徑可省略確認、NO 仍產生事件或狀態變更、一般 Agent 取得高風險 Module tool，或特殊 allowlist 缺少可檢視的授權來源，必須停止 Commit、Activate 或 Rollback。將這些操作委派給新的 Runtime profile 前，必須重新審查。
+
+## ADR-022 — 只重試因 CDP session 失效而被拒絕的 command
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+ADR-008 禁止重播失敗的 raw CDP command，因為非預期 detach 無法證明 Chromium 是否已套用具有狀態的 command。一次長流程 Agent run 出現更精確的 `No session with given id` 拒絕；這代表 transient debugger session 已過期，且 broker 尚未取得 CDP result。Runtime 需要受控的 recovery path，但不能因此建立一般性的 command replay policy。
+
+### Evidence
+
+既有 broker 只會在下一個獨立 command 重新 attach，不會辨識 `No session with given id`、更新 broker-owned attachment，或重試被拒絕的 command。新的 regression fixtures 證明：只有該精確錯誤會觸發一次 detach/reattach 與一次 retry；第二次仍失敗會產生 structured `CDP_SESSION_INVALID`；其他 CDP failure 絕不 replay。
+
+### Alternatives
+
+- 維持 evolution action 失敗，要求完全重新建立 run。
+- 任何 debugger error 或 detach 後都 replay command。
+- Session 失效時重新載入或重建 target view。
+
+### Decision
+
+只有 cause 包含 `No session with given id` 的 error 才視為 invalid-session rejection。Runtime 記錄 `SESSION_INVALID`、更新 broker-owned debugger attachment，並將相同 command 重試一次。成功時記錄 `RECOVERED`；若 retry 仍失敗，回傳 retryable `CDP_SESSION_INVALID`，保留兩次 cause 與 `attempts: 2`。禁止第三次 retry，也不得把此例外擴張到 timeout、unexpected detach、method error 或其他 CDP failure。
+
+### Consequences
+
+- 長流程可從一種已知的 transient session identity failure 恢復。
+- ADR-008 對模糊或可能已套用 command 的 no-replay 規則仍是預設值。
+- Recovery 最多增加一次 command latency，並留下可稽核 event chain。
+- Recovered result 後仍會執行 target freshness validation。
+
+### Rollback/review trigger
+
+如果 Electron 可能在回傳此精確拒絕前已執行 command、debugger ownership 改為共享、recovery 可能超過兩次總嘗試，或測試顯示其他 error 進入 retry path，應移除此例外。
+
+## ADR-023 — 只在 model context 邊界壓縮大型 observation
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+長流程 evolution run 會把完整 Node、CDP、DOM snapshot result 寫入 durable evidence，也會把相同 result 放回後續 model turn。大型 output 因此持續累積在 conversation，增加 model latency。若直接替換 durable result，會降低稽核能力，並違反 evidence-before-claims 邊界。
+
+### Evidence
+
+失敗的 YOUTUBE-AOPass run 含有超過 30,000 characters 的單一 action record。既有 generic model serializer 允許每個 tool result 最多 12,000 characters，沒有更低的 observation-specific budget。新的 regression tests 將 50,000-character Node、CDP 與 page snapshot result 傳入 model-facing serializer，同時確認 `run.json` 仍保留完整 50,000-character Node result。
+
+### Alternatives
+
+- 在 persistence 前截斷或拒絕大型 action evidence。
+- 所有 tool kind 都維持 12,000-character generic preview。
+- 在 Runtime 內加入外部 semantic summarization model。
+
+### Decision
+
+只有 `node.execute`、`cdp.send`、`page.snapshot` 的 model feedback 超過 `evolutionObservationMaxChars` 時，才套用 deterministic observation compression；初始上限為 4,000 characters。保留 status、identity、error code、retryability、hash、受控 structural keys、scalar previews，以及存在時的 metrics。Durable run evidence 仍保存完整 action result；小型 observation 與先前 model feedback 維持 byte-equivalent。
+
+### Consequences
+
+- 三種高輸出 tool 的 per-action observation growth 受到限制。
+- Durable evidence 維持完整且可獨立檢查。
+- Summary 是 deterministic structural compression，不是 semantic claim。
+- 若省略的細節很重要，model 可能需要要求更窄的 follow-up observation。
+
+### Rollback/review trigger
+
+若 compressed output 超過設定 budget、error identity 或 metrics 遺失、durable evidence 被修改，或 workflow 持續需要 structural summary 省略的欄位，應重新審查。
+
+## ADR-024 — 依 evolution work state 選擇 model-turn timeout
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+所有 evolution model turn 都沿用 direct-model 的 30 秒預設值。這個 budget 適合簡單 request，但長時間 analysis、code generation、verification turn 會反覆過期。Node、Page、CDP execution 已有獨立且受控的 timeout，不能由 model policy 靜默 replay 或延長。
+
+### Evidence
+
+失敗的 YOUTUBE-AOPass run 在 turn 18 超過 30,000 ms 後終止，雖然 adapter 已將 timeout 標記為 retryable。在本決策前，evolution IPC 會先塞入 30,000-ms default，導致 `EvolutionRunManager` 無法選擇 turn-specific budget。新的 regression tests 證明 manager 對連續的 analysis、code-generation、verification turn 分別傳入 90,000、120,000、180,000 ms，並在 event 與 `run.json` 記錄相同決策。
+
+### Alternatives
+
+- 所有 model turn 一律提高為固定的大型 timeout。
+- 允許 model-generated text 選擇任意 timeout。
+- 將 Page、CDP、Node action timeout 與 model inference 一起延長。
+
+### Decision
+
+Evolution model turn 使用 policy `blankseed-adaptive-timeout/0.1`：
+
+- simple：30,000 ms；
+- analysis：90,000 ms；
+- code generation/correction：120,000 ms；
+- verification：180,000 ms。
+
+第一個 evolution turn 分類為 analysis。後續 turn 依上一個 broker action 與 status 分類：observation input 導向 code generation，Node/candidate test/invoke result 導向 verification，action failure 導向 correction。保留操作員明確指定的 `timeoutMs`，範圍為 1 到 300,000 ms。每次選擇都要在 model turn 前記錄。禁止修改 action timeout，也不加入 automatic retry。
+
+### Consequences
+
+- 長時間 inference 可取得符合 work state 的受控 budget。
+- Direct non-evolution model call 保留既有 30 秒預設值。
+- 操作員仍可提供明確且受控的 override。
+- Timeout decision 可由 event 與 run evidence 重現。
+
+### Rollback/review trigger
+
+若 classification 持續選錯 work state、任何值超過 300,000 ms、明確 override 被忽略，或 policy 開始修改或 replay Page、CDP、Node、Module action，應重新審查。
+
+## ADR-025 — 依 Module API v1.1 entry-point 優先順序解析 generated Module result
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+Generated Node runtime 雖提供 CommonJS 形式的 `module` 與 `exports` object，卻只使用 `AsyncFunction(source)` 的 direct return value。Committed generated module 若透過 `module.exports.evaluate` 提供能力，source 仍可成功載入，但 implicit `undefined` normalize 後只會得到成功的 `null` result。原地修改既有 committed module 會違反 immutable version governance。
+
+### Evidence
+
+`youtube-aopass@1.0.0` 的 verified source hash 為 `sha256:dd90a4facd06c1ff1657cc030c63f908840164b186a5a1f1cb419a2f351bd8ec`；它匯出 `evaluate`，但沒有 top-level return。Focused contract tests 已證明 direct return、asynchronous `execute`、legacy `evaluate`、invalid-module error、優先順序，以及 undefined-result rejection。受治理的 migration 已建立、測試、提交並啟用 `youtube-aopass@1.0.1`；candidate test 與 real YouTube page invocation 都取得 structured result。
+
+### Alternatives
+
+- 強制所有 generated module 使用 top-level direct return。
+- 原地修改 committed module source。
+- 呼叫所有 exported function，再合併 result。
+- 繼續把 implicit `undefined` 接受為成功的 `null` result。
+
+### Decision
+
+採用 Module Runtime API v1.1。完成 top-level source evaluation 後，只依下列順序 await 一個 result source：callable `module.exports.execute(context)`、callable `module.exports.evaluate(context.observation, context.environment)`，最後才是已定義的 direct return value。`context.observation` 依序從 `input.observation`、`environment.observation`、整個 environment 解析。Explicit `null` 仍然有效；缺少 entry point 或最終 result 為 `undefined` 時，以 structured code `MODULE_CONTRACT_INVALID` 失敗。既有 execution envelope 與 JSON serialization 規則不變。
+
+允許 optional manifest fields `parentVersion` 與 `migrationReason`，並在 candidate、test、commit 狀態中完整保留。Corrective Module source 仍必須遵守 `candidate -> test -> commit -> activate`；不得重寫 committed version。
+
+### Consequences
+
+- 既有 direct-return module 繼續運作。
+- Modern 與 legacy CommonJS module 取得 deterministic dispatch。
+- Invalid generated source 不再因 implicit `undefined` 而以 silent `null` 成功。
+- Migration lineage 可被檢查，不必修改既有 manifest schema identifier。
+- Runtime compatibility 不代表 live website behavior 或 YouTube-AOPass 3/3 acceptance 已完成。
+
+### Rollback/review trigger
+
+若 `1.0.1` invocation 失敗，將 active Module mapping rollback 至 `youtube-aopass@1.0.0`。若優先順序破壞既有 direct-return module、context resolution 暴露非預期資料、undefined rejection 阻擋已記錄的有效 contract，或 manifest migration fields 在任何 lifecycle transition 中遺失，應重新審查或取代本決策。
+
+## ADR-026 — 透過受控 layout 邊界調整控制介面與目標頁寬度
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+Control renderer 與 native target `WebContentsView` 原本使用固定的 configured split。若只用 CSS 調整 renderer，native view bounds 會不同步，可能蓋住 divider 或控制內容。
+
+### Evidence
+
+Focused tests 證明 bounded layout calculation 與 `target.layout.changed` event。獨立 Electron smoke 使用真實 CDP mouse input，把 separator 從 500 px 拖至 640 px；完成後 renderer width、main-process layout、native target width 與 ARIA state 一致。
+
+### Alternatives
+
+- 只用 CSS 調整 control renderer。
+- 讓 renderer 直接存取 native `WebContentsView`。
+- 維持固定 configured split。
+
+### Decision
+
+透過 preload/IPC 提供一個明確的 resize operation。Main process 擁有被接受的 control-panel width，確保兩側至少各 320 px，更新 native view bounds，回傳 canonical layout，並記錄受控 event。Renderer 拖曳時可 optimistic update，但必須依回傳的 canonical width 校正。Accessible vertical separator 同時支援 pointer drag 與鍵盤 Arrow、Home、End 操作。Width 僅保留於目前 session。
+
+### Consequences
+
+- Resize 過程中 control 與 target panes 維持同步。
+- Remote page 保持 sandbox isolation，不取得 Node 或 layout authority。
+- 操作員可用滑鼠或鍵盤調整，且不會完全隱藏任一側。
+- 新 session 從 configured default width 開始。
+
+### Rollback/review trigger
+
+若 native 與 renderer bounds 可能分歧、pointer capture 無法跨越 view boundary、accessibility state 過期，或 minimum widths 阻礙必要內容存取，應一併移除 separator 與 resize IPC。
+
+---
+
+## ADR-027 — 透過綁定 candidate 的 broker bridge 驗證 generated page behavior
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+生成的覆蓋式廣告 candidate 透過不受支援的 `run()` export 回傳 installer string。Node-only candidate test 正確拒絕該 module；即使修正 Node result，也無法證明 installer 已在 remote page 執行，或之後能還原頁面。
+
+### Evidence
+
+受監督 Module Runtime 只接受 `execute`、`evaluate` 或 direct return。既有 isolated-world page broker 已能記錄 source hash、target identity、timeout、cancellation 與 page execution event，且不會讓 remote content 取得 Node。聚焦測試現已證明：tested candidate 會再次執行以產生四階段 plan，dispatcher 會在同一個 expected target identity 上依序執行 install、verify、uninstall 與 rollback verification。
+
+### Alternatives
+
+- 將 Node candidate test 視為 page behavior 的證明。
+- Candidate test 後讓模型直接送出任意 installer 給 `page_execute`。
+- 在 Node utility runtime 執行 generated page source。
+
+### Decision
+
+新增 `module_candidate_page_test`。它只接受 tested candidate ID，依既有 Module Runtime contract 再次執行已儲存 source，並要求回傳含有 `installSource`、`verifySource`、`uninstallSource` 與 `rollbackVerifySource` 的 `pageTest` descriptor。每個 script 都必須經既有 isolated-world page broker 執行，並回傳 `{ ok: true }`。dispatcher 會在 event pipeline 保留 candidate ID、source hash、plan execution ID、target identity、phase execution ID 與失敗資訊。
+
+### Consequences
+
+- Candidate provenance 持續與實際執行的 page code 綁定。
+- Remote page 保持 `nodeIntegration: false` 的 sandbox。
+- 成功 candidate test 不再能在缺少 install 與 rollback evidence 時被誤認為 page 成功。
+- Candidate page test 可逆，不會 commit 或 activate module。
+
+### Rollback/review trigger
+
+若 bridge 可以執行非來自已儲存 candidate 的 source、遺失 target-identity check、install 後未嘗試 uninstall，或讓 remote renderer 取得 Node authority，應移除此 bridge 並重新審查。
