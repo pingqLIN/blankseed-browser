@@ -87,6 +87,35 @@ Manifest 使用 `blankseed-module/0.1` schema，保存 id/version/description/en
 
 每行保存一個 JSON object，包含 event ID、sequence、session/request/execution ID、可選的 evolution run/turn/action correlation ID、type、timestamp 與 data。
 
+## 持久化去識別邊界
+
+Event Store append、受監督 execution 寫入 experiment artifact、以及
+evolution run 寫入 run.json 之前，Runtime 都會先建立去識別化副本。即時
+tool result、記憶體中的 execution envelope 與提供給模型的 observation 不會
+被改寫；此邊界只作用於 durable evidence。
+
+在此邊界中，所有非本機 HTTP(S) target 預設都視為敏感。管線會以固定標記
+取代 host、path、query 與裸露 host reference。若 object 含有這類 target，
+title、text、DOM/HTML、accessible name、label、message 與 nested element
+name 等 page-content field 都會改成 page-content 標記。去識別 metadata 不會
+保存可逆 target hash，也不會保存原始 target。
+
+Loopback 與 fixture address 仍可檢視：localhost、IPv4/IPv6 loopback、
+*.localhost、*.test、*.invalid 與 example.com/example.net/example.org。發生
+去識別時，object artifact 會取得 persistenceRedaction 計數。受監督 execution
+也會在 experiment files 旁寫入可檢查的 redaction.json receipt；其中只包含
+file name 與彙總計數。
+若 Event Store data 無法安全檢查，會寫入僅含 metadata 的 failed_closed record，
+不會寫入原始值。
+若 experiment source file 被去識別，sourceHash 仍代表實際執行的原始 source；
+receipt 會明確說明保留的 source file 是 evidence copy，無法重建可供 hash 驗證
+的 executable。
+
+此邊界不會改寫 generated Module candidate source 或 committed Module artifact，
+因為改寫 executable source 會使 source hash 失效，也會改變待審查 capability。
+candidate-source admission policy 必須另行決策，不是 evidence redaction 的隱含
+副作用。
+
 ## Checkpoint manifest
 
 保存 schema、checkpoint ID/label/time、app version、target、configuration hash、module versions、event sequence 與選擇性的 Git identity。

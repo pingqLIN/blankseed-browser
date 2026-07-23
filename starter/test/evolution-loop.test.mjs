@@ -295,6 +295,59 @@ test('default Agent catalog navigates the target while high-risk rollback requir
   }
 });
 
+test('EvolutionRunManager writes de-identified external page evidence while keeping the model observation live', async () => {
+  let calls = 0;
+  const adapter = {
+    id: 'fixture.persistence-redaction',
+    async run({ messages }) {
+      calls += 1;
+      if (calls === 1) return request('call_sensitive_snapshot_12345678', 'page_snapshot', {});
+      const observation = latestToolResult(messages);
+      assert.equal(observation.result.result.url, 'https://private-site.example/landing');
+      assert.equal(observation.result.result.title, 'Sensitive page title');
+      return { role: 'assistant', content: 'Snapshot observation completed.', toolRequests: [] };
+    }
+  };
+  const harness = createHarness(adapter);
+  harness.targetState.url = 'https://private-site.example/landing';
+  harness.targetState.title = 'Sensitive page title';
+  harness.target.snapshot = async (_options, context) => createExecutionResult({
+    sessionId: context.sessionId,
+    requestId: context.requestId,
+    executionId: 'exe_sensitive_snapshot_12345678',
+    kind: context.kind,
+    startedAt: '2026-07-24T00:00:00.000Z',
+    finishedAt: '2026-07-24T00:00:00.010Z',
+    result: {
+      url: 'https://private-site.example/landing',
+      title: 'Sensitive page title',
+      text: 'Sensitive page body',
+      elements: [{ tag: 'button', name: 'Sensitive control label' }]
+    }
+  });
+
+  try {
+    const result = await harness.manager.run({
+      adapter: adapter.id,
+      messages: [{ role: 'user', content: 'Inspect the current page.' }]
+    }, {
+      sessionId: 'ses_fixture_12345678',
+      requestId: 'req_persistence_redaction_12345678'
+    });
+    const persisted = readFileSync(result.evidencePath, 'utf8');
+    const manifest = JSON.parse(persisted);
+
+    assert.equal(result.status, 'ok');
+    assert.equal(calls, 2);
+    assert.equal(manifest.persistenceRedaction.status, 'redacted');
+    assert.equal(persisted.includes('private-site.example'), false);
+    assert.equal(persisted.includes('Sensitive page'), false);
+    assert.equal(persisted.includes('Sensitive control'), false);
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
 test('RawCapabilityDispatcher runs a tested candidate page plan through the target broker and verifies rollback', async () => {
   const harness = createHarness();
   try {

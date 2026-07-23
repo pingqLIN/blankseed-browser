@@ -260,6 +260,39 @@ Stored as one JSON object per line:
 }
 ```
 
+## Persistence de-identification boundary
+
+Before the Event Store appends data, before a supervised execution writes an
+experiment artifact, and before an evolution run writes run.json, the runtime
+creates a redacted clone. The live tool result, in-memory execution envelope,
+and model observation remain unchanged; the boundary applies only to durable
+evidence.
+
+For this boundary, every non-local HTTP(S) target is treated as sensitive by
+default. The pipeline replaces its host, path, query, and bare-host references
+with a fixed marker. If an object contains such a target, page-content fields
+such as title, text, DOM/HTML, accessible names, labels, messages, and nested
+element names are replaced with a page-content marker. It never stores a
+reversible target hash or the original target in redaction metadata.
+
+Loopback and fixture addresses remain inspectable: localhost, IPv4/IPv6
+loopback, *.localhost, *.test, *.invalid, and
+example.com/example.net/example.org. When redaction occurs, an object artifact
+receives persistenceRedaction counts. A supervised execution also writes an
+inspectable redaction.json receipt beside its experiment files; the receipt
+contains only file names and aggregate counts.
+If Event Store data cannot be inspected safely, it writes a metadata-only
+failed_closed record instead of the original value.
+If an experiment source file is redacted, its sourceHash still identifies the
+executed original and the receipt makes clear that the retained source file is
+an evidence copy rather than a hash-reconstructible executable.
+
+This boundary does not rewrite generated Module candidate source or committed
+Module artifacts because changing executable source would invalidate its
+source hash and alter the capability under review. A candidate-source admission
+policy is a separate future decision, not an implicit side effect of evidence
+redaction.
+
 ## Checkpoint manifest
 
 ```json

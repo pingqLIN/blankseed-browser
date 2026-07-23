@@ -14,6 +14,7 @@ const {
   serializeError,
   sha256
 } = require('../shared/contracts.cjs');
+const { attachPersistenceRedaction, redactForPersistence } = require('../shared/persistence-redaction.cjs');
 const { POLICY_VERSION: TIMEOUT_POLICY_VERSION, selectEvolutionTurnTimeout } = require('./adaptive-timeout-policy.cjs');
 
 const PROTOCOL = 'blankseed/0.1';
@@ -895,7 +896,7 @@ class EvolutionRunManager {
         reason: serializeError(limitError),
         attemptedHash: sha256(JSON.stringify(evidence))
       };
-      writeJsonAtomic(evidencePath, safeEvidence);
+      writeJsonAtomic(evidencePath, this.#persistenceValue(safeEvidence));
       finalEvidence = safeEvidence;
       status = 'error';
     }
@@ -937,14 +938,20 @@ class EvolutionRunManager {
   }
 
   #persist(evidencePath, evidence) {
-    const bytes = measureJsonBytes(evidence);
+    const persistedEvidence = this.#persistenceValue(evidence);
+    const bytes = measureJsonBytes(persistedEvidence);
     if (bytes > this.maxEvidenceBytes) {
       throw protocolError('Evolution run evidence exceeded the configured byte budget.', {
         bytes,
         maxBytes: this.maxEvidenceBytes
       });
     }
-    writeJsonAtomic(evidencePath, evidence);
+    writeJsonAtomic(evidencePath, persistedEvidence);
+  }
+
+  #persistenceValue(evidence) {
+    const redacted = redactForPersistence(evidence);
+    return attachPersistenceRedaction(redacted.value, redacted.metadata);
   }
 }
 

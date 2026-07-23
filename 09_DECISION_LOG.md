@@ -1299,6 +1299,68 @@ Remove the bridge if it can execute source not derived from the stored candidate
 
 ---
 
+## ADR-028 — De-identify sensitive external page evidence at durable boundaries
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+An external page target and its visible content can enter several durable
+artifacts: append-only events, supervised execution files, and evolution-run
+evidence. A cleanup of prior local artifacts cannot prevent the same class of
+data from being persisted by a later execution.
+
+### Evidence
+
+Page snapshots include URL, title, text, and accessible element names.
+ProcessSupervisor writes source, input, runtime, result, and stdout/stderr
+artifacts under experiments. EvolutionRunManager writes the model transcript
+and action results into a durable run manifest. Previously these persistence
+paths used their input values directly.
+
+### Alternatives
+
+- Ban navigation or execution against every external target.
+- Redact only an operator-maintained list of known sensitive domains.
+- Store a reversible or dictionary-susceptible target hash.
+- Apply one clone-only, default-deny persistence redaction boundary.
+
+### Decision
+
+Use one shared persistence-redaction pipeline before Event Store append,
+ProcessSupervisor experiment writes, and EvolutionRunManager run-manifest
+writes. Treat non-local HTTP(S) targets as sensitive by default. Replace target
+references with fixed non-reversible markers and remove page-content fields
+within a target-bearing object. Preserve loopback and fixture hosts for local
+tests. Persist only aggregate redaction counts, with a per-experiment receipt.
+
+The pipeline must not mutate the live result, execution envelope, or model
+observation. It also must not silently rewrite generated Module candidate
+source or committed Module artifacts, because that would alter the code under
+review and break immutable source identity. Candidate-source admission is
+outside this decision and requires a separately reviewed policy.
+
+### Consequences
+
+- The three durable evidence channels no longer retain raw non-local target
+  identity or scoped page content.
+- Operators retain an inspectable indication that redaction occurred, without a
+  reversible target identifier.
+- Evidence has less semantic detail after persistence; live workflow behavior
+  and model correction feedback retain their original values.
+- Existing local artifacts require separate cleanup; this pipeline is
+  preventative rather than a history rewrite.
+
+### Rollback/review trigger
+
+Review or replace this decision if raw external target/page content reaches any
+covered durable sink, a loopback or fixture target is redacted unexpectedly,
+redaction changes the live execution/model value, or a requirement arises to
+persist generated Module source under a newly approved admission policy.
+
+---
+
 ## ADR template
 
 ```markdown

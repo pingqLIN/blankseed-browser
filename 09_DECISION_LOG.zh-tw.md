@@ -500,3 +500,62 @@ Focused tests 證明 bounded layout calculation 與 `target.layout.changed` even
 ### Rollback/review trigger
 
 若 bridge 可以執行非來自已儲存 candidate 的 source、遺失 target-identity check、install 後未嘗試 uninstall，或讓 remote renderer 取得 Node authority，應移除此 bridge 並重新審查。
+
+---
+
+## ADR-028 — 在 durable boundary 去識別敏感外部頁面證據
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+外部 page target 及其可見內容可能進入多種 durable artifact：append-only
+event、受監督 execution file 與 evolution run evidence。即使清理過去的本機
+artifact，也無法阻止之後的 execution 再次持久化同類資料。
+
+### Evidence
+
+Page snapshot 含有 URL、title、text 與 accessible element name。
+ProcessSupervisor 會在 experiments 下寫入 source、input、runtime、result 與
+stdout/stderr artifact。EvolutionRunManager 會將 model transcript 與 action
+result 寫入 durable run manifest。這些 persistence path 先前都直接使用輸入
+值。
+
+### Alternatives
+
+- 禁止所有外部 target 的 navigation 或 execution。
+- 只去識別由操作員維護的已知敏感 domain 清單。
+- 保存可逆或容易受到字典比對的 target hash。
+- 在 persistence 前採用單一 clone-only、default-deny 的去識別 boundary。
+
+### Decision
+
+在 Event Store append、ProcessSupervisor experiment write 與
+EvolutionRunManager run-manifest write 前，使用同一個 shared
+persistence-redaction pipeline。非本機 HTTP(S) target 預設視為敏感，並以
+固定、不可逆的 marker 取代 target reference，同時移除含有此 target object
+中的 page-content field。保留 loopback 與 fixture host 供本機測試使用。只
+持久化彙總 redaction count，並為每個 experiment 寫入 receipt。
+
+Pipeline 不得改寫即時 result、execution envelope 或 model observation。也不得
+靜默改寫 generated Module candidate source 或 committed Module artifact，因為
+這會改變待審查的 code，並破壞 immutable source identity。candidate-source
+admission 不屬於本決策，必須另以經審查的 policy 處理。
+
+### Consequences
+
+- 三個 covered durable evidence channel 不再保留原始非本機 target identity
+  或其範圍內的 page content。
+- 操作員仍可得知 redaction 已發生，但不會取得可逆 target identifier。
+- Persistence 後的 evidence 語意細節較少；即時 workflow behavior 與 model
+  correction feedback 保留原始值。
+- 既有本機 artifact 必須另行清理；此 pipeline 是預防機制，不是 history
+  rewrite。
+
+### Rollback/review trigger
+
+若任一 covered durable sink 出現原始外部 target/page content、loopback 或
+fixture target 被意外去識別、redaction 改變即時 execution/model value，或
+需要在新的已核准 admission policy 下持久化 generated Module source，必須
+重新審查或取代本決策。

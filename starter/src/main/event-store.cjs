@@ -4,6 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { serializeError } = require('../shared/contracts.cjs');
+const {
+  attachPersistenceRedaction,
+  REDACTION_KEY,
+  REDACTION_SCHEMA,
+  redactForPersistence
+} = require('../shared/persistence-redaction.cjs');
 
 class EventStore {
   constructor(baseDirectory, { sessionId = null } = {}) {
@@ -16,6 +22,18 @@ class EventStore {
   }
 
   append(type, data = {}, context = {}) {
+    let persistedData;
+    try {
+      const redacted = redactForPersistence(data);
+      persistedData = attachPersistenceRedaction(redacted.value, redacted.metadata);
+    } catch {
+      persistedData = {
+        [REDACTION_KEY]: {
+          schema: REDACTION_SCHEMA,
+          status: 'failed_closed'
+        }
+      };
+    }
     const event = {
       eventId: `evt_${crypto.randomUUID()}`,
       sequence: ++this.sequence,
@@ -32,7 +50,7 @@ class EventStore {
       restoreTransitionId: context.restoreTransitionId ?? null,
       turnId: context.turnId ?? null,
       actionId: context.actionId ?? null,
-      data
+      data: persistedData
     };
     fs.appendFileSync(this.filePath, `${this.#stringifyEvent(event)}\n`, 'utf8');
     return event;
