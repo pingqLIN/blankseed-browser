@@ -119,6 +119,9 @@ Git-ignored Runtime workspace evidence also includes
 `workspace/evolution-runs/<runId>/run.json`,
 `workspace/multi-agent-runs/<runId>/run.json`, and
 `workspace/governance/decisions/<decisionId>.json`.
+These durable artifacts use persistence de-identification for non-local target
+references and scoped page content. Live model results and same-session
+governance hashes remain unchanged.
 Checkpoint restore transitions are journaled under
 `<userData>/blankseed-data/checkpoint-transitions/`; `applied_unknown` means the
 target mapping was observed but completion evidence failed and needs operator

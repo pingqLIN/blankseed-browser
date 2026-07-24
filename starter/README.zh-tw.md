@@ -87,6 +87,8 @@ UI 會顯示已解析的路徑。
 
 Git 忽略的 Runtime workspace evidence 也包含 `workspace/evolution-runs/<runId>/run.json`、`workspace/multi-agent-runs/<runId>/run.json` 與 `workspace/governance/decisions/<decisionId>.json`。
 
+這些 durable artifact 會對非本機 target reference 與其範圍內的 page content 套用 persistence de-identification；即時 model result 與同 session governance hash 維持不變。
+
 Checkpoint restore transition 會記錄於 `<userData>/blankseed-data/checkpoint-transitions/`。`applied_unknown` 表示已觀察到 target mapping，但 completion evidence 失敗，必須由 operator reconciliation。
 
 ## 人工驗證

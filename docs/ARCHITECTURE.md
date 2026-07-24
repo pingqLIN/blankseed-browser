@@ -214,12 +214,17 @@ Runtime state is intentionally split by purpose:
 - `starter/workspace/evolution-runs/<evo_*>/run.json` stores bounded evolution
   evidence.
 - `starter/workspace/multi-agent-runs/<mar_*>/run.json` stores sequential Agent
-  identity and handoff evidence.
+  identity and de-identified handoff evidence.
 - `starter/workspace/governance/decisions/<gov_*>.json` stores review and
-  operator-Apply state.
+  operator-Apply state after persistence de-identification.
 - `<userData>/blankseed-data/checkpoint-transitions/<rst_*>.json` journals
   restore intent and records `applied_unknown` when the active mapping changed
   but completion evidence could not be finalized.
+
+Multi-Agent and governance artifacts use redacted persistence views. Their live
+same-session values remain available to the model and the Main Process
+governance anchor; the disk file hash binds the redacted decision, so privacy
+filtering does not weaken tamper detection or the operator-Apply gate.
 
 ## Capability evolution boundary
 

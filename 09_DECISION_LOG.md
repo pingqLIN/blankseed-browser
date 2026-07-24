@@ -1361,6 +1361,129 @@ persist generated Module source under a newly approved admission policy.
 
 ---
 
+## ADR-029 — Minimize Checkpoint persistence to the explicit restore scope
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+ADR-015 limits restore authority to `modules.active`, but a Checkpoint could
+still serialize the complete runtime status before restore. That broader status
+can include a target, page-derived fields, configuration, and other data that
+is neither restorable nor needed to prove the active mapping.
+
+### Evidence
+
+The runtime status contains the Module state alongside target and configuration
+state. Checkpoint restore reads only `state.modules.active`, validates its hash,
+and atomically applies that mapping. Focused regression coverage now proves
+that a v0.3 file retains no target or configuration field, rejects a
+hash-consistent attempt to add extra state, and continues to restore a valid
+v0.2 active mapping.
+
+### Alternatives
+
+- Send the complete status through the generic persistence redactor.
+- Encrypt the complete status and retain it for a possible future restore.
+- Keep the complete status for diagnostics despite its declared exclusions.
+- Project only the declared restorable state before writing a Checkpoint.
+
+### Decision
+
+Write `blankseed-checkpoint/0.3` with exactly
+`{ modules: { active } }` as state, an explicit exclusion list, and a hash of
+that projected state. Validate that a v0.3 file has no other state keys before
+any restore mutation. Apply the shared persistence redactor to the persisted
+label. Continue to read validated v0.2 Checkpoints only for rollback
+compatibility; never emit v0.2 again and do not claim that this decision
+rewrites historical artifacts.
+
+### Consequences
+
+- New Checkpoints cannot retain target/page/configuration data through an
+  accidental whole-status serialization.
+- Checkpoint labels follow the same external-target privacy rule as the other
+  durable evidence sinks.
+- Existing v0.2 files remain a separately managed privacy residual until they
+  are retired or handled by a dedicated cleanup procedure.
+- Expanding restore scope requires an explicit schema decision, privacy review,
+  and regression evidence.
+
+### Rollback/review trigger
+
+Review before adding any `state` key beyond `modules.active`, if v0.3 creation
+cannot project the mapping, if a restore accepts extra state, if a legacy file
+cannot be restored as documented, or if external target/page content appears in
+a newly written Checkpoint.
+
+---
+
+## ADR-030 — Separate live Multi-Agent authority from de-identified durable evidence
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+Evolution-run persistence already redacts external target and page evidence,
+but its returned result intentionally remains live and unmodified. The
+Multi-Agent layer copied that live result, proposal content, handoff, and review
+reason into a second run manifest and governance decision, reintroducing the
+same sensitive material at two direct JSON sinks.
+
+### Evidence
+
+A focused regression supplied an external target and page title through the
+task, Proposer output, and Reviewer reason. Before this change, both
+`multi-agent-runs/<mar_*>/run.json` and
+`governance/decisions/<gov_*>.json` retained the raw host and title. Governance
+Apply also requires an exact same-session memory anchor, proposal/review
+integrity hashes, an evidence hash, and a tamper-detecting hash of the decision
+file.
+
+### Alternatives
+
+- Redact the live result before it reaches the Reviewer and operator.
+- Redact only after hashing without changing the decision-file anchor.
+- Remove proposal and review narrative from durable evidence entirely.
+- Maintain separate live-authority and redacted-persistence views.
+
+### Decision
+
+Write `blankseed-multi-agent-run/0.2` and
+`blankseed-governance-decision/0.2` only through the shared
+persistence-redaction pipeline. Treat `task`, `proposalContent`, and review
+`reason` as page-content narrative fields when they identify an external
+target. Keep the live proposal, handoff, review, and decision unchanged in the
+same-session Main Process anchor. Bind tamper detection to the exact redacted
+decision written to disk, while preserving proposal, review, and evidence
+hashes over the original live evidence for authorization checks.
+
+Historical v0.1 artifacts are not rewritten. A v0.1 governance decision from a
+previous Main Process session remains non-applicable under the existing
+same-session authority rule.
+
+### Consequences
+
+- Multi-Agent run and governance decision files no longer duplicate raw
+  external target or scoped narrative evidence.
+- Model feedback, human review output, immutable evidence identity, and
+  same-session Apply behavior remain intact.
+- Persisted narrative may be replaced by fixed markers, while aggregate
+  `persistenceRedaction` metadata records that filtering occurred.
+- Integrity hashes identify the original complete evidence but cannot
+  reconstruct removed content and are not target-only identifiers.
+
+### Rollback/review trigger
+
+Review if either v0.2 sink retains an external target or related narrative,
+redaction changes the live Proposer/Reviewer value, a hash-consistent tamper is
+accepted, a retryable Apply can no longer re-anchor its redacted decision, or a
+future cross-session Apply design requires migration of historical decisions.
+
+---
+
 ## ADR template
 
 ```markdown

@@ -559,3 +559,118 @@ admission 不屬於本決策，必須另以經審查的 policy 處理。
 fixture target 被意外去識別、redaction 改變即時 execution/model value，或
 需要在新的已核准 admission policy 下持久化 generated Module source，必須
 重新審查或取代本決策。
+
+---
+
+## ADR-029 — 將 Checkpoint persistence 最小化為明確的 restore scope
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+ADR-015 已將 restore authority 限制在 `modules.active`，但 Checkpoint 在
+restore 前仍可能序列化完整 runtime status。完整 status 可包含 target、
+page-derived field、configuration 與其他不需要還原、也不需要用來證明 active
+mapping 的資料。
+
+### Evidence
+
+Runtime status 同時包含 Module state、target 與 configuration state；而
+Checkpoint restore 只會讀取 `state.modules.active`、驗證 hash，再原子套用該
+mapping。新的 focused regression coverage 已證明：v0.3 file 不保留 target 或
+configuration field；即使攻擊者重新計算 hash，額外 state 仍會被拒絕；有效的
+v0.2 active mapping 仍可 restore。
+
+### Alternatives
+
+- 將完整 status 交給 generic persistence redactor。
+- 加密完整 status，為未來可能的 restore 保留它。
+- 雖然已宣告 exclusions，仍為診斷目的保存完整 status。
+- 寫入 Checkpoint 前只投影已宣告可還原的 state。
+
+### Decision
+
+新的 `blankseed-checkpoint/0.3` 只寫入
+`{ modules: { active } }` state、明確 exclusion list，以及該投影 state 的
+hash。任何 restore mutation 前，都要驗證 v0.3 沒有其他 state key。持久化的
+label 使用 shared persistence redactor。只為 rollback compatibility 讀取已
+驗證的 v0.2 Checkpoint；不再建立 v0.2，也不宣稱此決策會追溯改寫歷史
+artifact。
+
+### Consequences
+
+- 新 Checkpoint 不會因意外序列化完整 status 而保留 target/page/configuration
+  data。
+- Checkpoint label 與其他 durable evidence sink 採用相同的 external-target
+  privacy rule。
+- 既有 v0.2 file 在退役或由專用 cleanup procedure 處理前，仍是需另行管理的
+  privacy residual。
+- 擴大 restore scope 時，必須做明確 schema decision、privacy review 與
+  regression evidence。
+
+### Rollback/review trigger
+
+若要在 `modules.active` 外新增任何 `state` key、v0.3 無法投影 mapping、
+restore 接受額外 state、legacy file 無法如文件所述 restore，或新寫入的
+Checkpoint 出現外部 target/page content，必須重新審查。
+
+---
+
+## ADR-030 — 分離即時 Multi-Agent authority 與去識別 durable evidence
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+Evolution run persistence 已會去識別外部 target 與 page evidence，但其回傳
+result 為了即時 workflow 仍保持原樣。Multi-Agent layer 把這份即時 result、
+proposal content、handoff 與 review reason 再寫入另一份 run manifest 與
+governance decision，導致同一敏感資料在兩個直接 JSON sink 再次落盤。
+
+### Evidence
+
+Focused regression 透過 task、Proposer output 與 Reviewer reason 提供外部 target
+和 page title。修正前，`multi-agent-runs/<mar_*>/run.json` 與
+`governance/decisions/<gov_*>.json` 都保留原始 host 與 title。Governance Apply
+同時依賴同 session memory anchor、proposal/review integrity hash、evidence hash，
+以及可偵測 decision file 竄改的 hash。
+
+### Alternatives
+
+- 在即時 result 交給 Reviewer 與 operator 前先去識別。
+- Hash 後才去識別，但不調整 decision-file anchor。
+- 完全不在 durable evidence 保存 proposal 與 review narrative。
+- 將 live-authority view 與 redacted-persistence view 分開。
+
+### Decision
+
+`blankseed-multi-agent-run/0.2` 與
+`blankseed-governance-decision/0.2` 一律經 shared persistence-redaction
+pipeline 寫入。`task`、`proposalContent` 與 review `reason` 若識別外部 target，
+視為 page-content narrative field。同 session Main Process anchor 仍保留原始
+proposal、handoff、review 與 decision。Tamper detection 綁定實際寫入磁碟的
+去識別 decision；proposal、review 與 evidence hash 則繼續綁定原始即時
+evidence，供 authorization check 使用。
+
+歷史 v0.1 artifact 不會被追溯改寫。依既有 same-session authority rule，前一個
+Main Process session 建立的 v0.1 governance decision 仍不可 Apply。
+
+### Consequences
+
+- Multi-Agent run 與 governance decision file 不再重複保存原始外部 target 或
+  相關 narrative evidence。
+- Model feedback、human review output、immutable evidence identity 與同 session
+  Apply 行為維持不變。
+- 持久化 narrative 可由固定 marker 取代，並以彙總
+  `persistenceRedaction` metadata 記錄 filtering 已發生。
+- Integrity hash 仍識別完整原始 evidence，但無法重建移除內容，也不是
+  target-only identifier。
+
+### Rollback/review trigger
+
+若任一 v0.2 sink 保留外部 target 或相關 narrative、redaction 改變即時
+Proposer/Reviewer value、系統接受 hash-consistent tamper、可重試 Apply 無法
+重新 anchor 去識別 decision，或未來 cross-session Apply 設計需要 migration
+歷史 decision，必須重新審查。

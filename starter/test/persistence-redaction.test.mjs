@@ -53,3 +53,25 @@ test('persistence redaction preserves loopback and fixture targets while redacti
   assert.equal(externalText.value.includes('private-site.example'), false);
   assert.equal(externalIp.value.includes('203.0.113.9'), false);
 });
+
+test('persistence redaction treats MultiAgent narrative fields as sensitive when they identify an external target', () => {
+  const evidence = {
+    task: 'Inspect private-site.example/agent and summarize the confidential title.',
+    proposalContent: 'The proposal references https://private-site.example/agent and its confidential title.',
+    review: {
+      reason: 'Approve after checking private-site.example/agent and its confidential title.'
+    },
+    localControl: {
+      task: 'Inspect http://127.0.0.1:3000/fixture and keep this text.'
+    }
+  };
+  const { value, metadata } = redactForPersistence(evidence);
+
+  assert.equal(value.task, PAGE_CONTENT_MARKER);
+  assert.equal(value.proposalContent, PAGE_CONTENT_MARKER);
+  assert.equal(value.review.reason, PAGE_CONTENT_MARKER);
+  assert.equal(value.localControl.task, evidence.localControl.task);
+  assert.equal(metadata.status, 'redacted');
+  assert.equal(JSON.stringify(value).includes('private-site.example'), false);
+  assert.equal(evidence.proposalContent.includes('private-site.example'), true);
+});
