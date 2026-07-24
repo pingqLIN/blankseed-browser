@@ -1,5 +1,7 @@
-const scenarios = globalThis.blankseedTutorialScenarios;
-const getScenario = globalThis.blankseedTutorialGetScenario;
+const { applyBindings, formatTime, getLocale, observe, setLocale, t } = globalThis.BlankSeedI18n;
+
+let scenarios = globalThis.blankseedTutorialScenarios;
+let getScenario = globalThis.blankseedTutorialGetScenario;
 
 const tutorialState = {
   scenarioId: new URLSearchParams(location.search).get('scenario') || 'overview',
@@ -251,7 +253,8 @@ function addTimeline(type, detail, tone = 'neutral') {
   }
   const row = document.createElement('div');
   row.className = `timeline-row ${tone}`;
-  const time = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+  row.dataset.i18nSkip = 'true';
+  const time = formatTime(new Date());
   const timeElement = document.createElement('time');
   timeElement.textContent = time;
   const title = document.createElement('strong');
@@ -274,9 +277,9 @@ function renderAgentMessages() {
     const empty = document.createElement('div');
     empty.className = 'agent-message-empty';
     const title = document.createElement('strong');
-    title.textContent = '尚無訊息';
+    title.textContent = t('agent.emptyTitle');
     const body = document.createElement('span');
-    body.textContent = '執行 Agent 或受控審核後，訊息會顯示在這裡。';
+    body.textContent = t('agent.emptyBody');
     empty.append(title, body);
     messages.append(empty);
     return;
@@ -284,6 +287,7 @@ function renderAgentMessages() {
   for (const message of tutorialState.agentMessages) {
     const row = document.createElement('article');
     row.className = `agent-message ${message.role}`;
+    row.dataset.i18nSkip = 'true';
     const role = document.createElement('div');
     role.className = 'message-role';
     const roleName = document.createElement('strong');
@@ -296,7 +300,7 @@ function renderAgentMessages() {
     const detail = document.createElement('span');
     detail.textContent = message.detail;
     const time = document.createElement('time');
-    time.textContent = message.timestamp.toLocaleTimeString('zh-TW', { hour12: false });
+    time.textContent = formatTime(message.timestamp);
     meta.append(detail, time);
     const body = document.createElement('p');
     body.className = 'message-body';
@@ -1043,7 +1047,24 @@ function wireTutorial() {
 
 async function initialize() {
   try {
+    const localeSelect = query('#tutorial-locale');
+    localeSelect.value = getLocale();
+    localeSelect.addEventListener('change', (event) => {
+      setLocale(event.target.value);
+      refreshTutorialLocale();
+    });
+    applyBindings(document);
+    observe(document.body);
     await loadReplica();
+    applyBindings(consoleRoot);
+    const replicaLocaleSelect = query('#ui-locale', consoleRoot);
+    if (replicaLocaleSelect) {
+      replicaLocaleSelect.value = getLocale();
+      replicaLocaleSelect.addEventListener('change', (event) => {
+        setLocale(event.target.value);
+        refreshTutorialLocale();
+      });
+    }
     wireReplica();
     wireTutorial();
     renderStep();
@@ -1059,6 +1080,22 @@ async function initialize() {
     mount.append(failure);
     throw error;
   }
+}
+
+function refreshTutorialLocale() {
+  globalThis.blankseedTutorialRefreshScenarios?.();
+  scenarios = globalThis.blankseedTutorialScenarios;
+  getScenario = globalThis.blankseedTutorialGetScenario;
+  const locale = getLocale();
+  query('#tutorial-locale').value = locale;
+  const replicaLocaleSelect = query('#ui-locale', consoleRoot);
+  if (replicaLocaleSelect) replicaLocaleSelect.value = locale;
+  applyBindings(document);
+  applyBindings(consoleRoot);
+  buildScenarioNavigation();
+  renderStatus();
+  renderTarget();
+  renderStep();
 }
 
 if (globalThis.blankseedTutorialLaunchGuard?.assessment?.allowed === false) {

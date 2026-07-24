@@ -272,6 +272,72 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
     if (!consoleReady) await sleep(100);
   }
   assert.equal(consoleReady, true, `Control console did not become ready: ${JSON.stringify(cdp.notifications.slice(-10))}`);
+  const localeRuntime = await cdp.send('Runtime.evaluate', {
+    expression: `(async () => {
+      const select = document.getElementById('ui-locale');
+      const selectLocale = async (locale) => {
+        select.value = locale;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        await new Promise((resolveLocale) => setTimeout(resolveLocale, 100));
+        return {
+          locale: select.value,
+          lang: document.documentElement.lang,
+          title: document.title,
+          subtitle: document.querySelector('[data-i18n="console.subtitle"]').textContent,
+          candidate: globalThis.BlankSeedI18n.t('module.status.candidate')
+        };
+      };
+      const english = await selectLocale('en');
+      const simplifiedChinese = await selectLocale('zh-CN');
+      const traditionalChinese = await selectLocale('zh-TW');
+      return { english, simplifiedChinese, traditionalChinese };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  assert.deepEqual(localeRuntime.result.value, {
+    english: {
+      locale: 'en',
+      lang: 'en',
+      title: 'BlankSeed Browser Console',
+      subtitle: 'Follow the workflow; every step retains evidence and a recovery path.',
+      candidate: 'Candidate'
+    },
+    simplifiedChinese: {
+      locale: 'zh-CN',
+      lang: 'zh-Hans-CN',
+      title: 'BlankSeed Browser 控制台',
+      subtitle: '按步骤完成任务；每一步都保留证据与恢复路径。',
+      candidate: '候选'
+    },
+    traditionalChinese: {
+      locale: 'zh-TW',
+      lang: 'zh-Hant-TW',
+      title: 'BlankSeed Browser 控制台',
+      subtitle: '依步驟完成任務；每一步都保留證據與復原路徑。',
+      candidate: '候選'
+    }
+  });
+  const evidenceTranslationPreservation = await cdp.send('Runtime.evaluate', {
+    expression: `(() => {
+      const fixture = document.createElement('article');
+      fixture.dataset.i18nSkip = 'true';
+      const body = document.createElement('p');
+      body.textContent = '重新整理';
+      fixture.append(body);
+      document.body.append(fixture);
+      const locale = document.getElementById('ui-locale');
+      locale.value = 'en';
+      locale.dispatchEvent(new Event('change', { bubbles: true }));
+      const preserved = body.textContent;
+      locale.value = 'zh-TW';
+      locale.dispatchEvent(new Event('change', { bubbles: true }));
+      fixture.remove();
+      return preserved;
+    })()`,
+    returnByValue: true
+  });
+  assert.equal(evidenceTranslationPreservation.result.value, '重新整理');
   const railResult = await cdp.send('Runtime.evaluate', {
     expression: `
       (async () => {
@@ -1005,6 +1071,8 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
     || (notification.method === 'Log.entryAdded' && ['error', 'warning'].includes(notification.params?.entry?.level))
   ));
   assert.deepEqual(relevantErrors, []);
+  evidence.localeRuntime = localeRuntime.result.value;
+  evidence.evidenceTranslationPreservation = evidenceTranslationPreservation.result.value === '重新整理';
 } catch (error) {
   primaryError = error;
 } finally {

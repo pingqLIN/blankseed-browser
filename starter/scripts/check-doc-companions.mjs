@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 const starterRoot = resolve(import.meta.dirname, '..');
 const repoRoot = resolve(starterRoot, '..');
 const authoritativeFiles = [
+  'readme.md',
   'AGENTS.md',
   'PRODUCT.md',
   'PROJECT_STATUS.md',
@@ -41,6 +42,12 @@ for (const relativeSource of authoritativeFiles) {
   if (!existsSync(sourcePath)) {
     failed = true;
     console.error(`Authoritative document is missing: ${relativeSource}`);
+    continue;
+  }
+  const source = readFileSync(sourcePath, 'utf8');
+  if (source.replace(/\u0000/g, '').trim().length === 0) {
+    failed = true;
+    console.error(`Authoritative document is empty or contains only NUL bytes: ${relativeSource}`);
     continue;
   }
   if (!existsSync(companionPath)) {

@@ -1,5 +1,7 @@
 # BlankSeed Browser
 
+> 英文原檔為權威來源；本檔為繁體中文 companion。
+
 > 一個以 Electron + Chromium 建立的實驗性 Runtime，用來研究 AI Agent 如何從底層原語建立、測試、保存與修訂可重複使用的能力。
 
 [English](readme.md) · [架構](docs/ARCHITECTURE.zh-tw.md) · [操作說明](USER_GUIDE.zh-tw.md) · [專案狀態](PROJECT_STATUS.zh-tw.md)

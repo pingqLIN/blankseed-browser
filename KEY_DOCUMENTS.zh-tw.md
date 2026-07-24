@@ -4,6 +4,7 @@
 
 ## 入口與治理
 
+- [公開專案首頁（英文權威）](readme.md) · [公開專案首頁（繁中 companion）](readme.zh-tw.md)
 - [外部代理主提示](00_EXTERNAL_AGENT_MASTER_PROMPT.zh-tw.md)
 - [研究章程](01_RESEARCH_CHARTER.zh-tw.md)
 - [產品定義](PRODUCT.zh-tw.md)

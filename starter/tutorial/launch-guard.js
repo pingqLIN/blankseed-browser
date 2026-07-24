@@ -2,6 +2,7 @@
   'use strict';
 
   const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
+  const t = (key, fallback, params) => globalScope.BlankSeedI18n?.t?.(key, params, fallback) ?? fallback;
 
   function assessLocation(value) {
     let url;
@@ -59,34 +60,34 @@
     card.setAttribute('role', 'alert');
 
     card.append(
-      makeElement('p', 'launch-recovery-kicker', 'BlankSeed Browser 操作教學'),
-      makeElement('h1', '', '已攔截不正確的教學載入方式'),
+      makeElement('p', 'launch-recovery-kicker', t('tutorial.title', 'BlankSeed Browser 操作教學')),
+      makeElement('h1', '', t('launch.title', '已攔截不正確的教學載入方式')),
       makeElement(
         'p',
         'launch-recovery-message',
         assessment.reason === 'file-protocol'
-          ? '教學頁不能直接以 file:// 開啟，因為它需要從本機教學伺服器載入正式介面。'
-          : '教學頁只允許從本機回環網址啟動，避免把操作介面暴露到外部網路。'
+          ? t('launch.fileProtocol', '教學頁不能直接以 file:// 開啟，因為它需要從本機教學伺服器載入正式介面。')
+          : t('launch.nonLoopback', '教學頁只允許從本機回環網址啟動，避免把操作介面暴露到外部網路。')
       )
     );
 
     const steps = document.createElement('ol');
     const firstStep = document.createElement('li');
     firstStep.textContent = details.launcherPath
-      ? '雙擊下列快捷啟動檔；它會啟動本機教學伺服器並自動開啟正確網址。'
-      : '在 starter 目錄執行下列啟動指令。';
+      ? t('launch.clickShortcut', '雙擊下列快捷啟動檔；它會啟動本機教學伺服器並自動開啟正確網址。')
+      : t('launch.runStarter', '在 starter 目錄執行下列啟動指令。');
     const secondStep = document.createElement('li');
-    secondStep.textContent = '完成後可關閉這個錯誤分頁。';
+    secondStep.textContent = t('launch.closeTab', '完成後可關閉這個錯誤分頁。');
     steps.append(firstStep, secondStep);
     card.append(steps);
 
     if (details.launcherPath) {
-      const pathLabel = makeElement('p', 'launch-recovery-label', '快捷啟動檔');
+      const pathLabel = makeElement('p', 'launch-recovery-label', t('launch.shortcut', '快捷啟動檔'));
       const pathOutput = makeElement('code', 'launch-recovery-path', details.launcherPath);
       card.append(pathLabel, pathOutput);
     }
 
-    const commandLabel = makeElement('label', 'launch-recovery-label', 'PowerShell 輔助啟動指令');
+    const commandLabel = makeElement('label', 'launch-recovery-label', t('launch.powershell', 'PowerShell 輔助啟動指令'));
     const commandInput = document.createElement('input');
     commandInput.className = 'launch-recovery-command';
     commandInput.readOnly = true;
@@ -94,20 +95,20 @@
     commandLabel.append(commandInput);
 
     const actions = makeElement('div', 'launch-recovery-actions');
-    const copyButton = makeElement('button', 'primary-guide-button', '複製啟動指令');
+    const copyButton = makeElement('button', 'primary-guide-button', t('launch.copy', '複製啟動指令'));
     copyButton.type = 'button';
     const expectedUrl = document.createElement('a');
     expectedUrl.href = recoveryUrl(assessment.url);
-    expectedUrl.textContent = '檢查正確網址';
+    expectedUrl.textContent = t('launch.checkUrl', '檢查正確網址');
     const status = makeElement('p', 'launch-recovery-status', '');
     status.setAttribute('role', 'status');
     copyButton.addEventListener('click', async () => {
       commandInput.select();
       try {
         await navigator.clipboard.writeText(commandInput.value);
-        status.textContent = '已複製啟動指令。';
+        status.textContent = t('launch.copied', '已複製啟動指令。');
       } catch {
-        status.textContent = '瀏覽器未允許自動複製；指令已選取，請按 Ctrl+C。';
+        status.textContent = t('launch.copyDenied', '瀏覽器未允許自動複製；指令已選取，請按 Ctrl+C。');
       }
     });
     actions.append(copyButton, expectedUrl);

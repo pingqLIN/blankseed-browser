@@ -6,7 +6,9 @@
 
 BlankSeed Browser 是以 Windows 為優先的平台實驗應用程式。本機受信任控制台（trusted control console）透過可觀察的低階 primitives（原始操作能力）操作隔離於 `WebContentsView` 的 remote page。本程式不是正式產品瀏覽器、Chrome Extension，也不是 Generated Node code 的 security sandbox。
 
-介面中的一般操作採用繁體中文；`Page`、`CDP`、`Node`、`Module`、`Candidate`、`Commit`、`Activate`、`Invoke`、`Rollback`、`Checkpoint`、`Event` 與 `Runtime` 等術語保留英文，避免與日誌與測試欄位對照時混淆。
+控制台與本機教學均可透過語言選單使用繁體中文、簡體中文與英文。已儲存且受支援的選擇優先；否則依瀏覽器語言映射至支援語系，未知值則以繁體中文作為產品 fallback。UI 文案只存在 renderer 的靜態 catalog；`Page`、`CDP`、`Node`、`Module`、`Candidate`、`Commit`、`Activate`、`Invoke`、`Rollback`、`Checkpoint`、`Event` 與 `Runtime` 等術語維持穩定，方便與 evidence 對照。
+
+原始 event payload、protocol ID、JSON key、page content、model output 與 error detail 都是 evidence，而不是 UI copy，因此刻意不翻譯。
 
 ## 執行需求與啟動
 

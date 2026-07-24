@@ -10,9 +10,16 @@ local control console operates a remote page in a separate `WebContentsView`
 through observable low-level primitives. It is not a production browser, a
 Chrome Extension, or a secure sandbox for generated Node.js code.
 
-The interface uses Traditional Chinese for user actions while preserving
-technical names such as `Page`, `CDP`, `Node`, `Module`, `Candidate`, `Commit`,
-`Activate`, `Invoke`, `Rollback`, `Checkpoint`, `Event`, and `Runtime`.
+The console and local tutorial offer Traditional Chinese, Simplified Chinese,
+and English through their language selectors. A stored supported selection wins;
+otherwise the browser language is mapped to a supported locale, with Traditional
+Chinese as the product fallback. UI text is localized in renderer-only static
+catalogs. Technical names such as `Page`, `CDP`, `Node`, `Module`, `Candidate`,
+`Commit`, `Activate`, `Invoke`, `Rollback`, `Checkpoint`, `Event`, and `Runtime`
+remain stable for correlation with evidence.
+
+Raw event payloads, protocol IDs, JSON keys, page content, model output, and
+error details are evidence, not UI copy. They are intentionally not translated.
 
 ## Requirements and launch
 

@@ -5,70 +5,55 @@ import test from 'node:test';
 
 const starterRoot = resolve(import.meta.dirname, '..');
 
-test('renderer presents a complete Traditional Chinese control surface', async () => {
-  const [html, app] = await Promise.all([
+test('renderer binds UI copy through catalog keys without binding evidence payloads', async () => {
+  const [html, app, i18n, tutorial] = await Promise.all([
     readFile(resolve(starterRoot, 'src/renderer/index.html'), 'utf8'),
-    readFile(resolve(starterRoot, 'src/renderer/app.js'), 'utf8')
+    readFile(resolve(starterRoot, 'src/renderer/app.js'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/renderer/i18n.js'), 'utf8'),
+    readFile(resolve(starterRoot, 'tutorial/app.js'), 'utf8')
   ]);
 
-  assert.match(html, /<html lang="zh-Hant-TW">/);
-  for (const label of [
-    'BlankSeed Browser 控制台',
-    '目標頁',
-    '擷取頁面快照',
-    '隔離 Page JS',
-    '執行 Node 程式',
-    '建立候選',
-    '測試候選',
-    '提交版本',
-    '啟用版本',
-    '呼叫 Module',
-    '回復版本',
-    'Agent 訊息',
-    '給 Agent 的任務',
-    '檢查並開始執行',
-    '停止目前任務',
-    '執行設定',
-    'AI 模型接入',
-    '本機模型',
-    '接入 OpenAI',
-    '清除暫時金鑰',
-    '使用受控自動流程',
-    '開始建立並測試',
-    '手動操作',
-    'Governance 治理',
-    '沙盒 Agent 自動套用',
-    '一般 Runtime 維持人工確認',
-    '啟動受控審核',
-    '確認並套用決策',
-    '取消審核',
-    '建立 checkpoint',
-    '還原所選 checkpoint',
-    '全部停止',
-    '事件時間軸'
-  ]) {
-    assert.ok(html.includes(label), `missing localized interface label: ${label}`);
+  assert.match(html, /data-i18n="console\.title"/);
+  for (const key of ['console.title', 'target.snapshot', 'advanced.governance', 'module.status.candidate', 'checkpoint.none', 'agent.emptyTitle']) {
+    assert.ok(i18n.includes(`'${key}'`), `missing catalog key: ${key}`);
   }
-
-  for (const dynamicLabel of [
-    '尚無目標頁',
-    'Node 已啟用',
-    '尚無模組。',
-    '尚無檢查點。',
-    '尚無事件。',
-    '已要求停止',
-    '已確認 / 剩餘',
-    '多代理待命。',
-    "candidate: '候選'",
-    "tested: '已測試'",
-    "committed: '已提交'",
-    "isActive ? '已啟用'",
-    '已就緒。'
-  ]) {
-    assert.ok(app.includes(dynamicLabel), `missing localized dynamic label: ${dynamicLabel}`);
-  }
-
+  assert.match(i18n, /translateTextNodes/);
+  assert.match(i18n, /script, style, code, pre, textarea/);
+  assert.match(i18n, /sourceKeyFor\(source\)/);
+  assert.match(app, /t\(`module\.status\.\$\{status\}`/);
   assert.match(app, /moduleStatusLabel\(manifest\.status\)/);
+  assert.match(html, /id="timeline"[^>]+data-i18n="event\.none"/);
+  assert.match(app, /row\.dataset\.i18nSkip = 'true';[\s\S]*message\.content/);
+  assert.match(app, /row\.dataset\.i18nSkip = 'true';[\s\S]*summarizeEvent\(event\)/);
+  assert.match(tutorial, /row\.dataset\.i18nSkip = 'true';[\s\S]*message\.content/);
+  assert.match(tutorial, /row\.dataset\.i18nSkip = 'true';[\s\S]*detail/);
+});
+
+test('renderer ships a no-privilege Traditional Chinese, Simplified Chinese, and English locale architecture', async () => {
+  const [html, app, i18n, tutorial] = await Promise.all([
+    readFile(resolve(starterRoot, 'src/renderer/index.html'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/renderer/app.js'), 'utf8'),
+    readFile(resolve(starterRoot, 'src/renderer/i18n.js'), 'utf8'),
+    readFile(resolve(starterRoot, 'tutorial/app.js'), 'utf8')
+  ]);
+
+  assert.match(html, /id="ui-locale"/);
+  assert.match(html, /<option value="zh-TW"/);
+  assert.match(html, /<option value="zh-CN"/);
+  assert.match(html, /<option value="en"/);
+  assert.match(html, /<script src="i18n\.js"><\/script>[\s\S]*<script src="app\.js"><\/script>/);
+  assert.match(i18n, /SUPPORTED_LOCALES = Object\.freeze\(\['zh-TW', 'zh-CN', 'en'\]\)/);
+  assert.match(i18n, /LOCALE_STORAGE_KEY = 'blankseed\.ui\.locale'/);
+  assert.match(i18n, /return DEFAULT_LOCALE/);
+  assert.match(i18n, /const translated = t\(element\.dataset\.i18n\)/);
+  assert.match(i18n, /if \(element\.textContent !== translated\) element\.textContent = translated/);
+  assert.match(app, /globalThis\.BlankSeedI18n/);
+  assert.match(app, /\$\('ui-locale'\)\.addEventListener\('change'/);
+  assert.match(tutorial, /globalThis\.BlankSeedI18n/);
+  assert.match(tutorial, /id="tutorial-locale"|tutorial-locale/);
+  assert.match(tutorial, /function refreshTutorialLocale\(\)[\s\S]*buildScenarioNavigation\(\)[\s\S]*renderStep\(\)/);
+  assert.doesNotMatch(tutorial, /setLocale\(event\.target\.value\);\s*location\.reload\(\)/);
+  assert.doesNotMatch(i18n, /window\.blankseed|ipc|fetch\(/i);
 });
 
 test('renderer provides direct model configuration and default module automation with explicit gates', async () => {

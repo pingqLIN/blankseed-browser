@@ -1,5 +1,7 @@
 'use strict';
 
+const { applyBindings, formatTime: formatLocalizedTime, getLocale, observe, setLocale, t } = globalThis.BlankSeedI18n;
+
 const $ = (id) => document.getElementById(id);
 const result = $('result');
 const timeline = $('timeline');
@@ -7,12 +9,6 @@ const agentTask = $('agent-task');
 const workspaceResizer = $('workspace-resizer');
 const MIN_CONTROL_PANEL_WIDTH = 320;
 const MIN_TARGET_PANEL_WIDTH = 320;
-
-const moduleStatusLabels = Object.freeze({
-  candidate: '候選',
-  tested: '已測試',
-  committed: '已提交'
-});
 
 const uiAgentTools = Object.freeze([
   'target_navigate',
@@ -59,7 +55,7 @@ function syncControlPanelWidth(width) {
   document.documentElement.style.setProperty('--control-panel-width', `${nextWidth}px`);
   workspaceResizer.setAttribute('aria-valuemax', String(Math.max(MIN_CONTROL_PANEL_WIDTH, window.innerWidth - MIN_TARGET_PANEL_WIDTH)));
   workspaceResizer.setAttribute('aria-valuenow', String(nextWidth));
-  workspaceResizer.setAttribute('aria-valuetext', `控制介面寬度 ${nextWidth} 像素`);
+  workspaceResizer.setAttribute('aria-valuetext', t('workflow.panelWidth', { width: nextWidth }));
   return nextWidth;
 }
 
@@ -132,9 +128,10 @@ function initializeWorkspaceResizer() {
   });
 
   window.addEventListener('resize', () => {
-    const clampedWidth = clampControlPanelWidth(state.layout.controlPanelWidth);
-    if (clampedWidth !== state.layout.controlPanelWidth) requestPanelResize(clampedWidth);
-    else syncControlPanelWidth(clampedWidth);
+    // CSS makes the control surface fill a narrow viewport. Do not turn a
+    // temporary viewport constraint into a persisted 320px user preference.
+    const minimumMaximum = Math.max(MIN_CONTROL_PANEL_WIDTH, window.innerWidth - MIN_TARGET_PANEL_WIDTH);
+    workspaceResizer.setAttribute('aria-valuemax', String(Math.max(minimumMaximum, state.layout.controlPanelWidth)));
   });
 }
 
@@ -226,6 +223,7 @@ async function run(operation, { skipRefresh = false } = {}) {
 async function refreshAll() {
   await Promise.all([refreshStatus(), refreshModules(), refreshCheckpoints(), refreshEvents()]);
   renderAll();
+  applyBindings(document);
 }
 
 async function refreshStatus() {
@@ -273,6 +271,7 @@ function renderAll() {
   renderTimeline();
   renderWorkflow();
   renderOperationFeedback();
+  applyBindings(document);
 }
 
 function addAgentMessage(role, content, { label, detail, status = 'ok' } = {}) {
@@ -299,8 +298,8 @@ function renderAgentMessages({ scrollToEnd = false } = {}) {
     const empty = document.createElement('div');
     empty.className = 'agent-message-empty';
     empty.append(
-      makeText('strong', '尚無 Agent 訊息'),
-      makeText('span', '在下方輸入指令；Agent 回覆與受控審核結果會集中顯示在這裡。')
+      makeText('strong', t('agent.emptyTitle')),
+      makeText('span', t('agent.emptyBody'))
     );
     messages.append(empty);
     return;
@@ -318,6 +317,7 @@ function renderAgentMessages({ scrollToEnd = false } = {}) {
     const row = document.createElement('article');
     row.className = `agent-message ${message.role} ${message.status === 'error' ? 'error' : (message.status === 'warning' ? 'warning' : '')}`;
     row.dataset.messageId = message.id;
+    row.dataset.i18nSkip = 'true';
     const role = document.createElement('div');
     role.className = 'message-role';
     role.append(makeText('strong', message.label));
@@ -532,7 +532,8 @@ function renderModuleAutomation() {
 function renderStatus() {
   const status = state.status || {};
   const controlPanelWidth = Number(status.target?.layout?.controlPanelWidth ?? status.config?.controlPanelWidth);
-  if (Number.isFinite(controlPanelWidth) && !state.layout.resizing && pendingPanelWidth === null) {
+  const narrowViewport = window.innerWidth < MIN_CONTROL_PANEL_WIDTH + MIN_TARGET_PANEL_WIDTH;
+  if (Number.isFinite(controlPanelWidth) && !narrowViewport && !state.layout.resizing && pendingPanelWidth === null) {
     syncControlPanelWidth(controlPanelWidth);
   }
   const activeCount = Object.keys(state.modules.active || {}).length;
@@ -605,7 +606,7 @@ function renderModules() {
 }
 
 function moduleStatusLabel(status) {
-  return moduleStatusLabels[status] || status || '未知';
+  return t(`module.status.${status}`, {}, status || t('common.unknown'));
 }
 
 function fillModule(manifest) {
@@ -641,12 +642,13 @@ function renderTimeline() {
   timeline.replaceChildren();
   const rows = state.events.slice(-80).reverse();
   if (rows.length === 0) {
-    timeline.textContent = '尚無事件。';
+    timeline.textContent = t('event.none');
     return;
   }
   for (const event of rows) {
     const row = document.createElement('div');
     row.className = `timeline-row ${eventClass(event.type)}`;
+    row.dataset.i18nSkip = 'true';
     row.append(
       makeText('time', formatTime(event.timestamp)),
       makeText('strong', event.type || '事件'),
@@ -678,7 +680,14 @@ function formatTime(value) {
   if (!value) return '--:--:--';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '--:--:--';
-  return date.toLocaleTimeString('zh-TW', { hour12: false });
+  return formatLocalizedTime(date);
+}
+
+function applyInterfaceLocale(candidate = getLocale()) {
+  const locale = setLocale(candidate);
+  $('ui-locale').value = locale;
+  applyBindings(document);
+  return locale;
 }
 
 function makeText(tag, text) {
@@ -1277,6 +1286,12 @@ window.blankseed.events.subscribe(() => {
 });
 window.blankseedConsole = { refreshAll, setTab };
 window.blankseedConsoleReady = false;
+applyInterfaceLocale();
+observe(document.body);
+$('ui-locale').addEventListener('change', async (event) => {
+  applyInterfaceLocale(event.target.value);
+  await refreshAll();
+});
 initializeWorkspaceResizer();
 refreshAll().finally(() => {
   window.blankseedConsoleReady = true;

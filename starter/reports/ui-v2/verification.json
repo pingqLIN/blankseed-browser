@@ -1,27 +1,27 @@
 {
   "schema": "blankseed-ui-v2-verification/2",
-  "generatedAt": "2026-07-21T05:46:08.928Z",
+  "generatedAt": "2026-07-24T10:23:28.991Z",
   "command": "npm run verify:ui:agent",
   "exitCode": 0,
   "baseline": {
-    "head": "2fe07a107086f47157eb893472ff3dd08cd9f4ed",
-    "scopedContentSha256": "23029f4bc9c7363c1f4cfcc4c8fbfffe5f081b4747c716294067ae1786e91024",
+    "head": "708408c40b68d08c133f06bc13bdf07a0fa3f0bd",
+    "scopedContentSha256": "bdeddc268e2f01d52eb80a5ff92b9d9440f137c31f8dc45c367cdd98446a8ddc",
     "scopeDigestCanonicalization": "UTF-8 path + NUL + decimal size + NUL + lowercase SHA-256 + LF for each scopeFiles record sorted by path",
     "scopeFiles": [
       {
         "path": "09_DECISION_LOG.md",
-        "size": 37646,
-        "sha256": "95f05b9fd9a57072e006f68ec8b0ff07c224e90c05beb89f072e7c96e6e52d44"
+        "size": 60772,
+        "sha256": "a3922a0a8cf78509a82b91231ab8a100282495899ad685c9db4f2d8700f60bad"
       },
       {
         "path": "09_DECISION_LOG.zh-tw.md",
-        "size": 21611,
-        "sha256": "24b6d2dabc3d9dff7ca1643c6c606e804430490d1c4f9aadadabc0ac1519d2e0"
+        "size": 43001,
+        "sha256": "a4e04fccbd57eab9ad35de58a7e0a442e89736d8a6e4f01229978b91e08c26d2"
       },
       {
         "path": "starter/config/defaults.json",
-        "size": 788,
-        "sha256": "d8cae4aadb943747c9095a7c56ca9b387f18201b9582b6b2e0fe6246f431617a"
+        "size": 997,
+        "sha256": "3e27eb40cdcb7b7500a9a7f91b1f9f107fdc1743815183bf9317bb982f410462"
       },
       {
         "path": "starter/package.json#scripts.verify:ui:agent",
@@ -35,8 +35,8 @@
       },
       {
         "path": "starter/scripts/runtime-ui-agent-workspace-smoke.mjs",
-        "size": 51829,
-        "sha256": "bc1245a955fdc3569c43e00c263ae522d424d3f89a3089eecba52d1ef828233e"
+        "size": 54554,
+        "sha256": "26c9f05233b848a949325ce446b4b29bb62848b974a82e3a7402f3737f55b84f"
       },
       {
         "path": "starter/scripts/verify-ui-v2.mjs",
@@ -50,33 +50,33 @@
       },
       {
         "path": "starter/src/main/evolution-loop.cjs",
-        "size": 26560,
-        "sha256": "7bee5e72720a7029ef00abf1472b74627d2e25df70fe37264a7b7f9c5680c0f8"
+        "size": 39975,
+        "sha256": "d86f740504d71baa241a42ebbf11139b079db6cde402d4ec20a4e0a5df73dff1"
       },
       {
         "path": "starter/src/main/ipc-router.cjs",
-        "size": 15359,
-        "sha256": "2417f061efb43b289dc1600165399c2ac53f771bb9ec83b70923b84dccb9749d"
+        "size": 15989,
+        "sha256": "1e2e616300e4ec8cd8570eaae0ffc1702de04c4a758534e6e08d408f4fffa888"
       },
       {
         "path": "starter/src/preload/preload.cjs",
-        "size": 7978,
-        "sha256": "4f13746e54d72aba10e0cbc5f673a31174c931abdcfb518c656576e4b9e052a1"
+        "size": 8156,
+        "sha256": "5de7fb375159b806a3d68effee078408df48f93a69a29ae814860e0b3a80bd2a"
       },
       {
         "path": "starter/src/renderer/app.js",
-        "size": 50741,
-        "sha256": "564643b3b2b91c194214eaf8fdcb5c40e9bd390ec2c58ef1f18729bfb40928aa"
+        "size": 54990,
+        "sha256": "cdadedb776eb5c1ebe6a993fc24942e7a1fefe2cbcd50416c1f5879479251389"
       },
       {
         "path": "starter/src/renderer/index.html",
-        "size": 26905,
-        "sha256": "c1d8dc637dbcacbb99fe9f5e9abd3728f954ca4b5b4e9535c9062b49790a9f3a"
+        "size": 27809,
+        "sha256": "a266d8be81de9ac29eced986fa10b524e8a8ca35a0779e522362fe14ac09926b"
       },
       {
         "path": "starter/src/renderer/styles.css",
-        "size": 24828,
-        "sha256": "1e71dabbecf40fdd81f55def17d890ac2e466331ad679a764cd90e70a1b6ea2e"
+        "size": 25576,
+        "sha256": "7dfb15d0556c42049dd86580b83b2a33e294b5194213b5f2149c90d401c242f1"
       },
       {
         "path": "starter/test/async-resource-scope.test.mjs",
@@ -85,13 +85,13 @@
       },
       {
         "path": "starter/test/evolution-loop.test.mjs",
-        "size": 22555,
-        "sha256": "987f65a98025064d5a88f9ff8833fefa17aff9f9e895840f1f6fcdce8111b7ef"
+        "size": 38906,
+        "sha256": "7b5344effad7702583894a94b1aa7b17c9aefa18c6cefb67beb97cfe68604539"
       },
       {
         "path": "starter/test/renderer-localization.test.mjs",
-        "size": 10663,
-        "sha256": "812c8acf822a0cb2f3012476315e5dbebf5f87a5033f2597a3424aed44d92cf5"
+        "size": 11950,
+        "sha256": "a20cdb61fd2db27674ac6dc70c69ee7af5802e27e713786846c0af7e4c7ef530"
       }
     ],
     "scopedStatus": [
@@ -99,10 +99,10 @@
       " M starter/reports/ui-v2/qa-workflow-desktop-500.png",
       " M starter/reports/ui-v2/qa-workflow-short-430x600.png",
       " M starter/reports/ui-v2/runtime-smoke.json",
+      " M starter/reports/ui-v2/verification.json",
       " M starter/scripts/runtime-ui-agent-workspace-smoke.mjs",
-      " M starter/src/main/ipc-router.cjs",
-      " M starter/src/preload/preload.cjs",
       " M starter/src/renderer/app.js",
+      " M starter/src/renderer/index.html",
       " M starter/test/renderer-localization.test.mjs"
     ]
   },
@@ -114,10 +114,10 @@
     "projectCheck": "passed",
     "tests": "passed",
     "runtimeSmoke": "passed",
-    "projectJavaScriptFiles": 58,
-    "documentationCompanions": 24,
-    "testCount": 96,
-    "passedTests": 96,
+    "projectJavaScriptFiles": 69,
+    "documentationCompanions": 28,
+    "testCount": 242,
+    "passedTests": 242,
     "failedTests": 0
   },
   "commandResults": [
@@ -137,7 +137,7 @@
     "command": "node scripts/runtime-ui-agent-workspace-smoke.mjs",
     "exitCode": 0,
     "title": "BlankSeed Browser 控制台",
-    "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=c5ff5fb8-12af-461e-a08a-44dc4e0f5656",
+    "url": "file:///<starter>/src/renderer/index.html?blankseedSmokeNonce=710d8d03-3d7b-4089-a68e-b96144e58f14",
     "viewport": {
       "width": 430,
       "height": 920
@@ -152,9 +152,9 @@
       "USER",
       "AGENT"
     ],
-    "messageText": "USER使用者指令13:45:51請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 013:45:51已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER受控審核指令13:45:54請以唯讀方式審查 capability handoff。PROPOSERevo_a051ccf6-45fc-4a17-ac45-9d456447565413:45:54保留唯讀能力邊界，並由獨立 Reviewer 驗證 handoff identity。REVIEWERAPPROVE · gov_80e68feb-a2b1-43f4-aac3-3707c5bbfbf413:45:54Proposal hash and bounded read-only scope are consistent.USER使用者指令13:45:54請等待取消測試AGENT使用者已要求停止13:45:54cancel",
+    "messageText": "USER使用者指令18:23:06請驗證 Agent 訊息與使用者指令是否為獨立區塊。AGENT回合 1 · 動作 018:23:06已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。USER受控審核指令18:23:14請以唯讀方式審查 capability handoff。PROPOSERevo_929f6297-7f74-424d-9e4d-9fba1e4da54818:23:14保留唯讀能力邊界，並由獨立 Reviewer 驗證 handoff identity。REVIEWERAPPROVE · gov_c3174480-625e-4c3d-a7a1-7eb41d33b20e18:23:14Proposal hash and bounded read-only scope are consistent.USER使用者指令18:23:14請等待取消測試AGENT使用者已要求停止18:23:14cancel",
     "taskCount": "7 / 12000",
-    "runStatus": "Agent 任務 已完成 · evo_a022e655-0eb1-4dfb-85da-88922c5a7f8b",
+    "runStatus": "Agent 任務 已完成 · evo_342b70c1-0df0-4aad-ae38-b1922f3279dd",
     "regionsSeparated": true,
     "liveLogNodesStable": true,
     "editorAccessibleNames": {
@@ -226,7 +226,7 @@
       }
     ],
     "capabilityEvidence": {
-      "targetUrl": "http://127.0.0.1:38753/target",
+      "targetUrl": "http://127.0.0.1:62478/target",
       "pageStatus": "ok",
       "pageTitle": "BlankSeed Capability Fixture",
       "pageHeading": "Capability fixture ready",
@@ -236,14 +236,14 @@
       "nodeValue": 42
     },
     "multiAgentEvidence": {
-      "status": "受控審核已完成 · approve · gov_80e68feb-a2b1-43f4-aac3-3707c5bbfbf4",
-      "decisionId": "gov_80e68feb-a2b1-43f4-aac3-3707c5bbfbf4",
+      "status": "受控審核已完成 · approve · gov_c3174480-625e-4c3d-a7a1-7eb41d33b20e",
+      "decisionId": "gov_c3174480-625e-4c3d-a7a1-7eb41d33b20e",
       "proposerVisible": true,
       "reviewerVisible": true
     },
     "agentCancellation": {
       "runStatusClass": "run-status warning",
-      "runStatusText": "Agent 任務 已取消 · evo_bbbd0042-93ba-4635-89bc-f555edfb7310",
+      "runStatusText": "Agent 任務 已取消 · evo_3216745e-22dc-4ac3-aecf-038305013778",
       "transcriptWarning": true,
       "workflowWarning": true
     },
@@ -254,7 +254,7 @@
     ],
     "modelConnection": {
       "shortcutWorked": true,
-      "localEndpoint": "http://127.0.0.1:38753/v1/chat/completions",
+      "localEndpoint": "http://127.0.0.1:62478/v1/chat/completions",
       "localModel": "agent-ui-panel-fixture",
       "openAIKeyType": "password",
       "openAIStatus": "環境變數已接入",
@@ -278,7 +278,7 @@
       "invoked": true
     },
     "manualModuleDialogs": {
-      "candidateId": "cand_a2851e1e-b53a-4d2d-aaf6-25dab393ba4a",
+      "candidateId": "cand_f1d3d4ec-a808-4d20-8d27-7bc733932ebb",
       "absentConfirmationRejected": true,
       "absentRollbackConfirmationRejected": true,
       "commitNoMutation": true,
@@ -291,17 +291,17 @@
     "fulfilledErrorFeedback": {
       "className": "operation-feedback error",
       "summary": "操作未完成：fulfilled error fixture",
-      "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_0d52dbba-41a9-4422-ac62-f1af862b03a7\",\n  \"requestId\": \"req_ui_node_1784612758271_37af13c42cf32\",\n  \"executionId\": \"exe_ebc678ef-5ae9-4cf0-89bd-09d21fdccfd2\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-21T05:45:58.272Z\",\n  \"finishedAt\": \"2026-07-21T05:45:58.639Z\",\n  \"durationMs\": 367,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:38:16), <anonymous>:4:7)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:49:25)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:96:8)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
+      "result": "{\n  \"protocol\": \"blankseed/0.1\",\n  \"sessionId\": \"ses_109e1f31-e840-4ac1-a05b-7009fb4ebbaf\",\n  \"requestId\": \"req_ui_node_1784888598501_e2e803758028a8\",\n  \"executionId\": \"exe_3d782b92-bf53-449d-b7ba-d1ad8d00e1b5\",\n  \"kind\": \"execution.result\",\n  \"requestKind\": \"node.execute\",\n  \"status\": \"error\",\n  \"startedAt\": \"2026-07-24T10:23:18.502Z\",\n  \"finishedAt\": \"2026-07-24T10:23:18.860Z\",\n  \"durationMs\": 358,\n  \"sourceHash\": \"sha256:fd97889d6f0dbdd7c3389fcc0321e707cebce3fe2f7cc77554ad263bf4713e81\",\n  \"result\": null,\n  \"error\": {\n    \"code\": \"GENERATED_RUNTIME_ERROR\",\n    \"name\": \"Error\",\n    \"message\": \"fulfilled error fixture\",\n    \"stack\": \"Error: fulfilled error fixture\\n    at eval (eval at executeSource (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:84:14), <anonymous>:4:7)\\n    at executeSource (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:95:31)\\n    at createExecutionMessage (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:118:26)\\n    at execute (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:143:20)\\n    at ParentPort.<anonymous> (<starter>\\\\src\\\\utility\\\\agent-runtime.cjs:166:10)\\n    at ParentPort.emit (node:events:509:28)\\n    at Object.emit (node:electron/js2c/utility_init:2:18629)\",\n    \"details\": {},\n    \"retryable\": false\n  }\n}"
     },
     "checkpointDialogEvidence": {
-      "selectedCheckpointId": "chk_52f9ee46-470c-4eba-b5c6-8befa22c066c",
+      "selectedCheckpointId": "chk_ce8a6989-48b1-4341-ba39-5c3286629d7e",
       "noMutationOnNo": true,
       "exactlyOneCompletionOnYes": true
     },
     "governanceDialogEvidence": {
       "noMutationOnNo": true,
       "invalidYesFailedClosed": true,
-      "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:125:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:319:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:312:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:302:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
+      "invalidYesResult": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"name\": \"Error\",\n    \"message\": \"Governance decision is not anchored in this Main Process session.\",\n    \"stack\": \"Error: Governance decision is not anchored in this Main Process session.\\n    at createProtocolError (<starter>\\\\src\\\\shared\\\\contracts.cjs:127:24)\\n    at #applyAnchoredDecision (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:330:13)\\n    at MultiAgentRuntime.apply (<starter>\\\\src\\\\main\\\\multi-agent-runtime.cjs:323:39)\\n    at <starter>\\\\src\\\\main\\\\ipc-router.cjs:310:30\\n    at wrapped (<starter>\\\\src\\\\main\\\\ipc-router.cjs:90:29)\\n    at Session.<anonymous> (node:electron/js2c/browser_init:2:114940)\\n    at Session.emit (node:events:509:28)\",\n    \"details\": {\n      \"governanceDecisionId\": \"gov_missing_ui_fixture\"\n    }\n  }\n}"
     },
     "horizontalOverflow": false,
     "overflowingControls": [],
@@ -312,19 +312,43 @@
         "width": 500,
         "right": 500,
         "clientHeight": 857,
-        "scrollHeight": 3223,
+        "scrollHeight": 3262,
         "overflowY": "auto"
       },
       "scrolled": {
-        "scrollTop": 2366,
-        "maxScroll": 2366,
+        "scrollTop": 2404,
+        "maxScroll": 2405,
         "finalPanelVisible": true,
         "mainTop": 0,
         "mainBottom": 857.3333740234375,
-        "finalPanelTop": 795.7396240234375,
-        "finalPanelBottom": 843.0729598999023
+        "finalPanelTop": 796.28125,
+        "finalPanelBottom": 843.6145858764648
       }
     },
+    "localeRuntime": {
+      "english": {
+        "locale": "en",
+        "lang": "en",
+        "title": "BlankSeed Browser Console",
+        "subtitle": "Follow the workflow; every step retains evidence and a recovery path.",
+        "candidate": "Candidate"
+      },
+      "simplifiedChinese": {
+        "locale": "zh-CN",
+        "lang": "zh-Hans-CN",
+        "title": "BlankSeed Browser 控制台",
+        "subtitle": "按步骤完成任务；每一步都保留证据与恢复路径。",
+        "candidate": "候选"
+      },
+      "traditionalChinese": {
+        "locale": "zh-TW",
+        "lang": "zh-Hant-TW",
+        "title": "BlankSeed Browser 控制台",
+        "subtitle": "依步驟完成任務；每一步都保留證據與復原路徑。",
+        "candidate": "候選"
+      }
+    },
+    "evidenceTranslationPreservation": true,
     "screenshots": {
       "desktop": "<starter>\\reports\\ui-v2\\qa-workflow-desktop-500.png",
       "narrow": "<starter>\\reports\\ui-v2\\qa-agent-workspace-390.png",
@@ -334,25 +358,25 @@
       "browserNonceObserved": true,
       "ownedChildProcessExited": true,
       "temporaryRuntimeRemoved": true,
-      "cdpPort": 38752
+      "cdpPort": 62477
     }
   },
   "runtimeBaseState": {
     "workspaceResiduals": {
-      "evolution-runs": 14,
-      "experiments": 71,
-      "modules": 21,
-      "source-evolution": 0,
-      "state": 3,
+      "evolution-runs": 22,
+      "experiments": 403,
+      "modules": 132,
+      "source-evolution": 209,
+      "state": 15,
       "wp12-preflight": 0
     },
-    "activeModulesFileExists": false,
+    "activeModulesFileExists": true,
     "appDataRuntimeRootExists": true,
     "ownedProcessCleanup": {
       "browserNonceObserved": true,
       "ownedChildProcessExited": true,
       "temporaryRuntimeRemoved": true,
-      "cdpPort": 38752
+      "cdpPort": 62477
     }
   },
   "resetManifest": {
@@ -411,18 +435,23 @@
     },
     {
       "path": "starter/reports/ui-v2/qa-agent-workspace-390.png",
-      "size": 78523,
-      "sha256": "5c56017d7fc0bac2078fdc49ef520a901e8ac736b917e0aae2e60cc06ebb90e8"
+      "size": 78394,
+      "sha256": "573aa8fdd2f6877cabb21af6a9f6d1a2bd39551f46e531d3241fbcc9717f2a8a"
     },
     {
       "path": "starter/reports/ui-v2/qa-workflow-desktop-500.png",
-      "size": 91030,
-      "sha256": "fed1f15aabc0d367697502519b698f9ac2657446c0cb0282a9222a49dbe6179b"
+      "size": 92123,
+      "sha256": "1f542652c748e22b47bdc0d03bc1c07c0f88d4968dd6e352885f1ff8e2f38450"
     },
     {
       "path": "starter/reports/ui-v2/qa-workflow-short-430x600.png",
-      "size": 50968,
-      "sha256": "39ebe1e206ba4c66f7304e0169a75db0d7fea6281ce80a5a3a25aef5d0e5dc6f"
+      "size": 50651,
+      "sha256": "5fdc8fba9076ac468d4514ab58d2ca95506217091bf349fb82d6046910223edf"
+    },
+    {
+      "path": "starter/reports/ui-v2/qa-workspace-resizer.png",
+      "size": 164833,
+      "sha256": "b34c6f64168045df3ebff5aa190518433c75b6ebcb8cb3c43bb2b0d2814286e8"
     },
     {
       "path": "starter/reports/ui-v2/README.md",
@@ -441,8 +470,13 @@
     },
     {
       "path": "starter/reports/ui-v2/runtime-smoke.json",
-      "size": 8146,
-      "sha256": "8b25a67bb8713559d2c63dc5f0b6e8f8dba1139500f48e9bd5fcba32202d4688"
+      "size": 9117,
+      "sha256": "074134e81315d2a1dbdb63d6d7114cb0af07d459e77dae1cb3a216c17d43268d"
+    },
+    {
+      "path": "starter/reports/ui-v2/workspace-resizer-smoke.json",
+      "size": 791,
+      "sha256": "e5bc7d333f6bcafa25a8ce7f06aef40b38c1890316a02b7b0a877056867d4896"
     }
   ]
 }
