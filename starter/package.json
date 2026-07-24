@@ -2,6 +2,7 @@
   "name": "blankseed-browser-starter",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Minimal Electron/Chromium scaffold for the BlankSeed Browser research project.",
   "main": "src/main/main.cjs",
   "scripts": {

@@ -121,4 +121,4 @@ flowchart TB
 
 ## 授權
 
-`UNKNOWN`：目前未檢視到此 repository 的 license 檔案。請勿假設可重用或再散布的權利。
+本專案採用 [MIT 授權條款](LICENSE)。

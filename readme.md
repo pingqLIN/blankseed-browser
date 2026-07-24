@@ -119,4 +119,4 @@ The [2026-07-20 project snapshot](PROJECT_STATUS.md) records Windows Electron ru
 
 ## License
 
-`UNKNOWN`: no repository license file is currently available. Do not assume permission to reuse or redistribute this project.
+Released under the [MIT License](LICENSE).
