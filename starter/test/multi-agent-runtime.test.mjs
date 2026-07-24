@@ -6,7 +6,12 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { MultiAgentRuntime, evidenceHash } = require('../src/main/multi-agent-runtime.cjs');
+const {
+  GOVERNANCE_SCHEMA,
+  MULTI_AGENT_SCHEMA,
+  MultiAgentRuntime,
+  evidenceHash
+} = require('../src/main/multi-agent-runtime.cjs');
 const { createSandboxAutoApplyPolicy } = require('../src/main/sandbox-auto-apply-policy.cjs');
 const { createProtocolError, errorCodes, sha256 } = require('../src/shared/contracts.cjs');
 
@@ -21,9 +26,10 @@ class MemoryEventStore {
 }
 
 class FixtureEvolutionManager {
-  constructor({ badProposalHash = false } = {}) {
+  constructor({ badProposalHash = false, sensitiveEvidence = false } = {}) {
     this.calls = [];
     this.badProposalHash = badProposalHash;
+    this.sensitiveEvidence = sensitiveEvidence;
   }
 
   async run(payload, context) {
@@ -34,7 +40,11 @@ class FixtureEvolutionManager {
         status: 'ok',
         evolutionRunId: 'evo_proposer_12345678',
         checkpointId: 'chk_proposer_12345678',
-        output: { content: 'Activate the committed fixture after independent review.' }
+        output: {
+          content: this.sensitiveEvidence
+            ? 'Review https://private-site.example/agent and its Confidential page title.'
+            : 'Activate the committed fixture after independent review.'
+        }
       };
     }
     const prompt = payload.messages[0].content;
@@ -47,7 +57,9 @@ class FixtureEvolutionManager {
         content: JSON.stringify({
           verdict: 'approve',
           proposalHash: this.badProposalHash ? 'sha256:wrong' : proposalHash,
-          reason: 'Committed source identity and bounded scope are consistent.'
+          reason: this.sensitiveEvidence
+            ? 'https://private-site.example/agent shows Confidential page title and the bounded scope is consistent.'
+            : 'Committed source identity and bounded scope are consistent.'
         })
       }
     };
@@ -136,6 +148,61 @@ test('MultiAgentRuntime anchors hash-bound handoff/review evidence and requires 
     assert.equal(harness.moduleStore.activations.length, 1);
     assert.ok(harness.eventStore.events.some((event) => event.type === 'multi_agent.handoff.created'));
     assert.ok(harness.eventStore.events.some((event) => event.type === 'governance.decision.applied'));
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('MultiAgentRuntime de-identifies durable run and governance evidence without changing live hash-bound Apply', async () => {
+  const harness = createHarness({ sensitiveEvidence: true });
+  try {
+    const sensitiveHost = 'private-site.example';
+    const sensitiveText = 'Confidential page title';
+    const result = await harness.runtime.run({
+      task: `Review https://${sensitiveHost}/agent and ${sensitiveText}.`,
+      activation: { id: 'generated.governed', version: '1.0.0' }
+    }, { sessionId: 'ses_sensitive_12345678', requestId: 'req_sensitive_12345678' });
+
+    assert.equal(result.status, 'ok');
+    assert.match(result.handoff.proposalContent, new RegExp(sensitiveHost));
+    assert.match(result.decision.review.reason, new RegExp(sensitiveText));
+    assert.equal(evidenceHash(result.decision), result.decision.evidenceHash);
+
+    const runRaw = readFileSync(result.evidencePath, 'utf8');
+    const decisionPath = join(
+      harness.root,
+      'workspace',
+      'governance',
+      'decisions',
+      `${result.decision.decisionId}.json`
+    );
+    const decisionRaw = readFileSync(decisionPath, 'utf8');
+    const persistedRun = JSON.parse(runRaw);
+    const persistedDecision = JSON.parse(decisionRaw);
+
+    for (const raw of [runRaw, decisionRaw]) {
+      assert.equal(raw.includes(sensitiveHost), false);
+      assert.equal(raw.includes(sensitiveText), false);
+    }
+    assert.equal(MULTI_AGENT_SCHEMA, 'blankseed-multi-agent-run/0.2');
+    assert.equal(GOVERNANCE_SCHEMA, 'blankseed-governance-decision/0.2');
+    assert.equal(persistedRun.schema, MULTI_AGENT_SCHEMA);
+    assert.equal(persistedDecision.schema, GOVERNANCE_SCHEMA);
+    assert.equal(persistedRun.persistenceRedaction.status, 'redacted');
+    assert.equal(persistedDecision.persistenceRedaction.status, 'redacted');
+
+    harness.moduleStore.active['generated.governed'] = '0.9.0';
+    assert.throws(
+      () => harness.runtime.apply(result.decision.decisionId, { confirmed: true }),
+      /changed before activation/
+    );
+    delete harness.moduleStore.active['generated.governed'];
+    const applied = harness.runtime.apply(result.decision.decisionId, { confirmed: true });
+    assert.equal(applied.status, 'applied');
+    assert.equal(applied.activationResult.active['generated.governed'], '1.0.0');
+    const appliedRaw = readFileSync(decisionPath, 'utf8');
+    assert.equal(appliedRaw.includes(sensitiveHost), false);
+    assert.equal(appliedRaw.includes(sensitiveText), false);
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }

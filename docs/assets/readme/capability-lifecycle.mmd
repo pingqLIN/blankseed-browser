@@ -1,0 +1,11 @@
+stateDiagram-v2
+    direction LR
+    [*] --> Generate
+    Generate --> Candidate
+    Candidate --> Test
+    Test --> Candidate: failure evidence / revise
+    Test --> Commit: passes
+    Commit --> Activate: operator decision
+    Activate --> Invoke
+    Invoke --> Rollback: select prior version
+    Rollback --> Activate

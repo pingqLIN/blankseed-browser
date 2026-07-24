@@ -138,6 +138,15 @@ const verification = {
     totalFiles: runtimeResetManifest.quarantine.totalFiles,
     rollbackPolicy: runtimeResetManifest.policy
   },
+  artifactHashPolicy: {
+    excludedOutput: 'starter/reports/ui-v2/verification.json',
+    reason: 'The generated verification output is excluded from its own artifact set to avoid recursive self-reference.',
+    independentControls: [
+      'The file is covered by Git object identity when committed.',
+      'External audit packets bind the reviewed evidence set and scoped source digest by SHA-256.',
+      'Consumers may independently hash verification.json as a top-level evidence object.'
+    ]
+  },
   artifacts: evidenceFiles
 };
 

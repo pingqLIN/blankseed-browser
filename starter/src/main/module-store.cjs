@@ -57,6 +57,17 @@ function asObject(value, name) {
   return value === undefined ? {} : assertPlainObject(value, name);
 }
 
+function normalizePageTestPlan(value) {
+  const result = asObject(value, 'module result');
+  const pageTest = asObject(result.pageTest, 'module result.pageTest');
+  return {
+    installSource: assertString(pageTest.installSource, 'module result.pageTest.installSource', { min: 1, max: 1_000_000 }),
+    verifySource: assertString(pageTest.verifySource, 'module result.pageTest.verifySource', { min: 1, max: 1_000_000 }),
+    uninstallSource: assertString(pageTest.uninstallSource, 'module result.pageTest.uninstallSource', { min: 1, max: 1_000_000 }),
+    rollbackVerifySource: assertString(pageTest.rollbackVerifySource, 'module result.pageTest.rollbackVerifySource', { min: 1, max: 1_000_000 })
+  };
+}
+
 class ModuleStore {
   constructor({ workspaceRoot, eventStore, processSupervisor, defaultTimeoutMs = 10000 }) {
     this.workspaceRoot = path.resolve(workspaceRoot);
@@ -144,6 +155,69 @@ class ModuleStore {
       executionId: result.executionId
     }, context);
     return { candidateId, passed, result, manifest };
+  }
+
+  async prepareCandidatePageTest(candidateId, context = {}) {
+    const candidate = this.#readCandidate(candidateId);
+    this.#assertSourceHash(candidate.manifest, candidate.source);
+    if (candidate.manifest.status !== 'tested') {
+      throw createProtocolError(errorCodes.invalidRequest, 'Candidate must pass supervised module testing before page verification.', {
+        candidateId,
+        status: candidate.manifest.status
+      });
+    }
+    this.eventStore.append('module.candidate.page-test.plan.started', {
+      candidateId,
+      moduleId: candidate.manifest.id,
+      version: candidate.manifest.version,
+      sourceHash: candidate.manifest.sourceHash
+    }, context);
+    const execution = await this.processSupervisor.execute({
+      source: candidate.source,
+      timeoutMs: this.defaultTimeoutMs,
+      environment: {
+        BLANKSEED_MODULE_PAGE_TEST: '1',
+        BLANKSEED_MODULE_ID: candidate.manifest.id,
+        BLANKSEED_MODULE_VERSION: candidate.manifest.version
+      }
+    }, { ...context, kind: 'module.candidate.page-test.plan' });
+    if (execution.status !== 'ok') {
+      this.eventStore.append('module.candidate.page-test.plan.failed', {
+        candidateId,
+        moduleId: candidate.manifest.id,
+        version: candidate.manifest.version,
+        sourceHash: candidate.manifest.sourceHash,
+        executionId: execution.executionId,
+        error: execution.error
+      }, context);
+      return {
+        status: 'error',
+        candidateId,
+        moduleId: candidate.manifest.id,
+        version: candidate.manifest.version,
+        sourceHash: candidate.manifest.sourceHash,
+        execution,
+        error: execution.error
+      };
+    }
+    const pageTest = normalizePageTestPlan(execution.result);
+    this.eventStore.append('module.candidate.page-test.plan.completed', {
+      candidateId,
+      moduleId: candidate.manifest.id,
+      version: candidate.manifest.version,
+      sourceHash: candidate.manifest.sourceHash,
+      executionId: execution.executionId,
+      phases: ['install', 'verify', 'uninstall', 'rollbackVerify']
+    }, context);
+    return {
+      status: 'ok',
+      candidateId,
+      moduleId: candidate.manifest.id,
+      version: candidate.manifest.version,
+      sourceHash: candidate.manifest.sourceHash,
+      execution,
+      pageTest
+    };
   }
 
   commitCandidate(candidateId, context = {}) {
@@ -324,6 +398,12 @@ class ModuleStore {
       schema: MODULE_SCHEMA,
       id,
       version,
+      ...(manifest.parentVersion === undefined ? {} : {
+        parentVersion: this.#assertVersion(manifest.parentVersion)
+      }),
+      ...(manifest.migrationReason === undefined ? {} : {
+        migrationReason: assertString(manifest.migrationReason, 'migrationReason', { min: 1, max: 500 })
+      }),
       description: assertString(manifest.description || 'Generated capability', 'description', { min: 1, max: 500 }),
       entry,
       runtime,

@@ -1,0 +1,19 @@
+{
+  "schema_version": "blankseed-readme-mascot-provenance/v1",
+  "asset": "docs/assets/readme/blankseed-browser-mascot-banner-v1.png",
+  "asset_sha256": "67a142f79f88d2eecc098c2fd4d63f8f82d73c8b259230b3885d3147a2598976",
+  "generation_date": "2026-07-24",
+  "generation_mode": "built-in image generation",
+  "concept_digest": "74ee791bf08fcc38ac41bf1f25f6efcf3fbf5e0500c5b9c492c3cae08f750db2",
+  "approval_source": "pre-authorized-workflow",
+  "public_concept_manifest": {
+    "path": "docs/assets/readme/blankseed-browser-mascot-banner-v1.concept.json",
+    "sha256": "c8b46b95707348f12fc9248f527126399c88c978edc5bb5f162ff7535f5c9433"
+  },
+  "rights": {
+    "generation_request": "An original character design was requested.",
+    "third_party_reference_assets": "none supplied",
+    "notice": "This provenance records the generation workflow and supplied-reference boundary. It does not establish ownership, copyright clearance, or redistribution rights."
+  },
+  "alt_text": "Original large-headed pangolin guardian tending capability seeds beside a lantern at a safe research boundary."
+}

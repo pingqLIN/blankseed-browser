@@ -10,6 +10,8 @@ const channels = Object.freeze({
   targetBack: 'blankseed:target:back',
   targetForward: 'blankseed:target:forward',
   targetReload: 'blankseed:target:reload',
+  targetOverlaySet: 'blankseed:target:overlay:set',
+  targetPanelResize: 'blankseed:target:panel:resize',
   targetSnapshot: 'blankseed:target:snapshot',
   pageExecute: 'blankseed:page:execute',
   cdpSend: 'blankseed:cdp:send',
@@ -80,6 +82,14 @@ contextBridge.exposeInMainWorld('blankseed', {
     back: (options) => invoke(channels.targetBack, withOptions({}, options)),
     forward: (options) => invoke(channels.targetForward, withOptions({}, options)),
     reload: (options) => invoke(channels.targetReload, withOptions({}, options)),
+    setOverlayActive: (active, options) => invoke(
+      channels.targetOverlaySet,
+      withOptions({ active }, options)
+    ),
+    resizePanel: (width, options) => invoke(
+      channels.targetPanelResize,
+      withOptions({ width }, options)
+    ),
     snapshot: (options) => invoke(channels.targetSnapshot, withOptions({}, options))
   },
   page: {
@@ -120,7 +130,7 @@ contextBridge.exposeInMainWorld('blankseed', {
     commitCandidate: (candidateId, options) => invoke(channels.moduleCommitCandidate, withOptions({ candidateId, confirmed: options?.confirmed === true }, options)),
     activate: (id, version, options) => invoke(channels.moduleActivate, withOptions({ id, version, confirmed: options?.confirmed === true }, options)),
     deactivate: (id, options) => invoke(channels.moduleDeactivate, withOptions({ id }, options)),
-    rollback: (id, version, options) => invoke(channels.moduleRollback, withOptions({ id, version }, options)),
+    rollback: (id, version, options) => invoke(channels.moduleRollback, withOptions({ id, version, confirmed: options?.confirmed === true }, options)),
     invoke: (id, options) => invoke(channels.moduleInvoke, withOptions({ id }, options))
   },
   model: {

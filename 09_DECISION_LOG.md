@@ -930,16 +930,16 @@ Review before automatic Commit, automatic Activate, or policy-based approval.
 ### Context
 
 ADR-020 gated Commit and Activate in the automated Module sequence but left the
-manual buttons and the default Agent tool catalog able to cross the same
+manual Commit, Activate, and Rollback buttons and the default Agent tool catalog able to cross the same
 boundaries without an equivalent decision. This contradicted the task-guided
 UI's safety message and could let an operator mistake a stopped or unreviewed
 path for an approved mutation.
 
 ### Evidence
 
-Independent UX, Runtime, and Governance reviewers each identified the missing
-manual confirmation. The Governance reviewer also confirmed that the default
-Agent catalog exposed Commit and Activate. Existing checkpoint restore and
+Independent UX, Runtime, and Governance reviewers identified missing manual
+confirmation across Module lifecycle boundaries. The final Governance reviewer
+recommended aligning Rollback with Commit and Activate. Existing checkpoint restore and
 governance apply routes already demonstrate fail-closed Main Process
 confirmation checks.
 
@@ -952,8 +952,8 @@ confirmation checks.
 
 ### Decision
 
-Require `confirmed: true` at the Main Process IPC boundary for Module Commit and
-Activate. Both automated and manual UI paths must show the semantic YES/NO
+Require `confirmed: true` at the Main Process IPC boundary for Module Commit,
+Activate, and Rollback. All trusted-control UI paths must show the semantic YES/NO
 dialog before sending this value. NO performs no mutation. The default Agent
 profile excludes Commit, Activate, and Rollback tools; these tools are available
 only to a separately authorized explicit allowlist. Candidate creation and
@@ -962,8 +962,8 @@ review.
 
 ### Consequences
 
-- All trusted-control UI paths use the same operator gate for publication and
-  activation.
+- All trusted-control UI paths use the same operator gate for publication,
+  activation, and rollback.
 - The ordinary Agent can prepare and test a Candidate but cannot change the
   committed or active Module state.
 - Specialized research profiles may retain autonomous lifecycle tests only by
@@ -973,10 +973,514 @@ review.
 
 ### Rollback/review trigger
 
-Stop Module mutation if any UI path can omit confirmation, if NO produces an
+Stop Commit, Activate, or Rollback if any UI path can omit confirmation, if NO produces an
 event or state change, if an ordinary Agent receives a high-risk Module tool, or
 if a specialized allowlist is applied without an inspectable authority source.
 Review before delegating Commit, Activate, or Rollback to a new runtime profile.
+
+---
+
+## ADR-022 — Retry only a command rejected by an invalid CDP session
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+ADR-008 forbids replaying a failed raw CDP command because an unexpected detach
+does not prove whether Chromium already applied a stateful command. A long Agent
+run produced the narrower `No session with given id` rejection. That rejection
+identifies a stale transient debugger session before the broker receives a CDP
+result, so the Runtime needs a bounded recovery path without creating a general
+command replay policy.
+
+### Evidence
+
+The existing broker reattached only on the next independent command. It did not
+classify `No session with given id`, refresh the broker-owned attachment, or
+retry the rejected command. Regression fixtures now prove that the exact error
+causes one detach/reattach and one retry, that a second rejection produces a
+structured `CDP_SESSION_INVALID` failure, and that unrelated CDP failures are
+never replayed.
+
+### Alternatives
+
+- Keep failing the evolution action and require a completely new run.
+- Replay every command after any debugger error or detach.
+- Reload or recreate the target view whenever a session becomes invalid.
+
+### Decision
+
+Treat only an error whose cause contains `No session with given id` as an
+invalid-session rejection. Record `SESSION_INVALID`, refresh the broker-owned
+debugger attachment, and retry the same command once. Record `RECOVERED` on
+success. If the retry fails, return a retryable `CDP_SESSION_INVALID` error with
+both causes and `attempts: 2`. Do not retry a third time, and do not extend this
+exception to timeouts, unexpected detach, method errors, or other CDP failures.
+
+### Consequences
+
+- Long runs can recover from one known transient session-identity failure.
+- The original ADR-008 no-replay rule remains the default for ambiguous or
+  potentially already-applied commands.
+- Recovery adds one bounded command latency and emits an auditable event chain.
+- Target freshness validation still runs after the recovered result.
+
+### Rollback/review trigger
+
+Remove the exception if Electron can execute a command before returning this
+specific rejection, if debugger ownership becomes shared, if recovery can issue
+more than two total attempts, or if tests show unrelated errors entering the
+retry path.
+
+---
+
+## ADR-023 — Compress large observations only at the model-context boundary
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+Long evolution runs stored complete Node, CDP, and DOM snapshot results in
+durable evidence and also copied those results back into later model turns.
+Large outputs therefore accumulated in the conversation and increased model
+latency. Replacing the durable result would weaken auditability and violate the
+evidence-before-claims boundary.
+
+### Evidence
+
+The failed YOUTUBE-AOPass run contained individual action records above 30,000
+characters. The existing generic model serializer allowed up to 12,000
+characters per tool result and had no lower observation-specific budget.
+Regression tests now feed 50,000-character Node, CDP, and page snapshot results
+through the model-facing serializer and retain a full 50,000-character Node
+result in `run.json`.
+
+### Alternatives
+
+- Truncate or reject large action evidence before persistence.
+- Keep the 12,000-character generic preview for every tool kind.
+- Add an external semantic summarization model to the Runtime.
+
+### Decision
+
+Apply deterministic observation compression only when `node.execute`,
+`cdp.send`, or `page.snapshot` model feedback exceeds
+`evolutionObservationMaxChars`, initially 4,000 characters. Preserve status,
+identity, error code, retryability, hashes, bounded structural keys, scalar
+previews, and metrics where present. Keep the full action result in durable run
+evidence. Small observations remain byte-equivalent to the previous model
+feedback.
+
+### Consequences
+
+- Per-action observation growth is bounded for the three high-volume tools.
+- Durable evidence remains complete and independently inspectable.
+- The summary is deterministic structural compression, not a semantic claim.
+- A model may need a narrower follow-up observation when omitted detail matters.
+
+### Rollback/review trigger
+
+Review if compressed output exceeds its configured budget, if error identity or
+metrics disappear, if durable evidence is altered, or if a workflow repeatedly
+requires fields that the structural summary omits.
+
+---
+
+## ADR-024 — Select model-turn timeouts from evolution work state
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+All evolution model turns inherited the direct-model default of 30 seconds.
+That budget was suitable for a simple request but repeatedly expired during
+long analysis, code generation, and verification turns. Node, page, and CDP
+execution already have separate bounded timeouts and must not be silently
+replayed or extended by a model policy.
+
+### Evidence
+
+The failed YOUTUBE-AOPass run ended when turn 18 exceeded 30,000 ms even though
+the adapter marked the timeout retryable. Before this decision, the evolution
+IPC inserted the 30,000-ms default before `EvolutionRunManager` could select a
+turn-specific budget. Regression tests now verify that the manager passes
+90,000, 120,000, and 180,000 ms to consecutive analysis, code-generation, and
+verification turns and records the same decisions in events and `run.json`.
+
+### Alternatives
+
+- Raise every model turn to one fixed large timeout.
+- Let model-generated text choose arbitrary timeouts.
+- Extend page, CDP, and Node action timeouts together with model inference.
+
+### Decision
+
+Use policy `blankseed-adaptive-timeout/0.1` for evolution model turns:
+
+- simple: 30,000 ms;
+- analysis: 90,000 ms;
+- code generation/correction: 120,000 ms;
+- verification: 180,000 ms.
+
+Classify the first evolution turn as analysis. Classify the next turn from the
+last broker action and its status: observation inputs lead to code generation,
+Node/candidate test/invoke results lead to verification, and an action failure
+leads to correction. Preserve an explicit operator `timeoutMs` from 1 through
+300,000 ms. Record every selection before the model turn. Do not change action
+timeouts or add automatic retries.
+
+### Consequences
+
+- Long inference receives a bounded budget appropriate to its work state.
+- Direct non-evolution model calls retain their existing 30-second default.
+- Operators can still provide an explicit bounded override.
+- Timeout decisions are reproducible from events and run evidence.
+
+### Rollback/review trigger
+
+Review if classification repeatedly selects the wrong work state, if any value
+exceeds 300,000 ms, if explicit overrides are ignored, or if the policy begins
+to alter or replay Page, CDP, Node, or Module actions.
+
+---
+
+## ADR-025 — Resolve generated Module results through API v1.1 entry-point precedence
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+The generated Node runtime supplied CommonJS-shaped `module` and `exports`
+objects but used only the direct return value of `AsyncFunction(source)`.
+Committed generated modules that exposed behavior through
+`module.exports.evaluate` therefore loaded successfully and then reported a
+successful `null` result after implicit `undefined` normalization. Editing an
+existing committed module would violate immutable version governance.
+
+### Evidence
+
+`youtube-aopass@1.0.0` has verified source hash
+`sha256:dd90a4facd06c1ff1657cc030c63f908840164b186a5a1f1cb419a2f351bd8ec`
+and exports `evaluate` without a top-level return. Focused contract tests prove
+direct return, asynchronous `execute`, legacy `evaluate`, invalid-module
+errors, precedence, and undefined-result rejection. The governed migration
+created, tested, committed, and activated `youtube-aopass@1.0.1`; both its
+candidate test and a real YouTube-page invocation returned a structured result.
+
+### Alternatives
+
+- Require every generated module to use a top-level direct return.
+- Modify committed module source in place.
+- Invoke every exported function and merge their results.
+- Continue accepting implicit `undefined` as a successful `null` result.
+
+### Decision
+
+Adopt Module Runtime API v1.1. After top-level source evaluation, await exactly
+one result source in this order: callable `module.exports.execute(context)`,
+callable `module.exports.evaluate(context.observation, context.environment)`,
+then a defined direct return value. Resolve `context.observation` from
+`input.observation`, then `environment.observation`, then the entire
+environment. An explicit `null` remains valid; a missing entry point or final
+`undefined` fails with structured code `MODULE_CONTRACT_INVALID`. Preserve the
+existing execution envelope and JSON serialization rules.
+
+Allow optional `parentVersion` and `migrationReason` manifest fields and
+preserve them through candidate, test, and commit states. Corrective Module
+source must still follow `candidate -> test -> commit -> activate`; committed
+versions are never rewritten.
+
+### Consequences
+
+- Existing direct-return modules continue to work.
+- Modern and legacy CommonJS modules receive deterministic dispatch.
+- Invalid generated source no longer succeeds with a silent `null` caused by
+  implicit `undefined`.
+- Migration lineage is inspectable without changing the existing manifest
+  schema identifier.
+- Runtime compatibility does not establish live website behavior or
+  YouTube-AOPass 3/3 acceptance.
+
+### Rollback/review trigger
+
+Rollback the active Module mapping to `youtube-aopass@1.0.0` if `1.0.1`
+invocation fails. Review or supersede this decision if precedence breaks an
+existing direct-return module, if context resolution exposes unintended data,
+if undefined rejection blocks a documented valid contract, or if manifest
+migration fields are lost during any lifecycle transition.
+
+---
+
+## ADR-026 — Resize the control and target panes through the brokered layout boundary
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+The control renderer and native target `WebContentsView` used one configured,
+fixed split. A renderer-only CSS resize would leave the native view bounds out
+of sync and could let it cover the divider or control content.
+
+### Evidence
+
+Focused tests prove bounded layout calculation and the emitted
+`target.layout.changed` event. An isolated Electron smoke used real CDP mouse
+input to drag the separator from 500 px to 640 px; renderer width, main-process
+layout, native target width, and ARIA state agreed afterward.
+
+### Alternatives
+
+- Resize only the control renderer with CSS.
+- Expose direct renderer access to the native `WebContentsView`.
+- Keep a fixed configured split.
+
+### Decision
+
+Expose one explicit preload/IPC resize operation. The main process owns the
+accepted control-panel width, clamps both panes to a 320 px minimum, updates the
+native view bounds, returns the canonical layout, and records a brokered event.
+The renderer may update optimistically while dragging but reconciles to the
+returned canonical width. Support pointer drag plus keyboard Arrow, Home, and
+End controls on an accessible vertical separator. Width remains session-scoped.
+
+### Consequences
+
+- The control and target panes remain synchronized during resizing.
+- Remote pages retain sandbox isolation and receive no Node or layout authority.
+- Operators can resize with mouse or keyboard without hiding either pane.
+- A new session starts from the configured default width.
+
+### Rollback/review trigger
+
+Remove the separator and resize IPC together if native and renderer bounds can
+diverge, pointer capture fails across the view boundary, accessibility state is
+stale, or minimum widths prevent required content access.
+
+---
+
+## ADR-027 — Verify generated page behavior through a candidate-bound broker bridge
+
+**Status:** Accepted
+**Date:** 2026-07-21
+
+### Context
+
+A generated overlay-ad candidate returned an installer string through an unsupported `run()` export. Its Node-only candidate test correctly rejected the module, and even a corrected Node result would not prove that the installer had run on the remote page or that it could restore the page afterwards.
+
+### Evidence
+
+The supervised Module Runtime accepts `execute`, `evaluate`, or a direct return only. The existing isolated-world page broker already records source hashes, target identity, timeouts, cancellation, and page execution events without giving remote content Node access. Focused tests now prove that a tested candidate is re-evaluated into a four-phase plan and that the dispatcher runs install, verify, uninstall, and rollback verification against one expected target identity.
+
+### Alternatives
+
+- Treat a Node candidate test as proof of page behavior.
+- Let the model submit an arbitrary installer directly to `page_execute` after candidate testing.
+- Run generated page source in the Node utility runtime.
+
+### Decision
+
+Add `module_candidate_page_test`. It accepts only a tested candidate ID, re-evaluates the stored source under the existing Module Runtime contract, and requires a `pageTest` descriptor with `installSource`, `verifySource`, `uninstallSource`, and `rollbackVerifySource`. Each script runs through the existing isolated-world page broker and must return `{ ok: true }`. The dispatcher retains candidate ID, source hash, plan execution ID, target identity, phase execution IDs, and any failure in the event pipeline.
+
+### Consequences
+
+- Candidate provenance remains bound to the executed page code.
+- Remote pages remain sandboxed with `nodeIntegration: false`.
+- A successful candidate test no longer implies page success without install and rollback evidence.
+- Candidate page testing remains reversible and does not commit or activate a module.
+
+### Rollback/review trigger
+
+Remove the bridge if it can execute source not derived from the stored candidate, loses target-identity checks, omits an uninstall attempt after installation, or lets a remote renderer obtain Node authority.
+
+---
+
+## ADR-028 — De-identify sensitive external page evidence at durable boundaries
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+An external page target and its visible content can enter several durable
+artifacts: append-only events, supervised execution files, and evolution-run
+evidence. A cleanup of prior local artifacts cannot prevent the same class of
+data from being persisted by a later execution.
+
+### Evidence
+
+Page snapshots include URL, title, text, and accessible element names.
+ProcessSupervisor writes source, input, runtime, result, and stdout/stderr
+artifacts under experiments. EvolutionRunManager writes the model transcript
+and action results into a durable run manifest. Previously these persistence
+paths used their input values directly.
+
+### Alternatives
+
+- Ban navigation or execution against every external target.
+- Redact only an operator-maintained list of known sensitive domains.
+- Store a reversible or dictionary-susceptible target hash.
+- Apply one clone-only, default-deny persistence redaction boundary.
+
+### Decision
+
+Use one shared persistence-redaction pipeline before Event Store append,
+ProcessSupervisor experiment writes, and EvolutionRunManager run-manifest
+writes. Treat non-local HTTP(S) targets as sensitive by default. Replace target
+references with fixed non-reversible markers and remove page-content fields
+within a target-bearing object. Preserve loopback and fixture hosts for local
+tests. Persist only aggregate redaction counts, with a per-experiment receipt.
+
+The pipeline must not mutate the live result, execution envelope, or model
+observation. It also must not silently rewrite generated Module candidate
+source or committed Module artifacts, because that would alter the code under
+review and break immutable source identity. Candidate-source admission is
+outside this decision and requires a separately reviewed policy.
+
+### Consequences
+
+- The three durable evidence channels no longer retain raw non-local target
+  identity or scoped page content.
+- Operators retain an inspectable indication that redaction occurred, without a
+  reversible target identifier.
+- Evidence has less semantic detail after persistence; live workflow behavior
+  and model correction feedback retain their original values.
+- Existing local artifacts require separate cleanup; this pipeline is
+  preventative rather than a history rewrite.
+
+### Rollback/review trigger
+
+Review or replace this decision if raw external target/page content reaches any
+covered durable sink, a loopback or fixture target is redacted unexpectedly,
+redaction changes the live execution/model value, or a requirement arises to
+persist generated Module source under a newly approved admission policy.
+
+---
+
+## ADR-029 — Minimize Checkpoint persistence to the explicit restore scope
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+ADR-015 limits restore authority to `modules.active`, but a Checkpoint could
+still serialize the complete runtime status before restore. That broader status
+can include a target, page-derived fields, configuration, and other data that
+is neither restorable nor needed to prove the active mapping.
+
+### Evidence
+
+The runtime status contains the Module state alongside target and configuration
+state. Checkpoint restore reads only `state.modules.active`, validates its hash,
+and atomically applies that mapping. Focused regression coverage now proves
+that a v0.3 file retains no target or configuration field, rejects a
+hash-consistent attempt to add extra state, and continues to restore a valid
+v0.2 active mapping.
+
+### Alternatives
+
+- Send the complete status through the generic persistence redactor.
+- Encrypt the complete status and retain it for a possible future restore.
+- Keep the complete status for diagnostics despite its declared exclusions.
+- Project only the declared restorable state before writing a Checkpoint.
+
+### Decision
+
+Write `blankseed-checkpoint/0.3` with exactly
+`{ modules: { active } }` as state, an explicit exclusion list, and a hash of
+that projected state. Validate that a v0.3 file has no other state keys before
+any restore mutation. Apply the shared persistence redactor to the persisted
+label. Continue to read validated v0.2 Checkpoints only for rollback
+compatibility; never emit v0.2 again and do not claim that this decision
+rewrites historical artifacts.
+
+### Consequences
+
+- New Checkpoints cannot retain target/page/configuration data through an
+  accidental whole-status serialization.
+- Checkpoint labels follow the same external-target privacy rule as the other
+  durable evidence sinks.
+- Existing v0.2 files remain a separately managed privacy residual until they
+  are retired or handled by a dedicated cleanup procedure.
+- Expanding restore scope requires an explicit schema decision, privacy review,
+  and regression evidence.
+
+### Rollback/review trigger
+
+Review before adding any `state` key beyond `modules.active`, if v0.3 creation
+cannot project the mapping, if a restore accepts extra state, if a legacy file
+cannot be restored as documented, or if external target/page content appears in
+a newly written Checkpoint.
+
+---
+
+## ADR-030 — Separate live Multi-Agent authority from de-identified durable evidence
+
+**Status:** Accepted
+**Date:** 2026-07-24
+
+### Context
+
+Evolution-run persistence already redacts external target and page evidence,
+but its returned result intentionally remains live and unmodified. The
+Multi-Agent layer copied that live result, proposal content, handoff, and review
+reason into a second run manifest and governance decision, reintroducing the
+same sensitive material at two direct JSON sinks.
+
+### Evidence
+
+A focused regression supplied an external target and page title through the
+task, Proposer output, and Reviewer reason. Before this change, both
+`multi-agent-runs/<mar_*>/run.json` and
+`governance/decisions/<gov_*>.json` retained the raw host and title. Governance
+Apply also requires an exact same-session memory anchor, proposal/review
+integrity hashes, an evidence hash, and a tamper-detecting hash of the decision
+file.
+
+### Alternatives
+
+- Redact the live result before it reaches the Reviewer and operator.
+- Redact only after hashing without changing the decision-file anchor.
+- Remove proposal and review narrative from durable evidence entirely.
+- Maintain separate live-authority and redacted-persistence views.
+
+### Decision
+
+Write `blankseed-multi-agent-run/0.2` and
+`blankseed-governance-decision/0.2` only through the shared
+persistence-redaction pipeline. Treat `task`, `proposalContent`, and review
+`reason` as page-content narrative fields when they identify an external
+target. Keep the live proposal, handoff, review, and decision unchanged in the
+same-session Main Process anchor. Bind tamper detection to the exact redacted
+decision written to disk, while preserving proposal, review, and evidence
+hashes over the original live evidence for authorization checks.
+
+Historical v0.1 artifacts are not rewritten. A v0.1 governance decision from a
+previous Main Process session remains non-applicable under the existing
+same-session authority rule.
+
+### Consequences
+
+- Multi-Agent run and governance decision files no longer duplicate raw
+  external target or scoped narrative evidence.
+- Model feedback, human review output, immutable evidence identity, and
+  same-session Apply behavior remain intact.
+- Persisted narrative may be replaced by fixed markers, while aggregate
+  `persistenceRedaction` metadata records that filtering occurred.
+- Integrity hashes identify the original complete evidence but cannot
+  reconstruct removed content and are not target-only identifiers.
+
+### Rollback/review trigger
+
+Review if either v0.2 sink retains an external target or related narrative,
+redaction changes the live Proposer/Reviewer value, a hash-consistent tamper is
+accepted, a retryable Apply can no longer re-anchor its redacted decision, or a
+future cross-session Apply design requires migration of historical decisions.
 
 ---
 

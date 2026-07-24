@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 const starterRoot = resolve(import.meta.dirname, '..');
 const repoRoot = resolve(starterRoot, '..');
 const authoritativeFiles = [
+  'readme.md',
   'AGENTS.md',
   'PRODUCT.md',
   'PROJECT_STATUS.md',
@@ -17,6 +18,7 @@ const authoritativeFiles = [
   '11_WP12_REAL_MODEL_EVALUATION_PROTOCOL.md',
   '08_AGENT_WORK_PACKAGES.md',
   '09_DECISION_LOG.md',
+  'MODULE_RUNTIME_CONTRACT.md',
   'USER_GUIDE.md',
   'docs/ARCHITECTURE.md',
   'docs/AGENT_CAPABILITY_LIFECYCLE.md',
@@ -27,7 +29,9 @@ const authoritativeFiles = [
   'starter/reports/wp-10-operational-hardening.md',
   'starter/reports/wp-11-automated-evolution-loop.md',
   'starter/reports/sandbox-ten-task-agent-auto-apply.md',
-  'starter/reports/wp-12-preflight-foundation.md'
+  'starter/reports/wp-12-preflight-foundation.md',
+  'starter/reports/module-runtime-contract-phase-0.md',
+  'starter/reports/module-runtime-contract-v1.1-final.md'
 ];
 
 let failed = false;
@@ -38,6 +42,12 @@ for (const relativeSource of authoritativeFiles) {
   if (!existsSync(sourcePath)) {
     failed = true;
     console.error(`Authoritative document is missing: ${relativeSource}`);
+    continue;
+  }
+  const source = readFileSync(sourcePath, 'utf8');
+  if (source.replace(/\u0000/g, '').trim().length === 0) {
+    failed = true;
+    console.error(`Authoritative document is empty or contains only NUL bytes: ${relativeSource}`);
     continue;
   }
   if (!existsSync(companionPath)) {

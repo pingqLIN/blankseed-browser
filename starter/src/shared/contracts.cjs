@@ -16,6 +16,7 @@ const errorCodes = Object.freeze({
   processKillFailed: 'PROCESS_KILL_FAILED',
   cdpAttachFailed: 'CDP_ATTACH_FAILED',
   cdpDetached: 'CDP_DETACHED',
+  cdpSessionInvalid: 'CDP_SESSION_INVALID',
   modelAdapterFailed: 'MODEL_ADAPTER_FAILED',
   checkpointFailed: 'CHECKPOINT_FAILED',
   moduleVersionConflict: 'MODULE_VERSION_CONFLICT'
@@ -27,6 +28,8 @@ const channels = Object.freeze({
   targetBack: 'blankseed:target:back',
   targetForward: 'blankseed:target:forward',
   targetReload: 'blankseed:target:reload',
+  targetOverlaySet: 'blankseed:target:overlay:set',
+  targetPanelResize: 'blankseed:target:panel:resize',
   targetSnapshot: 'blankseed:target:snapshot',
   pageExecute: 'blankseed:page:execute',
   cdpSend: 'blankseed:cdp:send',

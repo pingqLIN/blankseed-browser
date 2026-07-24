@@ -62,6 +62,29 @@ class FixtureSupervisor {
         error: Object.assign(new Error('Result is not JSON serializable.'), { code: errorCodes.serializationFailed })
       });
     }
+    if (source.includes('LARGE_OBSERVATION')) {
+      return createExecutionResult({
+        ...input,
+        result: {
+          status: 'success',
+          metrics: { records: 3, skipped: 3 },
+          output: 'x'.repeat(50000)
+        }
+      });
+    }
+    if (source.includes('PAGE_TEST_PLAN')) {
+      return createExecutionResult({
+        ...input,
+        result: {
+          pageTest: {
+            installSource: 'return { ok: true, phase: "install" };',
+            verifySource: 'return { ok: true, phase: "verify" };',
+            uninstallSource: 'return { ok: true, phase: "uninstall" };',
+            rollbackVerifySource: 'return { ok: true, phase: "rollbackVerify" };'
+          }
+        }
+      });
+    }
     return createExecutionResult({
       ...input,
       result: {
@@ -216,6 +239,7 @@ function createHarness(adapter = new ScriptedEvolutionAdapter(), managerOptions 
     workspaceRoot,
     defaultMaxTurns: 12,
     defaultMaxActions: 32,
+    maxObservationChars: 4000,
     ...managerOptions
   });
   return { adapter, dispatcher, eventStore, manager, moduleStore, processSupervisor, root, target, targetState, workspaceRoot };
@@ -266,6 +290,102 @@ test('default Agent catalog navigates the target while high-risk rollback requir
     }, { sessionId: 'ses_fixture_12345678', requestId: 'req_rollback_12345678' });
     assert.equal(rollback.status, 'ok');
     assert.deepEqual(rollbackPayload, { id: 'generated.example', version: '0.1.0' });
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('EvolutionRunManager writes de-identified external page evidence while keeping the model observation live', async () => {
+  let calls = 0;
+  const adapter = {
+    id: 'fixture.persistence-redaction',
+    async run({ messages }) {
+      calls += 1;
+      if (calls === 1) return request('call_sensitive_snapshot_12345678', 'page_snapshot', {});
+      const observation = latestToolResult(messages);
+      assert.equal(observation.result.result.url, 'https://private-site.example/landing');
+      assert.equal(observation.result.result.title, 'Sensitive page title');
+      return { role: 'assistant', content: 'Snapshot observation completed.', toolRequests: [] };
+    }
+  };
+  const harness = createHarness(adapter);
+  harness.targetState.url = 'https://private-site.example/landing';
+  harness.targetState.title = 'Sensitive page title';
+  harness.target.snapshot = async (_options, context) => createExecutionResult({
+    sessionId: context.sessionId,
+    requestId: context.requestId,
+    executionId: 'exe_sensitive_snapshot_12345678',
+    kind: context.kind,
+    startedAt: '2026-07-24T00:00:00.000Z',
+    finishedAt: '2026-07-24T00:00:00.010Z',
+    result: {
+      url: 'https://private-site.example/landing',
+      title: 'Sensitive page title',
+      text: 'Sensitive page body',
+      elements: [{ tag: 'button', name: 'Sensitive control label' }]
+    }
+  });
+
+  try {
+    const result = await harness.manager.run({
+      adapter: adapter.id,
+      messages: [{ role: 'user', content: 'Inspect the current page.' }]
+    }, {
+      sessionId: 'ses_fixture_12345678',
+      requestId: 'req_persistence_redaction_12345678'
+    });
+    const persisted = readFileSync(result.evidencePath, 'utf8');
+    const manifest = JSON.parse(persisted);
+
+    assert.equal(result.status, 'ok');
+    assert.equal(calls, 2);
+    assert.equal(manifest.persistenceRedaction.status, 'redacted');
+    assert.equal(persisted.includes('private-site.example'), false);
+    assert.equal(persisted.includes('Sensitive page'), false);
+    assert.equal(persisted.includes('Sensitive control'), false);
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('RawCapabilityDispatcher runs a tested candidate page plan through the target broker and verifies rollback', async () => {
+  const harness = createHarness();
+  try {
+    const candidate = harness.moduleStore.createCandidate({
+      manifest: {
+        id: 'generated.page-overlay', version: '1.0.0', description: 'Fixture page test', entry: 'index.cjs', runtime: 'hybrid', dependencies: {}, tests: []
+      },
+      source: 'PAGE_TEST_PLAN'
+    });
+    await harness.moduleStore.testCandidate(candidate.candidateId);
+    const calls = [];
+    harness.target.execute = async (source, context) => {
+      calls.push({ source, context });
+      return createExecutionResult({
+        sessionId: context.sessionId,
+        requestId: context.requestId,
+        executionId: `exe_page_${String(calls.length).padStart(8, '0')}`,
+        kind: context.kind,
+        startedAt: '2026-07-21T00:00:00.000Z',
+        finishedAt: '2026-07-21T00:00:00.001Z',
+        result: { ok: true, phase: context.phase }
+      });
+    };
+    const result = await harness.dispatcher.execute({
+      actionId: 'act_page_test_12345678',
+      toolCallId: 'call_page_test_12345678',
+      name: 'module_candidate_page_test',
+      arguments: JSON.stringify({ candidateId: candidate.candidateId })
+    }, {
+      sessionId: 'ses_fixture_12345678',
+      requestId: 'req_page_test_12345678',
+      expectedTarget: { targetId: 1, documentGeneration: 1 }
+    });
+    assert.equal(result.status, 'ok');
+    assert.equal(result.result.passed, true);
+    assert.deepEqual(calls.map((entry) => entry.context.phase), ['install', 'verify', 'uninstall', 'rollbackVerify']);
+    assert.ok(calls.every((entry) => entry.context.expectedTarget.documentGeneration === 1));
+    assert.ok(DEFAULT_AGENT_TOOLS.includes('module_candidate_page_test'));
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }
@@ -352,6 +472,53 @@ test('EvolutionRunManager serializes an unknown tool error and allows the model 
     assert.equal(result.status, 'ok');
     assert.equal(result.metrics.failedActions, 1);
     assert.equal(calls, 2);
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('RawCapabilityDispatcher preserves checkpoint provenance on returned and thrown action errors', async () => {
+  const harness = createHarness();
+  const context = {
+    sessionId: 'ses_fixture_12345678',
+    requestId: 'req_action_error_12345678',
+    checkpointId: 'chk_action_error_12345678',
+    turnId: 'turn_action_error_12345678'
+  };
+  try {
+    const returnedFailure = await harness.dispatcher.execute({
+      actionId: 'act_returned_error_12345678',
+      toolCallId: 'call_returned_error_12345678',
+      name: 'node_execute',
+      arguments: JSON.stringify({ source: 'return { value: BigInt(1) };' })
+    }, context);
+    assert.equal(returnedFailure.status, 'error');
+    assert.equal(returnedFailure.error.checkpointId, context.checkpointId);
+    assert.equal(returnedFailure.error.turnId, context.turnId);
+    assert.equal(returnedFailure.error.actionId, 'act_returned_error_12345678');
+
+    harness.target.sendCdp = async () => {
+      throw createProtocolError(errorCodes.executionTimeout, 'Retryable broker timeout.', { timeoutMs: 10000 }, true);
+    };
+    const thrownFailure = await harness.dispatcher.execute({
+      actionId: 'act_thrown_error_12345678',
+      toolCallId: 'call_thrown_error_12345678',
+      name: 'cdp_send',
+      arguments: JSON.stringify({ method: 'Runtime.evaluate', params: {} })
+    }, context);
+    assert.equal(thrownFailure.status, 'error');
+    assert.equal(thrownFailure.error.code, errorCodes.executionTimeout);
+    assert.equal(thrownFailure.error.retryable, true);
+    assert.equal(thrownFailure.error.checkpointId, context.checkpointId);
+    assert.equal(thrownFailure.error.turnId, context.turnId);
+    assert.equal(thrownFailure.error.actionId, 'act_thrown_error_12345678');
+    const modelFeedback = JSON.parse(serializeToolResultForModel(thrownFailure));
+    assert.equal(modelFeedback.error.checkpointId, context.checkpointId);
+    const failedEvent = harness.eventStore.events
+      .filter((event) => event.type === 'evolution.action.failed')
+      .at(-1);
+    assert.equal(failedEvent.data.error.checkpointId, context.checkpointId);
+    assert.equal(failedEvent.data.error.actionId, 'act_thrown_error_12345678');
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }
@@ -459,6 +626,57 @@ test('EvolutionRunManager cancellation stops an active model turn before any act
   }
 });
 
+test('EvolutionRunManager preserves retryable model errors with checkpoint provenance and a retry decision event', async () => {
+  const adapter = {
+    id: 'fixture.retryable-timeout',
+    async run() {
+      throw createProtocolError(
+        errorCodes.executionTimeout,
+        'Fixture model turn timed out.',
+        { providerRequestId: 'provider_fixture_12345678' },
+        true
+      );
+    }
+  };
+  const harness = createHarness(adapter);
+  try {
+    const result = await harness.manager.run({
+      adapter: adapter.id,
+      maxTurns: 1,
+      messages: [{ role: 'user', content: 'Preserve this retryable timeout.' }]
+    }, { sessionId: 'ses_fixture_12345678', requestId: 'req_retryable_timeout_12345678' });
+
+    assert.equal(result.status, 'error');
+    assert.equal(result.error.code, errorCodes.executionTimeout);
+    assert.equal(result.error.retryable, true);
+    assert.equal(result.error.checkpointId, result.checkpointId);
+    assert.match(result.error.turnId, /^turn_/);
+    assert.equal(result.error.actionId, null);
+    assert.equal(result.error.details.checkpointId, result.checkpointId);
+    assert.equal(result.error.details.cause.code, errorCodes.executionTimeout);
+    assert.equal(result.error.details.cause.retryable, true);
+
+    const evidence = JSON.parse(readFileSync(result.evidencePath, 'utf8'));
+    assert.equal(evidence.error.code, errorCodes.executionTimeout);
+    assert.equal(evidence.error.retryable, true);
+    assert.equal(evidence.error.checkpointId, result.checkpointId);
+    assert.equal(evidence.transcript.at(-1).error.retryable, true);
+
+    const retryEvents = harness.eventStore.events.filter((event) => event.type === 'evolution.run.retry.decided');
+    assert.equal(retryEvents.length, 1);
+    assert.equal(retryEvents[0].data.decision, 'checkpoint-recovery-eligible');
+    assert.equal(retryEvents[0].data.automaticRetry, false);
+    assert.equal(retryEvents[0].data.retryable, true);
+    assert.equal(retryEvents[0].data.checkpointId, result.checkpointId);
+    assert.equal(retryEvents[0].data.turnId, result.error.turnId);
+    const failedEvent = harness.eventStore.events.find((event) => event.type === 'evolution.run.failed');
+    assert.equal(failedEvent.data.error.retryable, true);
+    assert.equal(failedEvent.data.error.checkpointId, result.checkpointId);
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
 test('EvolutionRunManager cancellation during an action prevents later model turns after the action settles', async () => {
   let calls = 0;
   const adapter = {
@@ -503,8 +721,79 @@ test('tool-result and run-evidence budgets remain structured and bounded', async
     sourceHash: null
   };
   const serialized = serializeToolResultForModel(oversized);
-  assert.ok(serialized.length <= 12000);
-  assert.equal(JSON.parse(serialized).result.truncated, true);
+  assert.ok(serialized.length <= 4000);
+  assert.equal(JSON.parse(serialized).result.compressed, true);
+  assert.equal(JSON.parse(serialized).result.originalHash, sha256(JSON.stringify(oversized)));
+
+  for (const actionKind of ['node.execute', 'cdp.send', 'page.snapshot']) {
+    const observation = {
+      ...oversized,
+      name: actionKind.replace('.', '_'),
+      actionKind,
+      result: {
+        protocol: 'blankseed/0.1',
+        executionId: 'exe_observation_12345678',
+        requestKind: actionKind,
+        status: 'ok',
+        durationMs: 25,
+        result: {
+          status: 'success',
+          metrics: { records: 3, skipped: 3 },
+          output: 'z'.repeat(50000)
+        }
+      }
+    };
+    const compressed = serializeToolResultForModel(observation);
+    const parsed = JSON.parse(compressed);
+    assert.ok(compressed.length <= 4000);
+    assert.equal(parsed.status, 'ok');
+    assert.equal(parsed.actionKind, actionKind);
+    assert.equal(parsed.result.compressed, true);
+    assert.match(compressed, /metrics/);
+    assert.match(compressed, /records/);
+  }
+
+  const smallObservation = { ...oversized, result: { status: 'success', metrics: { records: 1 } } };
+  assert.equal(serializeToolResultForModel(smallObservation), JSON.stringify(smallObservation));
+
+  const largeFailure = {
+    ...oversized,
+    status: 'error',
+    result: null,
+    error: {
+      code: errorCodes.executionTimeout,
+      name: 'Error',
+      message: `timeout ${'m'.repeat(10000)}`,
+      retryable: true,
+      details: { timeoutMs: 90000, diagnostic: 'd'.repeat(10000) }
+    }
+  };
+  const compressedFailure = JSON.parse(serializeToolResultForModel(largeFailure));
+  assert.equal(compressedFailure.error.code, errorCodes.executionTimeout);
+  assert.equal(compressedFailure.error.retryable, true);
+
+  const adversarialCode = 'E'.repeat(5000);
+  const adversarial = {
+    ...largeFailure,
+    actionId: `act_${'a'.repeat(5000)}`,
+    toolCallId: `call_${'b'.repeat(5000)}`,
+    name: 'n'.repeat(5000),
+    sourceHash: 's'.repeat(5000),
+    error: {
+      ...largeFailure.error,
+      code: adversarialCode,
+      name: 'N'.repeat(5000)
+    }
+  };
+  const adversarialOutput = serializeToolResultForModel(adversarial);
+  const adversarialParsed = JSON.parse(adversarialOutput);
+  assert.ok(adversarialOutput.length <= 4000);
+  assert.equal(adversarialParsed.result.compressed, true);
+  assert.equal(adversarialParsed.error.code, adversarialCode.slice(0, 120));
+  assert.equal(adversarialParsed.error.codeHash, sha256(adversarialCode));
+  assert.equal(adversarialParsed.error.retryable, true);
+  const minimumBudgetOutput = serializeToolResultForModel(adversarial, 12000, 1024);
+  assert.ok(minimumBudgetOutput.length <= 1024);
 
   const resultLimitHarness = createHarness();
   try {
@@ -539,6 +828,85 @@ test('tool-result and run-evidence budgets remain structured and bounded', async
     const evidence = JSON.parse(readFileSync(result.evidencePath, 'utf8'));
     assert.equal(evidence.status, 'error');
     assert.ok(evidence.evidenceTruncated);
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('EvolutionRunManager compresses model-facing Node observations while retaining full run evidence', async () => {
+  let calls = 0;
+  let modelObservation = null;
+  const adapter = {
+    id: 'fixture.large-observation',
+    async run({ messages }) {
+      calls += 1;
+      if (calls === 1) {
+        return request('call_large_observation_12345678', 'node_execute', {
+          source: '/* LARGE_OBSERVATION */ return { ok: true };'
+        });
+      }
+      const message = [...messages].reverse().find((entry) => entry.role === 'tool');
+      modelObservation = message.content;
+      const parsed = JSON.parse(message.content);
+      assert.equal(parsed.result.compressed, true);
+      assert.match(message.content, /metrics/);
+      return { role: 'assistant', content: 'Observed bounded Node evidence.', toolRequests: [] };
+    }
+  };
+  const harness = createHarness(adapter);
+  try {
+    const result = await harness.manager.run({
+      adapter: adapter.id,
+      messages: [{ role: 'user', content: 'Exercise bounded model observations.' }]
+    }, { sessionId: 'ses_fixture_12345678', requestId: 'req_large_observation_12345678' });
+
+    assert.equal(result.status, 'ok');
+    assert.ok(modelObservation.length <= 4000);
+    const evidence = JSON.parse(readFileSync(result.evidencePath, 'utf8'));
+    assert.equal(evidence.actions[0].result.result.result.output.length, 50000);
+    assert.deepEqual(evidence.actions[0].result.result.result.metrics, { records: 3, skipped: 3 });
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('EvolutionRunManager applies analysis, code-generation, and verification model timeout budgets', async () => {
+  let calls = 0;
+  const adapter = {
+    id: 'fixture.adaptive-timeouts',
+    async run() {
+      calls += 1;
+      if (calls === 1) return request('call_timeout_snapshot_12345678', 'page_snapshot', {});
+      if (calls === 2) {
+        return request('call_timeout_node_12345678', 'node_execute', {
+          source: 'return { verified: true };'
+        });
+      }
+      return { role: 'assistant', content: 'Adaptive timeout sequence completed.', toolRequests: [] };
+    }
+  };
+  const harness = createHarness(adapter);
+  try {
+    const result = await harness.manager.run({
+      adapter: adapter.id,
+      messages: [{ role: 'user', content: 'Analyze, generate, and verify.' }]
+    }, { sessionId: 'ses_fixture_12345678', requestId: 'req_adaptive_timeout_12345678' });
+
+    assert.equal(result.status, 'ok');
+    const selected = harness.eventStore.events
+      .filter((event) => event.type === 'evolution.turn.timeout.selected')
+      .map((event) => ({ timeoutClass: event.data.timeoutClass, timeoutMs: event.data.timeoutMs }));
+    assert.deepEqual(selected, [
+      { timeoutClass: 'analysis', timeoutMs: 90000 },
+      { timeoutClass: 'codeGeneration', timeoutMs: 120000 },
+      { timeoutClass: 'verification', timeoutMs: 180000 }
+    ]);
+    const modelTimeouts = harness.eventStore.events
+      .filter((event) => event.type === 'model.turn.started')
+      .map((event) => event.data.timeoutMs);
+    assert.deepEqual(modelTimeouts, [90000, 120000, 180000]);
+    const evidence = JSON.parse(readFileSync(result.evidencePath, 'utf8'));
+    assert.deepEqual(evidence.transcript.map((turn) => turn.timeoutPolicy.timeoutMs), [90000, 120000, 180000]);
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }

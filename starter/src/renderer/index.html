@@ -4,17 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
-  <title>BlankSeed Browser 控制台</title>
+  <title data-i18n="console.title">BlankSeed Browser 控制台</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main>
+  <main data-workflow-contract="prepare,target-context,describe-task,system-check,execute-confirm,evidence-recovery">
     <header class="console-head">
       <div class="brand-block">
         <h1>BlankSeed Browser</h1>
-        <p>依步驟完成任務；每一步都保留證據與復原路徑。</p>
+        <p data-i18n="console.subtitle">依步驟完成任務；每一步都保留證據與復原路徑。</p>
       </div>
       <div class="console-head-actions">
+        <label class="locale-control" for="ui-locale">
+          <span data-i18n="locale.label">介面語言</span>
+          <select id="ui-locale" aria-label="介面語言">
+            <option value="zh-TW" data-i18n="locale.zh-TW">繁體中文</option>
+            <option value="zh-CN" data-i18n="locale.zh-CN">简体中文</option>
+            <option value="en" data-i18n="locale.en">English</option>
+          </select>
+        </label>
         <div class="console-target-state" title="目前目標頁狀態">
           <span class="status-dot" aria-hidden="true"></span>
           <span id="console-target-state">目標頁載入中</span>
@@ -337,7 +345,7 @@
         </div>
         <details class="evidence-disclosure">
           <summary><span>顯示或收合事件證據</span><span class="summary-hint">識別碼與錯誤不截斷</span></summary>
-          <div id="timeline" class="timeline">尚無事件。</div>
+          <div id="timeline" class="timeline" data-i18n="event.none">尚無事件。</div>
         </details>
       </section>
     </section>
@@ -461,6 +469,19 @@ return {
     </details>
   </main>
 
+  <div
+    id="workspace-resizer"
+    class="workspace-resizer"
+    role="separator"
+    aria-label="調整控制介面與網頁寬度"
+    aria-orientation="vertical"
+    aria-valuemin="320"
+    aria-valuenow="500"
+    aria-valuetext="控制介面寬度 500 像素"
+    tabindex="0"
+    title="拖曳調整控制介面與網頁寬度"
+  ></div>
+
   <dialog id="confirmation-dialog" class="confirmation-dialog" aria-labelledby="confirmation-title" aria-describedby="confirmation-body">
     <form method="dialog">
       <span class="dialog-kicker">需要人工確認</span>
@@ -473,6 +494,7 @@ return {
       </div>
     </form>
   </dialog>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

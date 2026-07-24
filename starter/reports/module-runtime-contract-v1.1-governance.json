@@ -1,0 +1,536 @@
+{
+  "status": "PASS",
+  "runtimeSessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+  "parent": {
+    "version": "1.0.0",
+    "sourceHash": "sha256:dd90a4facd06c1ff1657cc030c63f908840164b186a5a1f1cb419a2f351bd8ec",
+    "sourceHashAfter": "sha256:dd90a4facd06c1ff1657cc030c63f908840164b186a5a1f1cb419a2f351bd8ec"
+  },
+  "candidate": {
+    "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084",
+    "manifest": {
+      "schema": "blankseed-module/0.1",
+      "id": "youtube-aopass",
+      "version": "1.0.1",
+      "parentVersion": "1.0.0",
+      "migrationReason": "runtime contract compatibility",
+      "description": "YouTube 廣告狀態偵測與可用時略過控制器：僅在頁面已呈現原生「略過廣告」控制項時觸發點擊；保留可稽核事件與三次偵測驗證狀態。",
+      "entry": "index.cjs",
+      "runtime": "node",
+      "createdAt": "2026-07-21T08:29:36.828Z",
+      "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255",
+      "provenance": {
+        "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+        "executionIds": [],
+        "checkpointId": "chk_35c9e5a5-1993-4d3b-b920-64e7ef666204",
+        "model": null
+      },
+      "dependencies": {},
+      "tests": [
+        "module-runtime-contract-v1.1"
+      ],
+      "status": "candidate",
+      "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084"
+    }
+  },
+  "test": {
+    "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084",
+    "passed": true,
+    "result": {
+      "protocol": "blankseed/0.1",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_candidate_test_12345678",
+      "executionId": "exe_cf60502e-2b55-48b7-b75f-148e684d2c88",
+      "kind": "execution.result",
+      "requestKind": "module.test",
+      "status": "ok",
+      "startedAt": "2026-07-21T08:29:36.863Z",
+      "finishedAt": "2026-07-21T08:29:37.362Z",
+      "durationMs": 499,
+      "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255",
+      "result": {
+        "state": {
+          "wasAd": false,
+          "adDetections": 0,
+          "skipClickedForCurrentAd": false,
+          "events": []
+        },
+        "action": null,
+        "success": false
+      },
+      "error": null
+    },
+    "manifest": {
+      "schema": "blankseed-module/0.1",
+      "id": "youtube-aopass",
+      "version": "1.0.1",
+      "parentVersion": "1.0.0",
+      "migrationReason": "runtime contract compatibility",
+      "description": "YouTube 廣告狀態偵測與可用時略過控制器：僅在頁面已呈現原生「略過廣告」控制項時觸發點擊；保留可稽核事件與三次偵測驗證狀態。",
+      "entry": "index.cjs",
+      "runtime": "node",
+      "createdAt": "2026-07-21T08:29:36.828Z",
+      "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255",
+      "provenance": {
+        "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+        "executionIds": [
+          "exe_cf60502e-2b55-48b7-b75f-148e684d2c88"
+        ],
+        "checkpointId": "chk_35c9e5a5-1993-4d3b-b920-64e7ef666204",
+        "model": null
+      },
+      "dependencies": {},
+      "tests": [
+        "module-runtime-contract-v1.1"
+      ],
+      "status": "tested",
+      "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084",
+      "testedAt": "2026-07-21T08:29:37.364Z",
+      "testExecutionId": "exe_cf60502e-2b55-48b7-b75f-148e684d2c88"
+    }
+  },
+  "checkpoint": {
+    "id": "chk_b746dde1-c732-49b3-a44b-6d0552075a0b",
+    "label": "before youtube-aopass 1.0.1 activation",
+    "active": {
+      "youtube-aopass": "1.0.0"
+    },
+    "listed": true
+  },
+  "committed": {
+    "moduleId": "youtube-aopass",
+    "version": "1.0.1",
+    "manifest": {
+      "schema": "blankseed-module/0.1",
+      "id": "youtube-aopass",
+      "version": "1.0.1",
+      "parentVersion": "1.0.0",
+      "migrationReason": "runtime contract compatibility",
+      "description": "YouTube 廣告狀態偵測與可用時略過控制器：僅在頁面已呈現原生「略過廣告」控制項時觸發點擊；保留可稽核事件與三次偵測驗證狀態。",
+      "entry": "index.cjs",
+      "runtime": "node",
+      "createdAt": "2026-07-21T08:29:36.828Z",
+      "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255",
+      "provenance": {
+        "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+        "executionIds": [
+          "exe_cf60502e-2b55-48b7-b75f-148e684d2c88"
+        ],
+        "checkpointId": "chk_35c9e5a5-1993-4d3b-b920-64e7ef666204",
+        "model": null
+      },
+      "dependencies": {},
+      "tests": [
+        "module-runtime-contract-v1.1"
+      ],
+      "status": "committed",
+      "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084",
+      "testedAt": "2026-07-21T08:29:37.364Z",
+      "testExecutionId": "exe_cf60502e-2b55-48b7-b75f-148e684d2c88",
+      "committedAt": "2026-07-21T08:29:37.386Z"
+    }
+  },
+  "activation": {
+    "moduleId": "youtube-aopass",
+    "version": "1.0.1",
+    "previousVersion": "1.0.0",
+    "active": {
+      "youtube-aopass": "1.0.1"
+    }
+  },
+  "liveValidation": {
+    "rawObservation": {
+      "adInterruption": false,
+      "adShowing": false,
+      "playerClass": "html5-video-player ytp-transparent ytp-exp-bottom-control-flexbox ytp-modern-caption ytp-exp-ppp-update ytp-livebadge-color ytp-grid-scrollable ytp-delhi-modern ytp-delhi-modern-icons ytp-delhi-horizontal-volume-controls ytp-delhi-modern-compact-controls ytp-fit-cover-video ytp-fine-scrubbing-exp ytp-cards-teaser-dismissible ytp-hide-info-bar ytp-disable-bottom-gradient ytp-autonav-endscreen-cancelled-state ytp-large-width-mode playing-mode ytp-hide-fullscreen-title ytp-fullscreen-metadata-top ytp-autohide",
+      "skip": [],
+      "url": "https://www.youtube.com/watch?v=Yppak4lbl6Y&t=33s",
+      "video": {
+        "currentTime": 38.779563,
+        "duration": 3664.521,
+        "ended": false,
+        "paused": false,
+        "readyState": 4
+      }
+    },
+    "normalizedObservation": {
+      "adShowing": false,
+      "controls": [],
+      "countdown": null
+    },
+    "invocation": {
+      "protocol": "blankseed/0.1",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_invoke_12345678",
+      "executionId": "exe_2d946e62-82a6-49f2-b391-edf3eed4c7e3",
+      "kind": "execution.result",
+      "requestKind": "module.invoke",
+      "status": "ok",
+      "startedAt": "2026-07-21T08:29:46.557Z",
+      "finishedAt": "2026-07-21T08:29:47.036Z",
+      "durationMs": 479,
+      "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255",
+      "result": {
+        "state": {
+          "wasAd": false,
+          "adDetections": 0,
+          "skipClickedForCurrentAd": false,
+          "events": []
+        },
+        "action": null,
+        "success": false
+      },
+      "error": null
+    },
+    "actionProposal": null,
+    "cdpAction": {
+      "status": "not-issued",
+      "reason": "no-action-proposed"
+    }
+  },
+  "finalActive": "1.0.1",
+  "relevantEvents": [
+    {
+      "eventId": "evt_4524b941-143a-4954-8cb1-fcff1833d7ec",
+      "sequence": 1884,
+      "type": "module.candidate.created",
+      "timestamp": "2026-07-21T08:29:36.832Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_candidate_create_12345678",
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084",
+        "moduleId": "youtube-aopass",
+        "version": "1.0.1",
+        "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255",
+        "directory": "D:\\OneDrive\\Documents_cloud\\BlankSeed Browser\\starter\\workspace\\modules\\.candidates\\cand_9021ca44-f7e4-46cb-b57b-be5cce53d084"
+      }
+    },
+    {
+      "eventId": "evt_c21b54d4-a8e4-4790-9a4b-d10653d56bb6",
+      "sequence": 1894,
+      "type": "module.candidate.tested",
+      "timestamp": "2026-07-21T08:29:37.368Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_candidate_test_12345678",
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084",
+        "moduleId": "youtube-aopass",
+        "version": "1.0.1",
+        "passed": true,
+        "executionId": "exe_cf60502e-2b55-48b7-b75f-148e684d2c88"
+      }
+    },
+    {
+      "eventId": "evt_84697d84-5030-4f28-b42e-7fae3c26e0b9",
+      "sequence": 1897,
+      "type": "checkpoint.created",
+      "timestamp": "2026-07-21T08:29:37.375Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_checkpoint_12345678",
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "id": "chk_b746dde1-c732-49b3-a44b-6d0552075a0b",
+        "label": "before youtube-aopass 1.0.1 activation",
+        "filePath": "C:\\Users\\miles\\AppData\\Roaming\\blankseed-browser-starter\\blankseed-data\\checkpoints\\chk_b746dde1-c732-49b3-a44b-6d0552075a0b.json"
+      }
+    },
+    {
+      "eventId": "evt_d37d4cf1-1505-4aaf-918a-e8be09a83aad",
+      "sequence": 1900,
+      "type": "module.version.committed",
+      "timestamp": "2026-07-21T08:29:37.390Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_candidate_commit_12345678",
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "candidateId": "cand_9021ca44-f7e4-46cb-b57b-be5cce53d084",
+        "moduleId": "youtube-aopass",
+        "version": "1.0.1",
+        "directory": "D:\\OneDrive\\Documents_cloud\\BlankSeed Browser\\starter\\workspace\\modules\\youtube-aopass\\versions\\1.0.1",
+        "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255"
+      }
+    },
+    {
+      "eventId": "evt_39a33220-26e3-489e-b8d4-f20fe00a87f8",
+      "sequence": 1903,
+      "type": "module.activated",
+      "timestamp": "2026-07-21T08:29:37.399Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_activate_12345678",
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "moduleId": "youtube-aopass",
+        "version": "1.0.1",
+        "previousVersion": "1.0.0",
+        "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255"
+      }
+    },
+    {
+      "eventId": "evt_979ae7ea-5ec3-4933-8af5-e5c60d253d73",
+      "sequence": 1918,
+      "type": "cdp.command.started",
+      "timestamp": "2026-07-21T08:29:46.526Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_cdp_observation_12345678",
+      "executionId": "exe_6d545c4d-3c42-4617-9ce1-c85437525f30",
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "method": "Runtime.evaluate",
+        "params": {
+          "expression": "(()=>{const v=document.querySelector('video'); const p=document.querySelector('#movie_player'); const skip=[...document.querySelectorAll('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, button')].filter(e=>/skip ad|略過廣告/i.test((e.getAttribute('aria-label')||'')+' '+(e.textContent||''))).map(e=>({tag:e.tagName,visible:!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length),disabled:!!e.disabled,aria:e.getAttribute('aria-label'),text:(e.textContent||'').trim()})); return {url:location.href,video:v?{currentTime:v.currentTime,duration:v.duration,paused:v.paused,ended:v.ended,readyState:v.readyState}:null,playerClass:p?.className||null,adShowing:!!p?.classList.contains('ad-showing'),adInterruption:!!p?.classList.contains('ad-interruption'),skip};})()",
+          "returnByValue": true
+        },
+        "targetId": 2,
+        "documentGeneration": 2,
+        "sourceHash": "sha256:055ca59b70f0c4a1a77313cac9b10da8398bba31c38cb35d4965dbad98330930"
+      }
+    },
+    {
+      "eventId": "evt_89ae2a6a-0711-4230-97de-24d6539d57da",
+      "sequence": 1919,
+      "type": "cdp.attach.started",
+      "timestamp": "2026-07-21T08:29:46.528Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_cdp_observation_12345678",
+      "executionId": "exe_6d545c4d-3c42-4617-9ce1-c85437525f30",
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "targetId": 2,
+        "documentGeneration": 2
+      }
+    },
+    {
+      "eventId": "evt_df09bdb5-2259-4dd7-86fa-0c33455bb56f",
+      "sequence": 1920,
+      "type": "cdp.attach.completed",
+      "timestamp": "2026-07-21T08:29:46.529Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_cdp_observation_12345678",
+      "executionId": "exe_6d545c4d-3c42-4617-9ce1-c85437525f30",
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "targetId": 2,
+        "documentGeneration": 2
+      }
+    },
+    {
+      "eventId": "evt_fc32e192-69aa-4eeb-98c8-5289b56cff6b",
+      "sequence": 1921,
+      "type": "cdp.command.completed",
+      "timestamp": "2026-07-21T08:29:46.539Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_cdp_observation_12345678",
+      "executionId": "exe_6d545c4d-3c42-4617-9ce1-c85437525f30",
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "method": "Runtime.evaluate",
+        "result": {
+          "result": {
+            "type": "object",
+            "value": {
+              "adInterruption": false,
+              "adShowing": false,
+              "playerClass": "html5-video-player ytp-transparent ytp-exp-bottom-control-flexbox ytp-modern-caption ytp-exp-ppp-update ytp-livebadge-color ytp-grid-scrollable ytp-delhi-modern ytp-delhi-modern-icons ytp-delhi-horizontal-volume-controls ytp-delhi-modern-compact-controls ytp-fit-cover-video ytp-fine-scrubbing-exp ytp-cards-teaser-dismissible ytp-hide-info-bar ytp-disable-bottom-gradient ytp-autonav-endscreen-cancelled-state ytp-large-width-mode playing-mode ytp-hide-fullscreen-title ytp-fullscreen-metadata-top ytp-autohide",
+              "skip": [],
+              "url": "https://www.youtube.com/watch?v=Yppak4lbl6Y&t=33s",
+              "video": {
+                "currentTime": 38.779563,
+                "duration": 3664.521,
+                "ended": false,
+                "paused": false,
+                "readyState": 4
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "eventId": "evt_809aba90-66ca-4c44-b684-1781ed20dea7",
+      "sequence": 1922,
+      "type": "cdp.detach.started",
+      "timestamp": "2026-07-21T08:29:46.540Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_cdp_observation_12345678",
+      "executionId": "exe_6d545c4d-3c42-4617-9ce1-c85437525f30",
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "targetId": 2,
+        "documentGeneration": 2,
+        "reason": "command finished"
+      }
+    },
+    {
+      "eventId": "evt_e5a4671f-3479-4d81-a050-6fee0ccb13ef",
+      "sequence": 1923,
+      "type": "cdp.detached",
+      "timestamp": "2026-07-21T08:29:46.546Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": null,
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "targetId": 2,
+        "documentGeneration": 2,
+        "reason": "target closed",
+        "expected": true,
+        "requestedReason": "command finished",
+        "recoveryPolicy": null
+      }
+    },
+    {
+      "eventId": "evt_ec80ae04-ee92-4e5b-82ab-5d2e05ebae2c",
+      "sequence": 1924,
+      "type": "cdp.detach.completed",
+      "timestamp": "2026-07-21T08:29:46.548Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_cdp_observation_12345678",
+      "executionId": "exe_6d545c4d-3c42-4617-9ce1-c85437525f30",
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "targetId": 2,
+        "documentGeneration": 2,
+        "reason": "command finished"
+      }
+    },
+    {
+      "eventId": "evt_01c2679e-c495-4ece-b786-360739bc43dc",
+      "sequence": 1927,
+      "type": "module.invocation.started",
+      "timestamp": "2026-07-21T08:29:46.555Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_invoke_12345678",
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "moduleId": "youtube-aopass",
+        "version": "1.0.1",
+        "sourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255"
+      }
+    },
+    {
+      "eventId": "evt_f4b81e7e-9848-4b25-8d85-64bead29c1c0",
+      "sequence": 1932,
+      "type": "module.invocation.completed",
+      "timestamp": "2026-07-21T08:29:47.037Z",
+      "sessionId": "ses_3dc72e16-3f23-4221-abef-5858eddbf8ec",
+      "requestId": "req_module_runtime_v11_invoke_12345678",
+      "executionId": null,
+      "evolutionRunId": null,
+      "multiAgentRunId": null,
+      "agentId": null,
+      "handoffId": null,
+      "governanceDecisionId": null,
+      "restoreTransitionId": null,
+      "turnId": null,
+      "actionId": null,
+      "data": {
+        "moduleId": "youtube-aopass",
+        "version": "1.0.1",
+        "executionId": "exe_2d946e62-82a6-49f2-b391-edf3eed4c7e3",
+        "status": "ok",
+        "error": null
+      }
+    }
+  ],
+  "targetSourceHash": "sha256:d42ca8d31384617d1e43dbe8caff7281ca6465c319b23bc00616a194e16e6255",
+  "evidenceGeneratedAt": "2026-07-21T08:29:47.116Z"
+}

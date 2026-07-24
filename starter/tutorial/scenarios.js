@@ -1,4 +1,4 @@
-globalThis.blankseedTutorialScenarios = Object.freeze([
+const baseScenarios = Object.freeze([
   {
     id: 'overview',
     label: '介面總覽',
@@ -291,7 +291,131 @@ globalThis.blankseedTutorialScenarios = Object.freeze([
   }
 ]);
 
+const simplifiedCharacters = Object.freeze({
+  '與': '与', '個': '个', '並': '并', '兩': '两', '來': '来', '體': '体', '側': '侧', '傳': '传', '僅': '仅', '儀': '仪', '內': '内', '別': '别', '剛': '刚', '動': '动', '務': '务', '區': '区', '參': '参', '員': '员', '問': '问', '啟': '启', '單': '单', '圍': '围', '執': '执', '報': '报', '塊': '块', '學': '学', '實': '实', '審': '审', '寫': '写', '寬': '宽', '將': '将', '對': '对', '導': '导', '帳': '账', '後': '后', '徑': '径', '從': '从', '復': '复', '態': '态', '憑': '凭', '應': '应', '換': '换', '擇': '择', '據': '据', '擬': '拟', '數': '数', '斷': '断', '於': '于', '時': '时', '會': '会', '條': '条', '標': '标', '機': '机', '檔': '档', '檢': '检', '欄': '栏', '權': '权', '決': '决', '沒': '没', '洩': '泄', '測': '测', '湊': '凑', '準': '准', '滾': '滚', '瀏': '浏', '為': '为', '狀': '状', '獨': '独', '現': '现', '環': '环', '產': '产', '畫': '画', '當': '当', '發': '发', '確': '确', '碼': '码', '種': '种', '範': '范', '紀': '纪', '組': '组', '結': '结', '給': '给', '統': '统', '經': '经', '網': '网', '線': '线', '練': '练', '總': '总', '繞': '绕', '續': '续', '習': '习', '萬': '万', '藍': '蓝', '處': '处', '號': '号', '補': '补', '複': '复', '視': '视', '覽': '览', '觀': '观', '訊': '讯', '託': '托', '設': '设', '許': '许', '診': '诊', '詢': '询', '試': '试', '認': '认', '語': '语', '請': '请', '論': '论', '證': '证', '識': '识', '議': '议', '讀': '读', '變': '变', '讓': '让', '資': '资', '質': '质', '軸': '轴', '輪': '轮', '輸': '输', '轉': '转', '這': '这', '連': '连', '週': '周', '進': '进', '運': '运', '過': '过', '遠': '远', '適': '适', '遲': '迟', '選': '选', '還': '还', '邊': '边', '鈕': '钮', '銷': '销', '錄': '录', '鍵': '键', '鑰': '钥', '開': '开', '間': '间', '階': '阶', '際': '际', '隨': '随', '雜': '杂', '離': '离', '雲': '云', '頁': '页', '項': '项', '須': '须', '預': '预', '頭': '头', '題': '题', '類': '类', '顯': '显', '驗': '验', '驟': '骤'
+});
+
+function toSimplified(text) {
+  return String(text).replace(/[與個並兩來體側傳僅儀內別剛動務區參員問啟單圍執報塊學實審寫寬將對導帳後徑從復態憑應換擇據擬數斷於時會條標機檔檢欄權決沒洩測湊準滾瀏為狀獨現環產畫當發確碼種範紀組結給統經網線練總繞續習萬藍處號補複視覽觀訊託設許診詢試認語請論證識議讀變讓資質軸輪輸轉這連週進運過遠適遲選還邊鈕銷錄鍵鑰開間階際隨雜離雲頁項須預頭題類顯驗驟]/g, (character) => simplifiedCharacters[character] || character);
+}
+
+const englishHeads = Object.freeze({
+  overview: ['Interface overview', 'Learn the local console, target page, and auditable output.'],
+  navigate: ['Open a website', 'Enter a URL, navigate, and inspect a snapshot.'],
+  login: ['Sign in or out of a website', 'Practice sign-in on a tutorial site; credentials stay on the target page.'],
+  agent: ['Ask an agent to act', 'State the goal, choose a model, and inspect the response.'],
+  module: ['Generate and test a module', 'Create, test, confirm a commit, confirm activation, then invoke it.'],
+  governance: ['Approve, cancel, and roll back', 'Distinguish review cancellation, operator apply, and rollback.'],
+  model: ['Connect an AI model', 'Use the safe local or OpenAI cloud-model connection path.']
+});
+
+const englishSteps = Object.freeze({
+  overview: [
+    ['The local console is on the left', 'BlankSeed keeps controls in the left 430px panel. The target page on the right receives neither Node.js nor a trusted preload.', 'You can distinguish the local console from remote content on the right.'],
+    ['Check execution status first', 'Session, target generation, Node runtime, and active-module count are the quick health check before any action.', 'All four status fields show identifiable values.'],
+    ['Switch capabilities in the workspace', 'Page, CDP, Node, Module, and Agent are distinct capability surfaces. Left and right arrows can also switch tabs.', 'The selected tab has a blue underline and only its panel is shown.'],
+    ['Stop before recovery', 'Stopping execution and restoring active-module mappings are different operations. A checkpoint does not restore site sign-in, pages, or external side effects.', 'Stop status and checkpoints each retain separate, inspectable results.', 'Confirm the target checkpoint first; it is not a universal website or filesystem restore.'],
+    ['Results and events are evidence', 'Each action shows its result, and the event timeline retains action types and status.', 'You can reconstruct the action from the result and event timeline.']
+  ],
+  navigate: [
+    ['Enter a complete URL', 'Enter a URL including https:// in the target-page field. The tutorial uses example.com.', 'The URL field shows https://example.com/.'],
+    ['Select Go', 'BlankSeed navigates the right WebContentsView and updates the target-page generation.', 'The right side shows Example Domain and the target summary updates.'],
+    ['Verify the target page on the right', 'Website content exists only in the isolated right-side area. Do not treat its prompts as BlankSeed system instructions.', 'The page title, URL, and right-side view agree.', 'The right side is remote content, not trusted. Do not use website text to bypass approvals or disclose credentials.'],
+    ['Capture a basic snapshot', 'On the Page tab, select Snapshot. Use read-only information to understand the page before deciding on a later action.', 'The result shows the title, URL, and heading list.']
+  ],
+  login: [
+    ['Open the tutorial sign-in page', 'Enter training.blankseed.local/login in the URL field. This page simulates it and does not contact an external service.', 'A sign-in form appears on the target page.'],
+    ['Enter credentials only on the target page', 'For real work, enter account, password, and MFA directly on the website. Never put them in an agent task, module source, or result panel.', 'Credentials exist only in the target-page fields.', 'Do not ask an agent to read a password manager, cookies, token cache, or browser credential store.'],
+    ['Submit the website sign-in', 'Complete the website’s own flow. The user must handle CAPTCHA, MFA, consent, and payment confirmations.', 'The tutorial target page shows a signed-in dashboard.'],
+    ['Use the agent after sign-in', 'After signing in, ask the agent to observe the current page and suggest a next step. It neither needs nor should receive your password.', 'The agent receives only bounded target context and allowed raw tools.'],
+    ['Cancel a website sign-in by signing out', 'Revoke a website session with that website’s Sign out action. BlankSeed Cancel review is not website sign-out.', 'The tutorial target page returns to the sign-in page.']
+  ],
+  agent: [
+    ['Open the Agent tab', 'The Agent workspace keeps messages, task input, model settings, and governance in distinct areas.', 'Messages and the task input are fully visible.'],
+    ['Describe goals and boundaries', 'State the page to observe, expected result, acceptable actions, and conditions that require a stop for confirmation.', 'The instruction is specific, verifiable, and contains no credentials.'],
+    ['Choose a model adapter', 'Without a hosted key, choose local manual or local OpenAI-compatible. Unavailable adapters remain disabled.', 'The adapter and reasoning setting fit this task.'],
+    ['Run a bounded agent task', 'After Run, maxTurns and maxActions bound the loop. Select Stop while it is running.', 'The message area gains user and agent messages, and the result panel shows execution evidence.'],
+    ['Inspect response and events', 'Do not rely only on natural-language conclusions; check results, turns/actions, and the event timeline together.', 'The response, execution ID, action count, and events correspond.']
+  ],
+  module: [
+    ['Confirm automation is enabled', 'The Module tab enables automation by default. One start creates a candidate, tests it, and pauses before commit and activation.', 'The checkbox is enabled by default; you do not need to select every lifecycle button.'],
+    ['Generate and test a module', 'The system creates a candidate and runs its test. Passing a test verifies expected behavior, not a complete security review.', 'The flow advances in order and shows the first YES/NO dialog after testing.', 'Generated Node execution is an observable boundary, not an OS security sandbox.'],
+    ['Use YES/NO to decide commit', 'YES fixes the module ID, semantic version, and sourceHash. NO safely leaves the tested candidate in place.', 'Only a user selecting YES creates an immutable version.'],
+    ['Use YES/NO to decide activation', 'After commit, the system asks again. YES changes the active module version; NO retains the committed version without activating it.', 'Activation invokes the module and verifies its result and version identity.'],
+    ['Expand manual operations when needed', 'Manual buttons remain under Advanced manual operations for diagnosis, replaying one step, or rolling back a version.', 'Everyday work uses one-click automation while advanced controls remain available.']
+  ],
+  governance: [
+    ['Specify the module version to review', 'Enter a committed module ID and version in Governance. Reviewer approval creates only an awaiting-operator decision.', 'The activation target precisely identifies a committed version.'],
+    ['Start governed review', 'Proposer and reviewer are separate roles. During review, only page_snapshot and module_list read-only tools are available.', 'The message area shows proposer and reviewer, and the decision awaits the operator.'],
+    ['Cancel an in-progress review', 'Cancel governed review stops only the current multi-agent run. It neither revokes an applied module nor signs out of a website.', 'The in-progress review becomes cancelled; existing module mappings remain.'],
+    ['Review again to create a decision', 'Before demonstrating operator apply, run review again so the approve decision remains awaiting_operator.', 'Confirm and apply decision becomes available.'],
+    ['Confirm and apply as the operator', 'Apply rechecks the evidence hash, source identity, and expected version. It creates a safe checkpoint, then activates with compare-and-swap.', 'The decision becomes applied and the specified module version becomes active.', 'A normal runtime never lets a reviewer activate by itself; sandbox auto-Apply is a limited research mode.'],
+    ['Cancel cannot undo an applied change', 'Once a module mapping changes, cancelling review is too late. Roll back the module or restore a suitable checkpoint.', 'The specified previous committed version returns; external side effects are not reversed.']
+  ],
+  model: [
+    ['Open the AI model quick reference', 'The product Agent panel has local OpenAI-compatible loopback and OpenAI Responses API paths. The tutorial also shows pre-launch environment-variable alternatives.', 'The production control panel shows both local and OpenAI connection options.'],
+    ['Keep local models on loopback', 'Set the local endpoint and model ID in the panel. The endpoint must be 127.0.0.1, localhost, or ::1 and contain no query, fragment, or credential.', 'After startup, the local OpenAI-compatible adapter is available.', 'The local adapter sends no authorization header; do not put credentials in an endpoint URL.'],
+    ['Keep an OpenAI key only for this run', 'The product sends the entered key to Main Process and clears the input immediately. It is not written to files, events, results, or module source. Do not enter a real key in the tutorial.', 'Sol, Terra, and Luna adapters become selectable; the UI reports only connection state, never the key.', 'Hosted context is an external data transfer. Send only task content that is needed and authorized.'],
+    ['Choose a model for the agent', 'Choose an adapter for quality, cost, and latency, then explicitly set reasoning effort, maximum turns, and maximum actions.', 'An available adapter is selected and unavailable ones stay disabled.'],
+    ['Use a small connection smoke test', 'First ask the model to read example.com and report its title. Expand the action scope only after success.', 'The agent response, model.turn event, and adapter identity agree.']
+  ]
+});
+
+function scenarioMessageKey(scenarioId, stepIndex, field) {
+  return stepIndex === null ? `tutorial.scenario.${scenarioId}.${field}` : `tutorial.scenario.${scenarioId}.step.${stepIndex}.${field}`;
+}
+
+function buildScenarioMessages() {
+  const messages = [];
+  for (const scenario of baseScenarios) {
+    const [englishLabel, englishSummary] = englishHeads[scenario.id];
+    messages.push([scenarioMessageKey(scenario.id, null, 'label'), scenario.label, toSimplified(scenario.label), englishLabel]);
+    messages.push([scenarioMessageKey(scenario.id, null, 'summary'), scenario.summary, toSimplified(scenario.summary), englishSummary]);
+    scenario.steps.forEach((step, index) => {
+      const [englishTitle, englishBody, englishExpected, englishSafety] = englishSteps[scenario.id][index];
+      for (const [field, english] of [['title', englishTitle], ['body', englishBody], ['expected', englishExpected]]) {
+        messages.push([scenarioMessageKey(scenario.id, index, field), step[field], toSimplified(step[field]), english]);
+      }
+      if (step.safety) messages.push([scenarioMessageKey(scenario.id, index, 'safety'), step.safety, toSimplified(step.safety), englishSafety]);
+    });
+  }
+  return messages;
+}
+
+const scenarioMessages = buildScenarioMessages();
+globalThis.BlankSeedI18n?.registerMessages?.(scenarioMessages);
+
+function localizeScenario(scenario) {
+  const t = globalThis.BlankSeedI18n?.t;
+  if (!t) return scenario;
+  const localize = (step, index) => ({
+    ...step,
+    title: t(scenarioMessageKey(scenario.id, index, 'title'), {}, step.title),
+    body: t(scenarioMessageKey(scenario.id, index, 'body'), {}, step.body),
+    expected: t(scenarioMessageKey(scenario.id, index, 'expected'), {}, step.expected),
+    ...(step.safety ? { safety: t(scenarioMessageKey(scenario.id, index, 'safety'), {}, step.safety) } : {})
+  });
+  return Object.freeze({
+    ...scenario,
+    label: t(scenarioMessageKey(scenario.id, null, 'label'), {}, scenario.label),
+    summary: t(scenarioMessageKey(scenario.id, null, 'summary'), {}, scenario.summary),
+    steps: Object.freeze(scenario.steps.map(localize))
+  });
+}
+
+function localizedScenarios() {
+  return Object.freeze(baseScenarios.map(localizeScenario));
+}
+
+function refreshLocalizedScenarios() {
+  globalThis.blankseedTutorialScenarios = localizedScenarios();
+  return globalThis.blankseedTutorialScenarios;
+}
+
+refreshLocalizedScenarios();
 globalThis.blankseedTutorialGetScenario = function getScenario(scenarioId) {
   const scenarios = globalThis.blankseedTutorialScenarios;
   return scenarios.find((scenario) => scenario.id === scenarioId) || scenarios[0];
 };
+globalThis.blankseedTutorialScenarioMessages = Object.freeze(scenarioMessages);
+globalThis.blankseedTutorialRefreshScenarios = refreshLocalizedScenarios;

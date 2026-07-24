@@ -11,14 +11,42 @@ const {
   sha256
 } = require('../shared/contracts.cjs');
 const { activeMappingHash } = require('./module-store.cjs');
+const { attachPersistenceRedaction, redactTextForPersistence } = require('../shared/persistence-redaction.cjs');
 
-const CHECKPOINT_SCHEMA = 'blankseed-checkpoint/0.2';
+const CHECKPOINT_SCHEMA = 'blankseed-checkpoint/0.3';
+const LEGACY_CHECKPOINT_SCHEMAS = Object.freeze(['blankseed-checkpoint/0.2']);
 const RESTORE_TRANSITION_SCHEMA = 'blankseed-checkpoint-restore/0.1';
 
 function writeJsonAtomic(filePath, value) {
   const temporary = `${filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
   fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
   fs.renameSync(temporary, filePath);
+}
+
+function isPlainRecord(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function projectRestorableState(status) {
+  const active = status?.modules?.active;
+  if (!isPlainRecord(active)) {
+    throw createProtocolError(errorCodes.checkpointFailed, 'Checkpoint source state does not contain a Module active mapping.');
+  }
+  return { modules: { active: { ...active } } };
+}
+
+function isMinimalRestorableState(state) {
+  return isPlainRecord(state)
+    && Object.keys(state).length === 1
+    && isPlainRecord(state.modules)
+    && Object.keys(state.modules).length === 1
+    && isPlainRecord(state.modules.active);
+}
+
+function isSupportedCheckpointSchema(schema) {
+  return schema === CHECKPOINT_SCHEMA || LEGACY_CHECKPOINT_SCHEMAS.includes(schema);
 }
 
 class CheckpointStore {
@@ -35,15 +63,17 @@ class CheckpointStore {
 
   create(label = 'manual checkpoint', context = {}) {
     const id = `chk_${crypto.randomUUID()}`;
-    const state = this.getState();
-    const checkpoint = {
+    const state = projectRestorableState(this.getState());
+    const persistedLabel = redactTextForPersistence(String(label).slice(0, 200), { wholeString: true });
+    const checkpoint = attachPersistenceRedaction({
       schema: CHECKPOINT_SCHEMA,
       id,
-      label: String(label).slice(0, 200),
+      label: persistedLabel.value,
       createdAt: new Date().toISOString(),
       appVersion: this.appVersion,
       restoreScope: ['modules.active'],
       excludedState: [
+        'target',
         'target.navigation',
         'browser.userData',
         'browser.storage',
@@ -56,7 +86,7 @@ class CheckpointStore {
       ],
       state,
       stateHash: sha256(JSON.stringify(state))
-    };
+    }, persistedLabel.metadata);
     const filePath = path.join(this.directory, `${id}.json`);
     writeJsonAtomic(filePath, checkpoint);
     this.eventStore.append('checkpoint.created', { id, label: checkpoint.label, filePath }, context);
@@ -75,7 +105,7 @@ class CheckpointStore {
             createdAt: checkpoint.createdAt,
             appVersion: checkpoint.appVersion,
             schema: checkpoint.schema,
-            restorable: checkpoint.schema === CHECKPOINT_SCHEMA
+            restorable: isSupportedCheckpointSchema(checkpoint.schema)
           };
         } catch {
           return null;
@@ -200,10 +230,10 @@ class CheckpointStore {
   }
 
   #validateRestorable(checkpoint) {
-    if (checkpoint.schema !== CHECKPOINT_SCHEMA) {
+    if (!isSupportedCheckpointSchema(checkpoint.schema)) {
       throw createProtocolError(errorCodes.checkpointFailed, 'Checkpoint schema is not restorable.', {
         schema: checkpoint.schema,
-        expected: CHECKPOINT_SCHEMA
+        expected: [CHECKPOINT_SCHEMA, ...LEGACY_CHECKPOINT_SCHEMAS]
       });
     }
     if (checkpoint.appVersion !== this.appVersion) {
@@ -220,6 +250,12 @@ class CheckpointStore {
         actual: actualStateHash
       });
     }
+    if (checkpoint.schema === CHECKPOINT_SCHEMA && !isMinimalRestorableState(checkpoint.state)) {
+      throw createProtocolError(errorCodes.checkpointFailed, 'Checkpoint state contains data outside the declared restore scope.', {
+        checkpointId: checkpoint.id,
+        restoreScope: checkpoint.restoreScope
+      });
+    }
     if (JSON.stringify(checkpoint.restoreScope) !== JSON.stringify(['modules.active'])) {
       throw createProtocolError(errorCodes.checkpointFailed, 'Checkpoint restore scope is not supported.', {
         restoreScope: checkpoint.restoreScope
@@ -228,4 +264,11 @@ class CheckpointStore {
   }
 }
 
-module.exports = { CHECKPOINT_SCHEMA, RESTORE_TRANSITION_SCHEMA, CheckpointStore };
+module.exports = {
+  CHECKPOINT_SCHEMA,
+  LEGACY_CHECKPOINT_SCHEMAS,
+  RESTORE_TRANSITION_SCHEMA,
+  CheckpointStore,
+  isMinimalRestorableState,
+  projectRestorableState
+};

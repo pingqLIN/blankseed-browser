@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -129,6 +129,52 @@ test('ProcessSupervisor returns node.execute envelope and records streams', asyn
       'node.execution.completed'
     ]);
     assert.equal(harness.utilityProcessApi.children[0].messages[0].source, 'return { ok: true };');
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('ProcessSupervisor preserves live results while de-identifying persisted experiment artifacts', async () => {
+  const harness = withSupervisor((child) => {
+    setImmediate(() => {
+      child.stdout.emit('data', Buffer.from('https://private-site.example/landing Sensitive stream body\n'));
+      child.emit('message', {
+        type: 'result',
+        status: 'ok',
+        result: {
+          url: 'https://private-site.example/landing',
+          title: 'Sensitive page title',
+          text: 'Sensitive page body',
+          elements: [{ tag: 'button', name: 'Sensitive control label' }]
+        }
+      });
+      child.emit('exit', 0);
+    });
+  });
+
+  try {
+    const result = await harness.supervisor.execute({
+      source: 'return { target: "https://private-site.example/landing" };',
+      timeoutMs: 50
+    });
+    const executionDirectory = harness.eventStore.events
+      .find((event) => event.type === 'node.execution.started')
+      .data.executionDirectory;
+    const persisted = ['source.cjs', 'result.json', 'stdout.log', 'redaction.json']
+      .map((fileName) => readFileSync(join(executionDirectory, fileName), 'utf8'))
+      .join('\n');
+    const receipt = JSON.parse(readFileSync(join(executionDirectory, 'redaction.json'), 'utf8'));
+
+    assert.equal(result.status, 'ok');
+    assert.equal(result.result.url, 'https://private-site.example/landing');
+    assert.equal(result.result.title, 'Sensitive page title');
+    assert.equal(existsSync(join(executionDirectory, 'redaction.json')), true);
+    assert.equal(persisted.includes('private-site.example'), false);
+    assert.equal(persisted.includes('Sensitive page'), false);
+    assert.equal(persisted.includes('Sensitive control'), false);
+    assert.equal(receipt.artifacts['source.cjs'].status, 'redacted');
+    assert.equal(receipt.artifacts['result.json'].pageContentFields, 3);
+    assert.equal(receipt.artifacts['stdout.log'].externalTextFields, 1);
   } finally {
     harness.cleanup();
   }

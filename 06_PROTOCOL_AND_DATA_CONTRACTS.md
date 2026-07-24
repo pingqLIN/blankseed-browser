@@ -260,24 +260,98 @@ Stored as one JSON object per line:
 }
 ```
 
+## Persistence de-identification boundary
+
+Before the Event Store appends data, before a supervised execution writes an
+experiment artifact, before an evolution or Multi-Agent run writes run.json,
+before a governance decision is written, and before a Checkpoint label is
+written, the runtime creates a redacted clone. The live tool result, in-memory
+execution envelope, model observation, and same-session governance anchor
+remain unchanged; the boundary applies only to durable evidence.
+
+For this boundary, every non-local HTTP(S) target is treated as sensitive by
+default. The pipeline replaces its host, path, query, and bare-host references
+with a fixed marker. If an object contains such a target, page-content fields
+such as title, text, DOM/HTML, accessible names, labels, messages, and nested
+element names are replaced with a page-content marker. It never stores a
+reversible target hash or the original target in redaction metadata.
+
+Loopback and fixture addresses remain inspectable: localhost, IPv4/IPv6
+loopback, *.localhost, *.test, *.invalid, and
+example.com/example.net/example.org. When redaction occurs, an object artifact
+receives persistenceRedaction counts. A supervised execution also writes an
+inspectable redaction.json receipt beside its experiment files; the receipt
+contains only file names and aggregate counts.
+If Event Store data cannot be inspected safely, it writes a metadata-only
+failed_closed record instead of the original value.
+If an experiment source file is redacted, its sourceHash still identifies the
+executed original and the receipt makes clear that the retained source file is
+an evidence copy rather than a hash-reconstructible executable.
+
+New `blankseed-multi-agent-run/0.2` and
+`blankseed-governance-decision/0.2` artifacts apply the same boundary to task,
+proposal, handoff, review, error, and nested evolution-result evidence.
+Narrative fields such as `task`, `proposalContent`, and review `reason` are
+treated as page-content fields when they identify an external target. The
+on-disk governance file hash binds the redacted representation, while the
+same-session Main Process anchor retains the original proposal, review, and
+evidence hashes for authorization checks. The persisted integrity hashes
+identify the original complete evidence; they are not target-only hashes and
+cannot reconstruct the removed content. Historical v0.1 artifacts are not
+rewritten.
+
+This boundary does not rewrite generated Module candidate source or committed
+Module artifacts because changing executable source would invalidate its
+source hash and alter the capability under review. A candidate-source admission
+policy is a separate future decision, not an implicit side effect of evidence
+redaction.
+
+Checkpoint state has a stricter minimization boundary in addition to text
+redaction: newly written Checkpoint v0.3 files project the current status to
+only the declared restorable mapping. They never serialize the full status
+object and therefore cannot retain `target`, page content, configuration,
+browser state, credentials, events, Module files, Git state, or external
+effects. Legacy v0.2 files remain readable for rollback compatibility but are
+never created again and are not retroactively rewritten.
+
 ## Checkpoint manifest
 
 ```json
 {
-  "schema": "blankseed-checkpoint/0.1",
+  "schema": "blankseed-checkpoint/0.3",
   "id": "chk_...",
   "label": "before module activation",
   "createdAt": "...",
   "appVersion": "0.1.0",
-  "target": {
-    "url": "https://example.com/"
+  "restoreScope": ["modules.active"],
+  "excludedState": [
+    "target",
+    "target.navigation",
+    "browser.userData",
+    "browser.storage",
+    "config",
+    "credentials",
+    "events",
+    "module.files",
+    "git",
+    "externalEffects"
+  ],
+  "state": {
+    "modules": {
+      "active": {
+        "generated.example": "1.0.0"
+      }
+    }
   },
-  "configurationHash": "sha256:...",
-  "moduleVersions": {},
-  "eventSequence": 17,
-  "git": null
+  "stateHash": "sha256:..."
 }
 ```
+
+The schema permits no additional `state` keys in v0.3. Checkpoint labels that
+contain an external target are replaced with the page-content marker and gain
+`persistenceRedaction` aggregate metadata. v0.2 is a read-only compatibility
+schema: it can restore its validated `modules.active` mapping, but no new v0.2
+Checkpoint is emitted.
 
 ## Limits
 

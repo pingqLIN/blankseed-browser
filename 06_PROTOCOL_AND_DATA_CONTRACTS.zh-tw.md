@@ -87,9 +87,63 @@ Manifest 使用 `blankseed-module/0.1` schema，保存 id/version/description/en
 
 每行保存一個 JSON object，包含 event ID、sequence、session/request/execution ID、可選的 evolution run/turn/action correlation ID、type、timestamp 與 data。
 
+## 持久化去識別邊界
+
+Event Store append、受監督 execution 寫入 experiment artifact、evolution 或
+Multi-Agent run 寫入 run.json、governance decision 寫入，以及 Checkpoint
+label 寫入前，Runtime 都會先建立去識別化副本。即時 tool result、記憶體中的
+execution envelope、提供給模型的 observation 與同 session governance anchor
+不會被改寫；此邊界只作用於 durable evidence。
+
+在此邊界中，所有非本機 HTTP(S) target 預設都視為敏感。管線會以固定標記
+取代 host、path、query 與裸露 host reference。若 object 含有這類 target，
+title、text、DOM/HTML、accessible name、label、message 與 nested element
+name 等 page-content field 都會改成 page-content 標記。去識別 metadata 不會
+保存可逆 target hash，也不會保存原始 target。
+
+Loopback 與 fixture address 仍可檢視：localhost、IPv4/IPv6 loopback、
+*.localhost、*.test、*.invalid 與 example.com/example.net/example.org。發生
+去識別時，object artifact 會取得 persistenceRedaction 計數。受監督 execution
+也會在 experiment files 旁寫入可檢查的 redaction.json receipt；其中只包含
+file name 與彙總計數。
+若 Event Store data 無法安全檢查，會寫入僅含 metadata 的 failed_closed record，
+不會寫入原始值。
+若 experiment source file 被去識別，sourceHash 仍代表實際執行的原始 source；
+receipt 會明確說明保留的 source file 是 evidence copy，無法重建可供 hash 驗證
+的 executable。
+
+新的 `blankseed-multi-agent-run/0.2` 與
+`blankseed-governance-decision/0.2` artifact 會把相同邊界套用到 task、
+proposal、handoff、review、error 與 nested evolution-result evidence。
+`task`、`proposalContent`、review `reason` 等 narrative field 若識別外部 target，
+會依 page-content field 處理。磁碟上的 governance file hash 綁定去識別版本；
+同 session Main Process anchor 則保留原始 proposal、review 與 evidence hash，
+供 authorization check 使用。持久化的 integrity hash 代表完整原始 evidence，
+不是 target-only hash，也無法重建已移除內容。歷史 v0.1 artifact 不會被追溯
+改寫。
+
+此邊界不會改寫 generated Module candidate source 或 committed Module artifact，
+因為改寫 executable source 會使 source hash 失效，也會改變待審查 capability。
+candidate-source admission policy 必須另行決策，不是 evidence redaction 的隱含
+副作用。
+
+Checkpoint state 另有比文字去識別更嚴格的最小化邊界：新寫入的 v0.3
+Checkpoint 只會從目前 status 投影出已宣告可還原的 mapping，絕不序列化完整
+status object。因此它不會保留 `target`、page content、configuration、browser
+state、credentials、events、Module files、Git state 或 external effects。為了
+rollback 相容，既有 v0.2 file 仍可讀取，但系統不再建立新的 v0.2 file，也不會
+追溯改寫舊 artifact。
+
 ## Checkpoint manifest
 
-保存 schema、checkpoint ID/label/time、app version、target、configuration hash、module versions、event sequence 與選擇性的 Git identity。
+新 Checkpoint 使用 `blankseed-checkpoint/0.3`，保存 checkpoint ID/label/time、
+app version、明確 `restoreScope`、`excludedState`、以及唯一可還原的
+`state.modules.active` mapping 與 `stateHash`。v0.3 的 `state` 不得出現其他
+key。label 含有外部 target 時會改成 page-content marker，並加入彙總的
+`persistenceRedaction` metadata。
+
+v0.2 僅作為 read-only compatibility schema：驗證通過後仍可還原其
+`modules.active` mapping，但系統不會再寫入 v0.2 Checkpoint。
 
 ## Limits
 

@@ -10,9 +10,16 @@ local control console operates a remote page in a separate `WebContentsView`
 through observable low-level primitives. It is not a production browser, a
 Chrome Extension, or a secure sandbox for generated Node.js code.
 
-The interface uses Traditional Chinese for user actions while preserving
-technical names such as `Page`, `CDP`, `Node`, `Module`, `Candidate`, `Commit`,
-`Activate`, `Invoke`, `Rollback`, `Checkpoint`, `Event`, and `Runtime`.
+The console and local tutorial offer Traditional Chinese, Simplified Chinese,
+and English through their language selectors. A stored supported selection wins;
+otherwise the browser language is mapped to a supported locale, with Traditional
+Chinese as the product fallback. UI text is localized in renderer-only static
+catalogs. Technical names such as `Page`, `CDP`, `Node`, `Module`, `Candidate`,
+`Commit`, `Activate`, `Invoke`, `Rollback`, `Checkpoint`, `Event`, and `Runtime`
+remain stable for correlation with evidence.
+
+Raw event payloads, protocol IDs, JSON keys, page content, model output, and
+error details are evidence, not UI copy. They are intentionally not translated.
 
 ## Requirements and launch
 
@@ -28,6 +35,12 @@ npm run check
 npm test
 npm start
 ```
+
+On Windows, double-click `啟動 BlankSeed Browser.cmd` in the repository root
+for a simple application launcher. Double-click `啟動操作教學.cmd`, or run
+`npm run tutorial:open` from `starter/`, to start the loopback tutorial server
+and open its correct URL. Direct `file://` tutorial loading is intercepted. Use
+`停止操作教學.cmd` or `npm run tutorial:stop` to stop the managed server.
 
 Install dependencies only when `node_modules/` is absent or the lockfile has
 changed. The left side of the application is the trusted control console. The
@@ -103,6 +116,12 @@ The four tabs support `Left Arrow`, `Right Arrow`, `Home`, and `End` keyboard
 navigation.
 
 ## Local model and evolution loop
+
+Select the top-bar **模型設定** shortcut, or open **Agent > AI 模型接入**, to
+configure the current session. The hosted catalog currently contains
+`gpt-5.6-sol`, `gpt-5.6-terra`, and `gpt-5.6-luna`. It does not contain a Codex
+provider or a model named `GPT Codex`; Codex is a separate product/runtime
+boundary.
 
 The default adapter connects only to this credential-free loopback endpoint:
 

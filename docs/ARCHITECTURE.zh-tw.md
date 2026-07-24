@@ -142,9 +142,11 @@ Runtime state 依用途分開保存：
 - `starter/workspace/modules/` 儲存 Candidate 與 committed Module version。
 - `starter/workspace/state/active-modules.json` 儲存 active version mapping。
 - `starter/workspace/evolution-runs/<evo_*>/run.json` 儲存 bounded evolution evidence。
-- `starter/workspace/multi-agent-runs/<mar_*>/run.json` 儲存 sequential Agent identity 與 handoff evidence。
-- `starter/workspace/governance/decisions/<gov_*>.json` 儲存 review 與 operator-Apply state。
+- `starter/workspace/multi-agent-runs/<mar_*>/run.json` 儲存 sequential Agent identity 與去識別後的 handoff evidence。
+- `starter/workspace/governance/decisions/<gov_*>.json` 儲存經 persistence de-identification 的 review 與 operator-Apply state。
 - `<userData>/blankseed-data/checkpoint-transitions/<rst_*>.json` 記錄 restore intent；若 active mapping 已改變但 completion evidence 無法完成，會保留 `applied_unknown`。
+
+Multi-Agent 與 governance artifact 使用去識別後的 persistence view。即時的同 session value 仍可供 model 與 Main Process governance anchor 使用；磁碟 file hash 綁定去識別 decision，因此 privacy filtering 不會弱化 tamper detection 或 operator-Apply gate。
 
 ## Capability evolution boundary
 

@@ -36,6 +36,11 @@ body {
 
 body { width: auto; }
 
+body.workspace-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
 main {
   display: grid;
   align-content: start;
@@ -48,6 +53,40 @@ main {
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   scrollbar-color: #667080 #15181e;
+}
+
+.workspace-resizer {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--control-panel-width) - 20px);
+  width: 20px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.workspace-resizer::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-strong);
+  content: '';
+  transition: background-color 120ms ease, width 120ms ease;
+}
+
+.workspace-resizer:hover::before,
+.workspace-resizer:focus-visible::before,
+body.workspace-resizing .workspace-resizer::before {
+  width: 4px;
+  background: var(--blue);
+}
+
+.workspace-resizer:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -5px;
 }
 
 main::-webkit-scrollbar,

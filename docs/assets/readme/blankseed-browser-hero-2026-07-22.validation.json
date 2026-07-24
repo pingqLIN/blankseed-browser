@@ -1,0 +1,13 @@
+{
+  "valid": true,
+  "path": "docs/assets/readme/blankseed-browser-hero-2026-07-22.png",
+  "media_type": "image/png",
+  "bytes": 2430636,
+  "width": 1672,
+  "height": 941,
+  "aspect_ratio": 1.7768,
+  "sha256": "82a92ddd04ea80f123076551b826df9cbbab50a6a2516990cbd049560cc46574",
+  "alt_text": "A seedling guardian watches over a safe evolving browser workspace.",
+  "markdown": "![A seedling guardian watches over a safe evolving browser workspace.](docs/assets/readme/blankseed-browser-hero-2026-07-22.png)",
+  "findings": []
+}

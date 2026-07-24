@@ -1,0 +1,12 @@
+flowchart TB
+    Researcher[Researcher / operator] --> Console[Trusted local control UI]
+    Console --> IPC[Explicit preload and IPC]
+    IPC --> Kernel[Main Process: fixed Kernel]
+    Kernel --> Broker[Capability Broker]
+    Kernel --> Runtime[Supervised Node Runtime]
+    Kernel --> Modules[Versioned Module Store]
+    Kernel --> Evidence[Event Store and Checkpoints]
+    Broker --> Target[Remote Browser Target]
+    Runtime --> Utility[Electron utilityProcess]
+    Modules --> Workspace[Generated workspace]
+    Evidence --> Records[Inspectable records]

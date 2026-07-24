@@ -176,17 +176,36 @@ resources.defer('temporary Runtime root', () => rm(temporaryRoot, { recursive: t
 
 try {
 server = createServer(async (request, response) => {
+  if (request.url === '/target' && request.method === 'GET') {
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><html><head><title>BlankSeed Capability Fixture</title></head><body><h1>Capability fixture ready</h1></body></html>');
+    return;
+  }
   if (request.url === '/v1/chat/completions' && request.method === 'POST') {
     const chunks = [];
     for await (const chunk of request) chunks.push(chunk);
     const requestBody = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-    if (JSON.stringify(requestBody.messages || []).includes('請等待取消測試')) await sleep(2000);
+    const combinedMessages = (requestBody.messages || []).map((message) => String(message.content || '')).join('\n');
+    if (combinedMessages.includes('請等待取消測試')) await sleep(2000);
+    let content = '已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。';
+    if (combinedMessages.includes('You are the Proposer in a governed sequential Multi-Agent review.')) {
+      content = '保留唯讀能力邊界，並由獨立 Reviewer 驗證 handoff identity。';
+    }
+    if (combinedMessages.includes('You are the Reviewer in a governed sequential Multi-Agent review.')) {
+      const proposalHash = /"proposalHash":"([^"]+)"/.exec(combinedMessages)?.[1];
+      if (!proposalHash) throw new Error('Reviewer fixture did not receive a proposalHash.');
+      content = JSON.stringify({
+        verdict: 'approve',
+        proposalHash,
+        reason: 'Proposal hash and bounded read-only scope are consistent.'
+      });
+    }
     response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
     response.end(JSON.stringify({
       choices: [{
         message: {
           role: 'assistant',
-          content: '已完成模擬：Agent 訊息與使用者指令已分區顯示，快捷執行可正常回傳。'
+          content
         }
       }]
     }));
@@ -253,6 +272,72 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
     if (!consoleReady) await sleep(100);
   }
   assert.equal(consoleReady, true, `Control console did not become ready: ${JSON.stringify(cdp.notifications.slice(-10))}`);
+  const localeRuntime = await cdp.send('Runtime.evaluate', {
+    expression: `(async () => {
+      const select = document.getElementById('ui-locale');
+      const selectLocale = async (locale) => {
+        select.value = locale;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        await new Promise((resolveLocale) => setTimeout(resolveLocale, 100));
+        return {
+          locale: select.value,
+          lang: document.documentElement.lang,
+          title: document.title,
+          subtitle: document.querySelector('[data-i18n="console.subtitle"]').textContent,
+          candidate: globalThis.BlankSeedI18n.t('module.status.candidate')
+        };
+      };
+      const english = await selectLocale('en');
+      const simplifiedChinese = await selectLocale('zh-CN');
+      const traditionalChinese = await selectLocale('zh-TW');
+      return { english, simplifiedChinese, traditionalChinese };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  assert.deepEqual(localeRuntime.result.value, {
+    english: {
+      locale: 'en',
+      lang: 'en',
+      title: 'BlankSeed Browser Console',
+      subtitle: 'Follow the workflow; every step retains evidence and a recovery path.',
+      candidate: 'Candidate'
+    },
+    simplifiedChinese: {
+      locale: 'zh-CN',
+      lang: 'zh-Hans-CN',
+      title: 'BlankSeed Browser 控制台',
+      subtitle: '按步骤完成任务；每一步都保留证据与恢复路径。',
+      candidate: '候选'
+    },
+    traditionalChinese: {
+      locale: 'zh-TW',
+      lang: 'zh-Hant-TW',
+      title: 'BlankSeed Browser 控制台',
+      subtitle: '依步驟完成任務；每一步都保留證據與復原路徑。',
+      candidate: '候選'
+    }
+  });
+  const evidenceTranslationPreservation = await cdp.send('Runtime.evaluate', {
+    expression: `(() => {
+      const fixture = document.createElement('article');
+      fixture.dataset.i18nSkip = 'true';
+      const body = document.createElement('p');
+      body.textContent = '重新整理';
+      fixture.append(body);
+      document.body.append(fixture);
+      const locale = document.getElementById('ui-locale');
+      locale.value = 'en';
+      locale.dispatchEvent(new Event('change', { bubbles: true }));
+      const preserved = body.textContent;
+      locale.value = 'zh-TW';
+      locale.dispatchEvent(new Event('change', { bubbles: true }));
+      fixture.remove();
+      return preserved;
+    })()`,
+    returnByValue: true
+  });
+  assert.equal(evidenceTranslationPreservation.result.value, '重新整理');
   const railResult = await cdp.send('Runtime.evaluate', {
     expression: `
       (async () => {
@@ -362,6 +447,33 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
       if (redactionProbe.includes(syntheticCredential)) {
         throw new Error('Synthetic OpenAI credential escaped the Main Process boundary.');
       }
+      await window.blankseed.target.navigate('${serverOrigin}/target', {
+        requestId: 'req_ui_target_capability_fixture'
+      });
+      await waitUntil(async () => {
+        const status = await window.blankseed.status.get();
+        return status.target?.url === '${serverOrigin}/target' && status.target?.isLoading === false;
+      }, 'loopback target navigation');
+      const pageExecution = await window.blankseed.page.execute(
+        "return { title: document.title, heading: document.querySelector('h1')?.textContent || '' };",
+        { requestId: 'req_ui_page_capability_fixture' }
+      );
+      const cdpExecution = await window.blankseed.cdp.send('Page.getNavigationHistory', {}, {
+        requestId: 'req_ui_cdp_capability_fixture'
+      });
+      const nodeExecution = await window.blankseed.utility.execute('return { capability: "node", value: 42 };', {
+        requestId: 'req_ui_node_capability_fixture'
+      });
+      const capabilityEvidence = {
+        targetUrl: (await window.blankseed.status.get()).target?.url || null,
+        pageStatus: pageExecution.status,
+        pageTitle: pageExecution.result?.title || null,
+        pageHeading: pageExecution.result?.heading || null,
+        cdpStatus: cdpExecution.status,
+        cdpHistoryEntries: cdpExecution.result?.entries?.length ?? 0,
+        nodeStatus: nodeExecution.status,
+        nodeValue: nodeExecution.result?.value ?? null
+      };
       const adapter = document.getElementById('agent-adapter');
       adapter.value = 'local.openai-compatible';
       const task = document.getElementById('agent-task');
@@ -399,6 +511,44 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
           visible: rect.bottom > 0 && rect.top < innerHeight
         });
       }
+      document.getElementById('advanced-tools').open = true;
+      const advancedToolFocusChecks = [];
+      const toolTabs = [...document.querySelectorAll('.tabs .tab')];
+      const initiallySelectedToolTab = document.querySelector('.tabs .tab[aria-selected="true"]') || toolTabs[0];
+      initiallySelectedToolTab.focus();
+      initiallySelectedToolTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+      await sleep(50);
+      for (let index = 0; index < toolTabs.length; index += 1) {
+        if (index > 0) {
+          document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+          await sleep(50);
+        }
+        const focusedTab = document.activeElement;
+        const panel = document.getElementById(focusedTab.getAttribute('aria-controls'));
+        advancedToolFocusChecks.push({
+          tab: focusedTab.id,
+          focused: focusedTab === toolTabs[index],
+          selected: focusedTab.getAttribute('aria-selected') === 'true',
+          panelVisible: panel?.hidden === false
+        });
+      }
+      const reviewerAdapter = document.getElementById('reviewer-adapter');
+      reviewerAdapter.value = 'local.openai-compatible';
+      reviewerAdapter.dispatchEvent(new Event('change', { bubbles: true }));
+      task.value = '請以唯讀方式審查 capability handoff。';
+      task.dispatchEvent(new Event('input', { bubbles: true }));
+      document.getElementById('multi-agent-run').click();
+      await waitUntil(
+        () => document.getElementById('multi-agent-status').classList.contains('success')
+          && document.getElementById('multi-agent-status').textContent.includes('受控審核已完成'),
+        'Multi-Agent governed review completion'
+      );
+      const multiAgentEvidence = {
+        status: document.getElementById('multi-agent-status').textContent.trim(),
+        decisionId: document.getElementById('governance-decision-id').value,
+        proposerVisible: [...document.querySelectorAll('.message-role strong')].some((element) => element.textContent === 'PROPOSER'),
+        reviewerVisible: [...document.querySelectorAll('.message-role strong')].some((element) => element.textContent === 'REVIEWER')
+      };
       task.value = '請等待取消測試';
       task.dispatchEvent(new Event('input', { bubbles: true }));
       document.getElementById('agent-run').click();
@@ -423,6 +573,7 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
       const confirmationDialog = document.getElementById('confirmation-dialog');
       automationButton.click();
       await waitUntil(() => confirmationDialog.open, 'Module Commit confirmation');
+      const confirmationPresentationOpen = (await window.blankseed.status.get()).target.presentation;
       const automationControlsLocked = [
         'module-id',
         'module-version',
@@ -452,6 +603,7 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
           + '; result=' + document.getElementById('result').textContent.slice(0, 500));
       }
       const noStatus = document.getElementById('module-auto-status').textContent.trim();
+      const confirmationPresentationClosed = (await window.blankseed.status.get()).target.presentation;
       const stoppedModules = await window.blankseed.modules.list();
       const stoppedAtTestedCandidate = stoppedModules.candidates.some((candidate) => (
         candidate.id === 'generated.example'
@@ -547,13 +699,48 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
       ), 'manual Module Activate completion');
       const manualActivateCountAfterYes = (await window.blankseed.events.tail())
         .filter((event) => event.type === 'module.activated' && event.data?.version === '0.2.0').length;
+      document.getElementById('module-version').value = '0.1.0';
+      let absentRollbackConfirmationRejected = false;
+      try {
+        await window.blankseed.modules.rollback('generated.example', '0.1.0', {
+          requestId: 'req_ui_missing_rollback_confirmation_fixture'
+        });
+      } catch (error) {
+        absentRollbackConfirmationRejected = /explicit operator confirmation/.test(error.message);
+      }
+      const rollbackCountBefore = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.rollback.completed').length;
+      document.getElementById('module-rollback').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '回復所選版本？',
+        'manual Module Rollback NO confirmation'
+      );
+      confirmationDialog.querySelector('button[value="no"]').click();
+      await waitUntil(() => !confirmationDialog.open, 'manual Module Rollback NO close');
+      const activeAfterRollbackNo = (await window.blankseed.modules.list()).active['generated.example'];
+      const rollbackCountAfterNo = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.rollback.completed').length;
+      document.getElementById('module-rollback').click();
+      await waitUntil(
+        () => confirmationDialog.open && document.getElementById('confirmation-title').textContent === '回復所選版本？',
+        'manual Module Rollback YES confirmation'
+      );
+      confirmationDialog.querySelector('button[value="yes"]').click();
+      await waitUntil(async () => (
+        (await window.blankseed.modules.list()).active['generated.example'] === '0.1.0'
+      ), 'manual Module Rollback completion');
+      const rollbackCountAfterYes = (await window.blankseed.events.tail())
+        .filter((event) => event.type === 'module.rollback.completed').length;
       const manualModuleDialogs = {
         candidateId: manualCandidateId,
         absentConfirmationRejected,
+        absentRollbackConfirmationRejected,
         commitNoMutation: manualCommitCountAfterNo === manualCommitCountBefore,
         commitExactlyOneOnYes: manualCommitCountAfterYes === manualCommitCountBefore + 1,
         activateNoMutation: activeAfterManualNo === '0.1.0' && manualActivateCountBeforeYes === 0,
-        activateExactlyOneOnYes: manualActivateCountAfterYes === 1
+        activateExactlyOneOnYes: manualActivateCountAfterYes === 1,
+        rollbackNoMutation: activeAfterRollbackNo === '0.2.0' && rollbackCountAfterNo === rollbackCountBefore,
+        rollbackExactlyOneOnYes: rollbackCountAfterYes === rollbackCountBefore + 1
       };
       document.getElementById('checkpoint').click();
       await waitUntil(
@@ -664,6 +851,9 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
         liveLogNodesStable,
         editorAccessibleNames,
         workflowFocusChecks,
+        advancedToolFocusChecks,
+        capabilityEvidence,
+        multiAgentEvidence,
         agentCancellation,
         disclosureLabels: [...document.querySelectorAll('.agent-disclosure summary > span:first-child')]
           .map((element) => element.textContent),
@@ -677,6 +867,8 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
         },
         moduleAutomation: {
           automationControlsLocked,
+          confirmationPresentationOpen,
+          confirmationPresentationClosed,
           stoppedAtTestedCandidate,
           noStatus,
           completedStatus,
@@ -715,6 +907,23 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
   assert.match(evidence.editorAccessibleNames.node, /Generated Node 原始碼/);
   assert.equal(evidence.workflowFocusChecks.length, 6);
   assert(evidence.workflowFocusChecks.every((check) => check.focused && check.visible), JSON.stringify(evidence.workflowFocusChecks));
+  assert.equal(evidence.advancedToolFocusChecks.length, 5);
+  assert(
+    evidence.advancedToolFocusChecks.every((check) => check.focused && check.selected && check.panelVisible),
+    JSON.stringify(evidence.advancedToolFocusChecks)
+  );
+  assert.equal(evidence.capabilityEvidence.targetUrl, `${serverOrigin}/target`);
+  assert.equal(evidence.capabilityEvidence.pageStatus, 'ok');
+  assert.equal(evidence.capabilityEvidence.pageTitle, 'BlankSeed Capability Fixture');
+  assert.equal(evidence.capabilityEvidence.pageHeading, 'Capability fixture ready');
+  assert.equal(evidence.capabilityEvidence.cdpStatus, 'ok');
+  assert(evidence.capabilityEvidence.cdpHistoryEntries > 0, JSON.stringify(evidence.capabilityEvidence));
+  assert.equal(evidence.capabilityEvidence.nodeStatus, 'ok');
+  assert.equal(evidence.capabilityEvidence.nodeValue, 42);
+  assert.match(evidence.multiAgentEvidence.status, /受控審核已完成/);
+  assert.match(evidence.multiAgentEvidence.decisionId, /^gov_/);
+  assert.equal(evidence.multiAgentEvidence.proposerVisible, true);
+  assert.equal(evidence.multiAgentEvidence.reviewerVisible, true);
   assert.match(evidence.agentCancellation.runStatusClass, /warning/);
   assert.match(evidence.agentCancellation.runStatusText, /已取消/);
   assert.equal(evidence.agentCancellation.transcriptWarning, true);
@@ -727,6 +936,14 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
   assert.match(evidence.modelConnection.openAIStatus, /尚未接入|環境變數已接入/);
   assert.equal(evidence.modelConnection.configurationRoundTrip, true);
   assert.equal(evidence.moduleAutomation.automationControlsLocked, true);
+  assert.deepEqual(evidence.moduleAutomation.confirmationPresentationOpen, {
+    overlayActive: true,
+    visible: false
+  });
+  assert.deepEqual(evidence.moduleAutomation.confirmationPresentationClosed, {
+    overlayActive: false,
+    visible: true
+  });
   assert.equal(evidence.moduleAutomation.stoppedAtTestedCandidate, true);
   assert.match(evidence.moduleAutomation.noStatus, /流程停在已測試候選/);
   assert.match(evidence.moduleAutomation.completedStatus, /自動化流程已完成/);
@@ -735,10 +952,13 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
   assert.equal(evidence.moduleAutomation.invoked, true);
   assert.match(evidence.manualModuleDialogs.candidateId, /^cand_/);
   assert.equal(evidence.manualModuleDialogs.absentConfirmationRejected, true);
+  assert.equal(evidence.manualModuleDialogs.absentRollbackConfirmationRejected, true);
   assert.equal(evidence.manualModuleDialogs.commitNoMutation, true);
   assert.equal(evidence.manualModuleDialogs.commitExactlyOneOnYes, true);
   assert.equal(evidence.manualModuleDialogs.activateNoMutation, true);
   assert.equal(evidence.manualModuleDialogs.activateExactlyOneOnYes, true);
+  assert.equal(evidence.manualModuleDialogs.rollbackNoMutation, true);
+  assert.equal(evidence.manualModuleDialogs.rollbackExactlyOneOnYes, true);
   assert.match(evidence.fulfilledErrorFeedback.className, /error/);
   assert.match(evidence.fulfilledErrorFeedback.summary, /操作未完成/);
   assert.match(evidence.fulfilledErrorFeedback.result, /fulfilled error fixture/);
@@ -851,6 +1071,8 @@ electron.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
     || (notification.method === 'Log.entryAdded' && ['error', 'warning'].includes(notification.params?.entry?.level))
   ));
   assert.deepEqual(relevantErrors, []);
+  evidence.localeRuntime = localeRuntime.result.value;
+  evidence.evidenceTranslationPreservation = evidenceTranslationPreservation.result.value === '重新整理';
 } catch (error) {
   primaryError = error;
 } finally {
@@ -868,7 +1090,7 @@ const temporaryRuntimeRemoved = await stat(temporaryRoot).then(
   }
 );
 assert.equal(browserNonceObserved, true, 'The owned control target nonce was not observed before interaction.');
-assert.equal(temporaryRuntimeRemoved, true, 'The temporary Runtime root still exists after cleanup.');
+assert.equal(temporaryRuntimeRemoved, true, 'Expected the temporary Runtime root to be absent after cleanup.');
 
 const finalEvidence = {
   schema: 'blankseed-ui-runtime-smoke/1',

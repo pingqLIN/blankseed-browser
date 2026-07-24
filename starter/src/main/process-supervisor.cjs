@@ -13,6 +13,11 @@ const {
   serializeError,
   sha256
 } = require('../shared/contracts.cjs');
+const {
+  attachPersistenceRedaction,
+  redactForPersistence,
+  redactTextForPersistence
+} = require('../shared/persistence-redaction.cjs');
 
 const DEFAULT_TIMEOUT_MS = 10000;
 const DEFAULT_MAX_LOG_BYTES = 256 * 1024;
@@ -169,7 +174,8 @@ class ProcessSupervisor {
       stopRequested: false,
       timedOut: false,
       timeoutMs,
-      writtenBytes: { stdout: 0, stderr: 0 }
+      writtenBytes: { stdout: 0, stderr: 0 },
+      redactionArtifacts: {}
     };
 
     this.#writeExecutionFiles(record, source);
@@ -434,11 +440,13 @@ class ProcessSupervisor {
     const existing = record.writtenBytes[streamName] ?? 0;
     const incomingBytes = Buffer.byteLength(text, 'utf8');
     const remaining = Math.max(0, this.maxLogBytes - existing);
-    const writeText = remaining > 0 ? text.slice(0, remaining) : '';
+    const persisted = redactTextForPersistence(text, { wholeString: true });
+    const writeText = remaining > 0 ? persisted.value.slice(0, remaining) : '';
     if (writeText) {
       fs.appendFileSync(path.join(record.executionDirectory, fileName), writeText, 'utf8');
       record.writtenBytes[streamName] = existing + Buffer.byteLength(writeText, 'utf8');
     }
+    this.#recordRedaction(record, fileName, persisted.metadata);
     this.eventStore.append(`node.runtime.${streamName}`, {
       text: text.slice(0, 16000),
       bytes: incomingBytes,
@@ -467,7 +475,9 @@ class ProcessSupervisor {
   }
 
   #writeExecutionFiles(record, source) {
-    fs.writeFileSync(path.join(record.executionDirectory, 'source.cjs'), source, 'utf8');
+    const persistedSource = redactTextForPersistence(source);
+    fs.writeFileSync(path.join(record.executionDirectory, 'source.cjs'), persistedSource.value, 'utf8');
+    this.#recordRedaction(record, 'source.cjs', persistedSource.metadata);
     this.#writeJson(record, 'input.json', {
       protocol: 'blankseed/0.1',
       executionId: record.executionId,
@@ -482,7 +492,22 @@ class ProcessSupervisor {
   }
 
   #writeJson(record, fileName, value) {
-    fs.writeFileSync(path.join(record.executionDirectory, fileName), `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+    const redacted = redactForPersistence(value);
+    const persistedValue = attachPersistenceRedaction(redacted.value, redacted.metadata);
+    fs.writeFileSync(path.join(record.executionDirectory, fileName), JSON.stringify(persistedValue, null, 2) + '\n', 'utf8');
+    this.#recordRedaction(record, fileName, redacted.metadata);
+  }
+
+  #recordRedaction(record, fileName, metadata) {
+    if (metadata.status !== 'redacted') return;
+    record.redactionArtifacts[fileName] = metadata;
+    const receipt = {
+      schema: 'blankseed-persistence-redaction-receipt/0.1',
+      executionId: record.executionId,
+      updatedAt: new Date().toISOString(),
+      artifacts: record.redactionArtifacts
+    };
+    fs.writeFileSync(path.join(record.executionDirectory, 'redaction.json'), JSON.stringify(receipt, null, 2) + '\n', 'utf8');
   }
 }
 

@@ -1,15 +1,14 @@
 'use strict';
 
+const { applyBindings, formatTime: formatLocalizedTime, getLocale, observe, setLocale, t } = globalThis.BlankSeedI18n;
+
 const $ = (id) => document.getElementById(id);
 const result = $('result');
 const timeline = $('timeline');
 const agentTask = $('agent-task');
-
-const moduleStatusLabels = Object.freeze({
-  candidate: '候選',
-  tested: '已測試',
-  committed: '已提交'
-});
+const workspaceResizer = $('workspace-resizer');
+const MIN_CONTROL_PANEL_WIDTH = 320;
+const MIN_TARGET_PANEL_WIDTH = 320;
 
 const uiAgentTools = Object.freeze([
   'target_navigate',
@@ -20,6 +19,7 @@ const uiAgentTools = Object.freeze([
   'module_list',
   'module_candidate_create',
   'module_candidate_test',
+  'module_candidate_page_test',
   'module_invoke',
   'checkpoint_create'
 ]);
@@ -30,6 +30,7 @@ const state = {
   checkpoints: [],
   modules: { active: {}, modules: [], candidates: [] },
   status: null,
+  layout: { controlPanelWidth: 500, resizing: false },
   agent: { running: false, evolutionRunId: null, label: 'Agent 待命。', status: 'idle' },
   agentMessages: [],
   multiAgent: { running: false, multiAgentRunId: null, decisionId: null, applyAvailable: false, label: '多代理待命。', status: 'idle' },
@@ -42,6 +43,97 @@ const state = {
   stop: { state: 'idle', label: '待命' },
   lastOperation: { status: 'idle', summary: '尚未執行操作', nextStep: '完成前四步後開始執行；發生錯誤時可從這裡查看修正方式。' }
 };
+
+function clampControlPanelWidth(width) {
+  const maximum = Math.max(MIN_CONTROL_PANEL_WIDTH, window.innerWidth - MIN_TARGET_PANEL_WIDTH);
+  return Math.min(maximum, Math.max(MIN_CONTROL_PANEL_WIDTH, Math.round(width)));
+}
+
+function syncControlPanelWidth(width) {
+  const nextWidth = clampControlPanelWidth(width);
+  state.layout.controlPanelWidth = nextWidth;
+  document.documentElement.style.setProperty('--control-panel-width', `${nextWidth}px`);
+  workspaceResizer.setAttribute('aria-valuemax', String(Math.max(MIN_CONTROL_PANEL_WIDTH, window.innerWidth - MIN_TARGET_PANEL_WIDTH)));
+  workspaceResizer.setAttribute('aria-valuenow', String(nextWidth));
+  workspaceResizer.setAttribute('aria-valuetext', t('workflow.panelWidth', { width: nextWidth }));
+  return nextWidth;
+}
+
+let pendingPanelWidth = null;
+let panelResizeInFlight = false;
+
+async function flushPanelResize() {
+  if (panelResizeInFlight || pendingPanelWidth === null) return;
+  panelResizeInFlight = true;
+  const width = pendingPanelWidth;
+  pendingPanelWidth = null;
+  try {
+    const layout = await window.blankseed.target.resizePanel(width, {
+      requestId: requestId('panel_resize')
+    });
+    syncControlPanelWidth(layout.controlPanelWidth);
+  } catch (error) {
+    showError(error);
+  } finally {
+    panelResizeInFlight = false;
+    if (pendingPanelWidth !== null) flushPanelResize();
+  }
+}
+
+function requestPanelResize(width) {
+  pendingPanelWidth = syncControlPanelWidth(width);
+  flushPanelResize();
+}
+
+function initializeWorkspaceResizer() {
+  let dragStartX = 0;
+  let dragStartWidth = 0;
+
+  workspaceResizer.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    dragStartX = event.clientX;
+    dragStartWidth = state.layout.controlPanelWidth;
+    state.layout.resizing = true;
+    document.body.classList.add('workspace-resizing');
+    workspaceResizer.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+
+  workspaceResizer.addEventListener('pointermove', (event) => {
+    if (!state.layout.resizing) return;
+    requestPanelResize(dragStartWidth + event.clientX - dragStartX);
+  });
+
+  const finishResize = (event) => {
+    if (!state.layout.resizing) return;
+    state.layout.resizing = false;
+    document.body.classList.remove('workspace-resizing');
+    if (workspaceResizer.hasPointerCapture(event.pointerId)) {
+      workspaceResizer.releasePointerCapture(event.pointerId);
+    }
+  };
+  workspaceResizer.addEventListener('pointerup', finishResize);
+  workspaceResizer.addEventListener('pointercancel', finishResize);
+
+  workspaceResizer.addEventListener('keydown', (event) => {
+    const step = event.shiftKey ? 48 : 16;
+    let nextWidth = state.layout.controlPanelWidth;
+    if (event.key === 'ArrowLeft') nextWidth -= step;
+    else if (event.key === 'ArrowRight') nextWidth += step;
+    else if (event.key === 'Home') nextWidth = MIN_CONTROL_PANEL_WIDTH;
+    else if (event.key === 'End') nextWidth = window.innerWidth - MIN_TARGET_PANEL_WIDTH;
+    else return;
+    event.preventDefault();
+    requestPanelResize(nextWidth);
+  });
+
+  window.addEventListener('resize', () => {
+    // CSS makes the control surface fill a narrow viewport. Do not turn a
+    // temporary viewport constraint into a persisted 320px user preference.
+    const minimumMaximum = Math.max(MIN_CONTROL_PANEL_WIDTH, window.innerWidth - MIN_TARGET_PANEL_WIDTH);
+    workspaceResizer.setAttribute('aria-valuemax', String(Math.max(minimumMaximum, state.layout.controlPanelWidth)));
+  });
+}
 
 function requestId(label) {
   const suffix = `${Date.now()}_${Math.random().toString(16).slice(2)}`.replace(/[^A-Za-z0-9_-]/g, '_');
@@ -131,6 +223,7 @@ async function run(operation, { skipRefresh = false } = {}) {
 async function refreshAll() {
   await Promise.all([refreshStatus(), refreshModules(), refreshCheckpoints(), refreshEvents()]);
   renderAll();
+  applyBindings(document);
 }
 
 async function refreshStatus() {
@@ -178,6 +271,7 @@ function renderAll() {
   renderTimeline();
   renderWorkflow();
   renderOperationFeedback();
+  applyBindings(document);
 }
 
 function addAgentMessage(role, content, { label, detail, status = 'ok' } = {}) {
@@ -204,8 +298,8 @@ function renderAgentMessages({ scrollToEnd = false } = {}) {
     const empty = document.createElement('div');
     empty.className = 'agent-message-empty';
     empty.append(
-      makeText('strong', '尚無 Agent 訊息'),
-      makeText('span', '在下方輸入指令；Agent 回覆與受控審核結果會集中顯示在這裡。')
+      makeText('strong', t('agent.emptyTitle')),
+      makeText('span', t('agent.emptyBody'))
     );
     messages.append(empty);
     return;
@@ -223,6 +317,7 @@ function renderAgentMessages({ scrollToEnd = false } = {}) {
     const row = document.createElement('article');
     row.className = `agent-message ${message.role} ${message.status === 'error' ? 'error' : (message.status === 'warning' ? 'warning' : '')}`;
     row.dataset.messageId = message.id;
+    row.dataset.i18nSkip = 'true';
     const role = document.createElement('div');
     role.className = 'message-role';
     role.append(makeText('strong', message.label));
@@ -436,9 +531,10 @@ function renderModuleAutomation() {
 
 function renderStatus() {
   const status = state.status || {};
-  const controlPanelWidth = Number(status.config?.controlPanelWidth);
-  if (Number.isFinite(controlPanelWidth) && controlPanelWidth >= 320 && controlPanelWidth <= 800) {
-    document.documentElement.style.setProperty('--control-panel-width', `${controlPanelWidth}px`);
+  const controlPanelWidth = Number(status.target?.layout?.controlPanelWidth ?? status.config?.controlPanelWidth);
+  const narrowViewport = window.innerWidth < MIN_CONTROL_PANEL_WIDTH + MIN_TARGET_PANEL_WIDTH;
+  if (Number.isFinite(controlPanelWidth) && !narrowViewport && !state.layout.resizing && pendingPanelWidth === null) {
+    syncControlPanelWidth(controlPanelWidth);
   }
   const activeCount = Object.keys(state.modules.active || {}).length;
   $('stat-session').textContent = status.sessionId || '尚無工作階段';
@@ -510,7 +606,7 @@ function renderModules() {
 }
 
 function moduleStatusLabel(status) {
-  return moduleStatusLabels[status] || status || '未知';
+  return t(`module.status.${status}`, {}, status || t('common.unknown'));
 }
 
 function fillModule(manifest) {
@@ -546,12 +642,13 @@ function renderTimeline() {
   timeline.replaceChildren();
   const rows = state.events.slice(-80).reverse();
   if (rows.length === 0) {
-    timeline.textContent = '尚無事件。';
+    timeline.textContent = t('event.none');
     return;
   }
   for (const event of rows) {
     const row = document.createElement('div');
     row.className = `timeline-row ${eventClass(event.type)}`;
+    row.dataset.i18nSkip = 'true';
     row.append(
       makeText('time', formatTime(event.timestamp)),
       makeText('strong', event.type || '事件'),
@@ -583,7 +680,14 @@ function formatTime(value) {
   if (!value) return '--:--:--';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '--:--:--';
-  return date.toLocaleTimeString('zh-TW', { hour12: false });
+  return formatLocalizedTime(date);
+}
+
+function applyInterfaceLocale(candidate = getLocale()) {
+  const locale = setLocale(candidate);
+  $('ui-locale').value = locale;
+  applyBindings(document);
+  return locale;
 }
 
 function makeText(tag, text) {
@@ -647,29 +751,57 @@ function setModuleAutomationStep(step, status, label) {
   renderModuleAutomation();
 }
 
-function requestConfirmation(title, body) {
+async function requestConfirmation(title, body) {
   const dialog = $('confirmation-dialog');
   $('confirmation-title').textContent = title;
   $('confirmation-body').textContent = body;
   dialog.returnValue = '';
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (confirmed) => {
-      if (settled) return;
-      settled = true;
-      dialog.removeEventListener('close', handleClose);
-      dialog.removeEventListener('click', handleClick);
-      resolve(confirmed);
-    };
-    const handleClose = () => finish(dialog.returnValue === 'yes');
-    const handleClick = (event) => {
-      const button = event.target.closest('button[value]');
-      if (button) queueMicrotask(() => finish(button.value === 'yes'));
-    };
-    dialog.addEventListener('close', handleClose);
-    dialog.addEventListener('click', handleClick);
-    dialog.showModal();
-  });
+  try {
+    await window.blankseed.target.setOverlayActive(true, {
+      requestId: requestId('confirmation_overlay_open')
+    });
+  } catch (error) {
+    showError(error);
+    return false;
+  }
+
+  try {
+    return await new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (confirmed) => {
+        if (settled) return;
+        settled = true;
+        dialog.removeEventListener('close', handleClose);
+        dialog.removeEventListener('click', handleClick);
+        resolve(confirmed);
+      };
+      const handleClose = () => finish(dialog.returnValue === 'yes');
+      const handleClick = (event) => {
+        const button = event.target.closest('button[value]');
+        if (button) queueMicrotask(() => finish(button.value === 'yes'));
+      };
+      dialog.addEventListener('close', handleClose);
+      dialog.addEventListener('click', handleClick);
+      try {
+        dialog.showModal();
+      } catch (error) {
+        dialog.removeEventListener('close', handleClose);
+        dialog.removeEventListener('click', handleClick);
+        reject(error);
+      }
+    });
+  } catch (error) {
+    showError(error);
+    return false;
+  } finally {
+    try {
+      await window.blankseed.target.setOverlayActive(false, {
+        requestId: requestId('confirmation_overlay_close')
+      });
+    } catch (error) {
+      showError(error);
+    }
+  }
 }
 
 async function runModuleAutomation() {
@@ -949,7 +1081,22 @@ $('module-invoke').addEventListener('click', () => run(() => window.blankseed.mo
   environment: moduleEnvironment(),
   timeoutMs: 5000
 })));
-$('module-rollback').addEventListener('click', () => run(() => window.blankseed.modules.rollback($('module-id').value, $('module-version').value, { requestId: requestId('module_rollback') })));
+$('module-rollback').addEventListener('click', async () => {
+  const id = $('module-id').value.trim();
+  const version = $('module-version').value.trim();
+  const confirmed = await requestConfirmation(
+    '回復所選版本？',
+    `YES 會把 ${id || '未指定 Module'} 的作用中版本回復為 ${version || '未指定版本'}；目前版本仍保留，可再次明確啟用。NO 不會變更作用中版本。`
+  );
+  if (!confirmed) {
+    show({ kind: 'module.rollback', status: 'declined', id, version });
+    return;
+  }
+  await run(() => window.blankseed.modules.rollback(id, version, {
+    requestId: requestId('module_rollback'),
+    confirmed: true
+  }));
+});
 $('agent-run').addEventListener('click', async () => {
   const task = agentTask.value.trim();
   if (!task) {
@@ -1139,6 +1286,13 @@ window.blankseed.events.subscribe(() => {
 });
 window.blankseedConsole = { refreshAll, setTab };
 window.blankseedConsoleReady = false;
+applyInterfaceLocale();
+observe(document.body);
+$('ui-locale').addEventListener('change', async (event) => {
+  applyInterfaceLocale(event.target.value);
+  await refreshAll();
+});
+initializeWorkspaceResizer();
 refreshAll().finally(() => {
   window.blankseedConsoleReady = true;
 });

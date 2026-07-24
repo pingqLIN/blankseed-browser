@@ -14,9 +14,16 @@
   "generatedRuntimeMaxLogBytes": 262144,
   "generatedRuntimeKillGraceMs": 3000,
   "modelTurnTimeoutMs": 30000,
+  "modelTurnTimeoutPolicyMs": {
+    "simple": 30000,
+    "analysis": 90000,
+    "codeGeneration": 120000,
+    "verification": 180000
+  },
   "modelContextEventLimit": 40,
   "evolutionMaxTurns": 12,
   "evolutionMaxActions": 32,
+  "evolutionObservationMaxChars": 4000,
   "evolutionActionResultLimitBytes": 1048576,
   "evolutionMaxEvidenceBytes": 16777216,
   "localModelEndpoint": "http://127.0.0.1:1234/v1/chat/completions",

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { CHECKPOINT_SCHEMA, CheckpointStore } = require('../src/main/checkpoint-store.cjs');
+const { CHECKPOINT_SCHEMA, LEGACY_CHECKPOINT_SCHEMAS, CheckpointStore } = require('../src/main/checkpoint-store.cjs');
 const { ModuleStore } = require('../src/main/module-store.cjs');
 const { createExecutionResult, sha256 } = require('../src/shared/contracts.cjs');
 
@@ -71,12 +71,41 @@ async function createHarness() {
     getState: () => ({
       appVersion: '0.1.0',
       modules: moduleStore.getState(),
-      target: { url: 'https://example.com/', documentGeneration: 1 },
-      config: { researchProfile: 'fixture' }
+      target: {
+        url: 'https://private-site.example/checkpoint',
+        title: 'Sensitive checkpoint page title',
+        snapshot: { text: 'Sensitive checkpoint page body' },
+        documentGeneration: 1
+      },
+      config: { researchProfile: 'fixture', operatorNotes: 'Sensitive checkpoint configuration' }
     })
   });
   return { root, eventStore, moduleStore, store };
 }
+
+test('CheckpointStore persists only its declared restore state and de-identifies labels', async () => {
+  const harness = await createHarness();
+  try {
+    harness.moduleStore.activate({ id: 'generated.restore', version: '0.1.0' });
+    const checkpoint = harness.store.create('https://private-site.example/checkpoint Sensitive label');
+    const persisted = JSON.parse(readFileSync(checkpoint.filePath, 'utf8'));
+    const raw = readFileSync(checkpoint.filePath, 'utf8');
+
+    assert.equal(persisted.schema, CHECKPOINT_SCHEMA);
+    assert.deepEqual(persisted.state, {
+      modules: { active: { 'generated.restore': '0.1.0' } }
+    });
+    assert.deepEqual(persisted.restoreScope, ['modules.active']);
+    assert.ok(persisted.excludedState.includes('target'));
+    assert.equal(persisted.label, '[redacted:external-page-content]');
+    assert.equal(persisted.persistenceRedaction.status, 'redacted');
+    assert.equal(raw.includes('private-site.example'), false);
+    assert.equal(raw.includes('Sensitive checkpoint'), false);
+    assert.equal(raw.includes('researchProfile'), false);
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
 
 test('CheckpointStore restores only the committed Module active mapping with a safety checkpoint', async () => {
   const harness = await createHarness();
@@ -122,6 +151,58 @@ test('CheckpointStore rejects unconfirmed, tampered, and unavailable restore sta
     assert.throws(() => harness.store.restore(checkpoint.id, { confirmed: true }), /does not exist/);
     assert.equal(harness.moduleStore.getState().active['generated.restore'], '0.2.0');
     assert.ok(harness.eventStore.events.some((event) => event.type === 'checkpoint.restore.failed'));
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('CheckpointStore rejects a v0.3 checkpoint that contains state outside its restore scope', async () => {
+  const harness = await createHarness();
+  try {
+    harness.moduleStore.activate({ id: 'generated.restore', version: '0.1.0' });
+    const checkpoint = harness.store.create('minimal state guard');
+    const saved = JSON.parse(readFileSync(checkpoint.filePath, 'utf8'));
+    saved.state.target = { url: 'https://private-site.example/tampered' };
+    saved.stateHash = sha256(JSON.stringify(saved.state));
+    writeFileSync(checkpoint.filePath, `${JSON.stringify(saved, null, 2)}\n`, 'utf8');
+
+    assert.throws(
+      () => harness.store.restore(checkpoint.id, { confirmed: true }),
+      /outside the declared restore scope/
+    );
+  } finally {
+    rmSync(harness.root, { recursive: true, force: true });
+  }
+});
+
+test('CheckpointStore restores legacy v0.2 checkpoints while new checkpoints use v0.3', async () => {
+  const harness = await createHarness();
+  try {
+    harness.moduleStore.activate({ id: 'generated.restore', version: '0.1.0' });
+    const legacyId = 'chk_legacy_12345678';
+    const legacyState = {
+      modules: { active: { 'generated.restore': '0.1.0' } },
+      target: { url: 'https://private-site.example/legacy' }
+    };
+    const legacyCheckpoint = {
+      schema: LEGACY_CHECKPOINT_SCHEMAS[0],
+      id: legacyId,
+      label: 'legacy checkpoint',
+      createdAt: '2026-07-24T00:00:00.000Z',
+      appVersion: '0.1.0',
+      restoreScope: ['modules.active'],
+      excludedState: ['target'],
+      state: legacyState,
+      stateHash: sha256(JSON.stringify(legacyState))
+    };
+    const legacyPath = join(harness.root, 'data', 'checkpoints', `${legacyId}.json`);
+    writeFileSync(legacyPath, `${JSON.stringify(legacyCheckpoint, null, 2)}\n`, 'utf8');
+    harness.moduleStore.activate({ id: 'generated.restore', version: '0.2.0' });
+
+    const restored = harness.store.restore(legacyId, { confirmed: true });
+    assert.deepEqual(restored.active, { 'generated.restore': '0.1.0' });
+    assert.equal(harness.store.list().find((item) => item.id === legacyId).restorable, true);
+    assert.equal(harness.store.read(restored.safetyCheckpointId).schema, CHECKPOINT_SCHEMA);
   } finally {
     rmSync(harness.root, { recursive: true, force: true });
   }

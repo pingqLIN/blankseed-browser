@@ -4,6 +4,16 @@ const { WebContentsView } = require('electron');
 const { CapabilityBroker } = require('./capability-broker.cjs');
 const { normalizeConsoleMessage, normalizeUrl } = require('../shared/contracts.cjs');
 
+const MIN_CONTROL_PANEL_WIDTH = 320;
+const MIN_TARGET_PANEL_WIDTH = 320;
+
+function clampControlPanelWidth(requestedWidth, totalWidth) {
+  const safeTotalWidth = Math.max(0, Math.round(totalWidth));
+  const minimum = Math.min(MIN_CONTROL_PANEL_WIDTH, safeTotalWidth);
+  const maximum = Math.max(minimum, safeTotalWidth - MIN_TARGET_PANEL_WIDTH);
+  return Math.min(maximum, Math.max(minimum, Math.round(requestedWidth)));
+}
+
 class TargetViewController {
   constructor({ window, controlPanelWidth, initialUrl, worldId, eventStore, pushEvent }) {
     this.window = window;
@@ -12,6 +22,7 @@ class TargetViewController {
     this.eventStore = eventStore;
     this.pushEvent = pushEvent;
     this.documentGeneration = 0;
+    this.overlayActive = false;
     this.view = new WebContentsView({
       webPreferences: {
         nodeIntegration: false,
@@ -48,6 +59,7 @@ class TargetViewController {
 
   getState() {
     const wc = this.webContents;
+    const [totalWidth] = this.window.getContentSize();
     return {
       targetId: wc.id,
       url: wc.getURL(),
@@ -56,6 +68,16 @@ class TargetViewController {
       canGoBack: wc.navigationHistory.canGoBack(),
       canGoForward: wc.navigationHistory.canGoForward(),
       documentGeneration: this.documentGeneration,
+      presentation: {
+        overlayActive: this.overlayActive,
+        visible: !this.overlayActive
+      },
+      layout: {
+        controlPanelWidth: this.controlPanelWidth,
+        targetPanelWidth: Math.max(0, totalWidth - this.controlPanelWidth),
+        minControlPanelWidth: MIN_CONTROL_PANEL_WIDTH,
+        minTargetPanelWidth: MIN_TARGET_PANEL_WIDTH
+      },
       rendererPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -73,12 +95,33 @@ class TargetViewController {
 
   updateBounds() {
     const [width, height] = this.window.getContentSize();
+    this.controlPanelWidth = clampControlPanelWidth(this.controlPanelWidth, width);
     this.view.setBounds({
       x: this.controlPanelWidth,
       y: 0,
       width: Math.max(0, width - this.controlPanelWidth),
       height: Math.max(0, height)
     });
+  }
+
+  setControlPanelWidth(requestedWidth, context = {}) {
+    const [totalWidth] = this.window.getContentSize();
+    const previousWidth = this.controlPanelWidth;
+    this.controlPanelWidth = clampControlPanelWidth(requestedWidth, totalWidth);
+    this.updateBounds();
+    const layout = this.getState().layout;
+    if (previousWidth === this.controlPanelWidth) {
+      return { changed: false, ...layout };
+    }
+    const event = this.eventStore.append('target.layout.changed', {
+      ...this.getTargetIdentity(),
+      requestedControlPanelWidth: requestedWidth,
+      previousControlPanelWidth: previousWidth,
+      ...layout,
+      reason: 'operator-resize'
+    }, context);
+    this.pushEvent(event);
+    return { changed: true, ...layout };
   }
 
   navigate(url) {
@@ -124,6 +167,22 @@ class TargetViewController {
       url: this.webContents.getURL()
     });
     this.webContents.reload();
+  }
+
+  setOverlayActive(active) {
+    if (this.overlayActive === active) {
+      return { changed: false, overlayActive: active, visible: !active };
+    }
+    this.overlayActive = active;
+    this.view.setVisible(!active);
+    const event = this.eventStore.append('target.presentation.changed', {
+      ...this.getTargetIdentity(),
+      overlayActive: active,
+      visible: !active,
+      reason: 'control-confirmation'
+    });
+    this.pushEvent(event);
+    return { changed: true, overlayActive: active, visible: !active };
   }
 
   async snapshot({ maxTextChars = 12000, maxElements = 200 } = {}, context = {}) {
@@ -232,4 +291,9 @@ class TargetViewController {
   }
 }
 
-module.exports = { TargetViewController };
+module.exports = {
+  MIN_CONTROL_PANEL_WIDTH,
+  MIN_TARGET_PANEL_WIDTH,
+  TargetViewController,
+  clampControlPanelWidth
+};

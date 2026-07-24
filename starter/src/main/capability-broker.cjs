@@ -40,6 +40,12 @@ function buildSnapshotSource({ maxTextChars, maxElements }) {
   `;
 }
 
+function isCdpSessionInvalidError(error) {
+  const messages = [error?.message, error?.details?.cause?.message]
+    .filter((value) => typeof value === 'string');
+  return messages.some((message) => /no session with given id/i.test(message));
+}
+
 class CapabilityBroker {
   constructor({ webContents, worldId, eventStore, getTargetIdentity, defaultTimeoutMs = 10000 }) {
     this.webContents = webContents;
@@ -142,7 +148,7 @@ class CapabilityBroker {
 
   async sendCdp(method, params = {}, context = {}) {
     const sourceHash = sha256(JSON.stringify({ method, params }));
-    let attachedByBroker = false;
+    const cdpState = { attachedByBroker: false };
     return this.#run({
       kind: 'cdp.send',
       eventBase: 'cdp.command',
@@ -155,25 +161,102 @@ class CapabilityBroker {
         sourceHash
       }),
       execute: async (eventContext, timeoutMs, signal) => {
-        attachedByBroker = this.#ensureCdpAttached(eventContext);
-        return this.#withTimeout(
-          this.debuggerApi.sendCommand(method, params),
+        const sendCommand = () => this.#withTimeout(
+          Promise.resolve().then(() => this.debuggerApi.sendCommand(method, params)),
           timeoutMs,
           {
             signal,
             onTimeout: () => {
-              if (attachedByBroker) this.#detachCdp(eventContext, 'timeout');
+              if (cdpState.attachedByBroker) this.#detachCdp(eventContext, 'timeout');
             },
             onAbort: () => {
-              if (attachedByBroker) this.#detachCdp(eventContext, 'cancel');
+              if (cdpState.attachedByBroker) this.#detachCdp(eventContext, 'cancel');
             }
           }
         );
+        cdpState.attachedByBroker = this.#ensureCdpAttached(eventContext);
+        try {
+          return await sendCommand();
+        } catch (error) {
+          if (!isCdpSessionInvalidError(error) || signal.aborted) throw error;
+          this.eventStore.append('cdp.session.invalid', {
+            method,
+            ...this.getTargetIdentity(),
+            attempt: 1,
+            status: 'SESSION_INVALID',
+            error: this.#eventError(error)
+          }, eventContext);
+          if (!cdpState.attachedByBroker) {
+            const wrapped = createProtocolError(
+              errorCodes.cdpSessionInvalid,
+              'CDP session recovery requires a broker-owned debugger attachment.',
+              {
+                method,
+                attempts: 1,
+                recoverySkipped: true,
+                reason: 'attachment-not-owned',
+                cause: serializeError(error)
+              },
+              true
+            );
+            this.eventStore.append('cdp.recovery.failed', {
+              method,
+              ...this.getTargetIdentity(),
+              policy: 'retry-session-invalid-once',
+              attempts: 1,
+              status: 'FAILED',
+              recoverySkipped: true,
+              reason: 'attachment-not-owned',
+              error: this.#eventError(wrapped)
+            }, eventContext);
+            throw wrapped;
+          }
+          this.eventStore.append('cdp.recovery.started', {
+            method,
+            ...this.getTargetIdentity(),
+            policy: 'retry-session-invalid-once',
+            attempt: 1
+          }, eventContext);
+          try {
+            this.#detachCdp(eventContext, 'session invalid');
+            cdpState.attachedByBroker = this.#ensureCdpAttached(eventContext);
+            const result = await sendCommand();
+            this.eventStore.append('cdp.recovery.completed', {
+              method,
+              ...this.getTargetIdentity(),
+              policy: 'retry-session-invalid-once',
+              attempts: 2,
+              status: 'RECOVERED'
+            }, eventContext);
+            return result;
+          } catch (recoveryError) {
+            const wrapped = createProtocolError(
+              errorCodes.cdpSessionInvalid,
+              'CDP session recovery failed after one retry.',
+              {
+                method,
+                attempts: 2,
+                initialCause: serializeError(error),
+                cause: serializeError(recoveryError)
+              },
+              true
+            );
+            this.eventStore.append('cdp.recovery.failed', {
+              method,
+              ...this.getTargetIdentity(),
+              policy: 'retry-session-invalid-once',
+              attempts: 2,
+              status: 'FAILED',
+              error: this.#eventError(wrapped)
+            }, eventContext);
+            throw wrapped;
+          }
+        }
       },
       completedData: (result) => ({ method, result }),
       failedData: (error) => ({ method, error: this.#eventError(error) }),
       cleanup: (eventContext) => {
-        if (attachedByBroker) this.#detachCdp(eventContext, 'command finished');
+        if (cdpState.attachedByBroker) this.#detachCdp(eventContext, 'command finished');
       }
     });
   }

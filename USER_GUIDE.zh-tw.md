@@ -6,7 +6,9 @@
 
 BlankSeed Browser 是以 Windows 為優先的平台實驗應用程式。本機受信任控制台（trusted control console）透過可觀察的低階 primitives（原始操作能力）操作隔離於 `WebContentsView` 的 remote page。本程式不是正式產品瀏覽器、Chrome Extension，也不是 Generated Node code 的 security sandbox。
 
-介面中的一般操作採用繁體中文；`Page`、`CDP`、`Node`、`Module`、`Candidate`、`Commit`、`Activate`、`Invoke`、`Rollback`、`Checkpoint`、`Event` 與 `Runtime` 等術語保留英文，避免與日誌與測試欄位對照時混淆。
+控制台與本機教學均可透過語言選單使用繁體中文、簡體中文與英文。已儲存且受支援的選擇優先；否則依瀏覽器語言映射至支援語系，未知值則以繁體中文作為產品 fallback。UI 文案只存在 renderer 的靜態 catalog；`Page`、`CDP`、`Node`、`Module`、`Candidate`、`Commit`、`Activate`、`Invoke`、`Rollback`、`Checkpoint`、`Event` 與 `Runtime` 等術語維持穩定，方便與 evidence 對照。
+
+原始 event payload、protocol ID、JSON key、page content、model output 與 error detail 都是 evidence，而不是 UI copy，因此刻意不翻譯。
 
 ## 執行需求與啟動
 
@@ -22,6 +24,8 @@ npm run check
 npm test
 npm start
 ```
+
+Windows 使用者可在儲存庫根目錄雙擊 `啟動 BlankSeed Browser.cmd`，快速開啟程式。若要開啟教學，可雙擊 `啟動操作教學.cmd`，或在 `starter/` 執行 `npm run tutorial:open`；啟動器會建立本機回環伺服器並開啟正確網址。直接以 `file://` 載入教學時會顯示攔截與復原指引。若要停止受管理的教學伺服器，可雙擊 `停止操作教學.cmd`，或執行 `npm run tutorial:stop`。
 
 僅在 `node_modules/` 不存在，或 lockfile 已變更時才執行 `npm install`。程式左側為受信任控制台，右側為遠端 `Target`，預設開啟 `https://example.com/`。
 
@@ -82,6 +86,8 @@ Event types、request IDs、error codes、protocol fields、JSON keys 保留英�
 四個分頁支援 `Left Arrow`、`Right Arrow`、`Home` 與 `End` 鍵盤操作。
 
 ## Local model 與 evolution loop
+
+可點選頂端的「模型設定」捷徑，或開啟「Agent > AI 模型接入」，設定本次程式使用的模型。目前託管模型清單包含 `gpt-5.6-sol`、`gpt-5.6-terra` 與 `gpt-5.6-luna`；沒有 Codex provider，也沒有名為 `GPT Codex` 的模型。Codex 屬於不同的產品與執行環境。
 
 預設 adapter 只會連線到此無 credential 的 loopback endpoint：
 

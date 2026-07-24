@@ -12,9 +12,13 @@ const {
   serializeError,
   sha256
 } = require('../shared/contracts.cjs');
+const {
+  attachPersistenceRedaction,
+  redactForPersistence
+} = require('../shared/persistence-redaction.cjs');
 
-const MULTI_AGENT_SCHEMA = 'blankseed-multi-agent-run/0.1';
-const GOVERNANCE_SCHEMA = 'blankseed-governance-decision/0.1';
+const MULTI_AGENT_SCHEMA = 'blankseed-multi-agent-run/0.2';
+const GOVERNANCE_SCHEMA = 'blankseed-governance-decision/0.2';
 const GOVERNED_TOOLS = Object.freeze(['page_snapshot', 'module_list']);
 
 function writeJsonAtomic(filePath, value) {
@@ -22,6 +26,13 @@ function writeJsonAtomic(filePath, value) {
   const temporary = `${filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
   fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
   fs.renameSync(temporary, filePath);
+}
+
+function writeRedactedJsonAtomic(filePath, value) {
+  const redacted = redactForPersistence(value);
+  const persisted = attachPersistenceRedaction(redacted.value, redacted.metadata);
+  writeJsonAtomic(filePath, persisted);
+  return persisted;
 }
 
 function evidenceHash(decision) {
@@ -118,7 +129,7 @@ class MultiAgentRuntime {
       error: null
     };
     this.active.set(multiAgentRunId, { controller });
-    writeJsonAtomic(evidencePath, evidence);
+    writeRedactedJsonAtomic(evidencePath, evidence);
     this.eventStore.append('multi_agent.run.started', {
       multiAgentRunId,
       proposerAgentId,
@@ -171,7 +182,7 @@ class MultiAgentRuntime {
         proposalContent
       };
       evidence.handoff = handoff;
-      writeJsonAtomic(evidencePath, evidence);
+      writeRedactedJsonAtomic(evidencePath, evidence);
       this.eventStore.append('multi_agent.handoff.created', {
         handoffId,
         fromAgentId: proposerAgentId,
@@ -244,7 +255,7 @@ class MultiAgentRuntime {
       evidence.decision = finalDecision;
       evidence.status = 'ok';
       evidence.finishedAt = new Date().toISOString();
-      writeJsonAtomic(evidencePath, evidence);
+      writeRedactedJsonAtomic(evidencePath, evidence);
       this.eventStore.append('multi_agent.run.completed', {
         multiAgentRunId,
         governanceDecisionId: finalDecision.decisionId,
@@ -265,7 +276,7 @@ class MultiAgentRuntime {
       evidence.status = 'error';
       evidence.finishedAt = new Date().toISOString();
       evidence.error = serializeError(error);
-      writeJsonAtomic(evidencePath, evidence);
+      writeRedactedJsonAtomic(evidencePath, evidence);
       this.eventStore.append('multi_agent.run.failed', {
         multiAgentRunId,
         evidencePath,
@@ -371,7 +382,7 @@ class MultiAgentRuntime {
         ? { operator: { operatorId: authority.authorityId, confirmedAt: authority.authorizedAt } }
         : {})
     };
-    writeJsonAtomic(this.#decisionPath(governanceDecisionId), applying);
+    writeRedactedJsonAtomic(this.#decisionPath(governanceDecisionId), applying);
     let activationAttempted = false;
     let safetyCheckpoint = null;
     try {
@@ -392,7 +403,7 @@ class MultiAgentRuntime {
         safetyCheckpointId: safetyCheckpoint.id,
         activationResult: activation
       };
-      writeJsonAtomic(this.#decisionPath(governanceDecisionId), applied);
+      writeRedactedJsonAtomic(this.#decisionPath(governanceDecisionId), applied);
       this.pending.delete(governanceDecisionId);
       this.eventStore.append('governance.decision.applied', {
         governanceDecisionId,
@@ -421,9 +432,9 @@ class MultiAgentRuntime {
         },
         lastApplyAuthority: authority
       };
-      writeJsonAtomic(this.#decisionPath(governanceDecisionId), failed);
+      const persistedFailed = writeRedactedJsonAtomic(this.#decisionPath(governanceDecisionId), failed);
       if (activationStateUnknown) this.pending.delete(governanceDecisionId);
-      else this.#anchorDecision(failed);
+      else this.#anchorDecision(failed, persistedFailed);
       this.eventStore.append('governance.decision.apply_failed', {
         governanceDecisionId,
         status: failed.status,
@@ -474,8 +485,8 @@ class MultiAgentRuntime {
       status: review.verdict === 'approve' && activation ? 'awaiting_operator' : review.verdict === 'approve' ? 'reviewed' : 'rejected'
     };
     decision.evidenceHash = evidenceHash(decision);
-    writeJsonAtomic(this.#decisionPath(decisionId), decision);
-    if (decision.status === 'awaiting_operator') this.#anchorDecision(decision);
+    const persistedDecision = writeRedactedJsonAtomic(this.#decisionPath(decisionId), decision);
+    if (decision.status === 'awaiting_operator') this.#anchorDecision(decision, persistedDecision);
     this.eventStore.append('governance.decision.created', {
       governanceDecisionId: decisionId,
       multiAgentRunId,
@@ -507,11 +518,11 @@ class MultiAgentRuntime {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   }
 
-  #anchorDecision(decision) {
+  #anchorDecision(decision, persistedDecision) {
     const serialized = JSON.stringify(decision);
     this.pending.set(decision.decisionId, {
       decision: JSON.parse(serialized),
-      fileHash: sha256(serialized)
+      fileHash: sha256(JSON.stringify(persistedDecision))
     });
   }
 
