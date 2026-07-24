@@ -4,7 +4,7 @@
 
 [繁體中文](readme.zh-tw.md) · [Architecture](docs/ARCHITECTURE.md) · [Operator guide](USER_GUIDE.md) · [Project status](PROJECT_STATUS.md)
 
-![A seedling guardian watches over a safe evolving browser workspace.](docs/assets/readme/blankseed-browser-hero-2026-07-22.png)
+![Original large-headed pangolin guardian tending capability seeds beside a lantern at a safe research boundary.](docs/assets/readme/blankseed-browser-mascot-banner-v1.png)
 
 > **Research prototype; source build only.** BlankSeed Browser is a Windows-first local research environment. It is not a consumer browser, Chrome extension, production automation product, or a sandbox that safely contains arbitrary generated code.
 

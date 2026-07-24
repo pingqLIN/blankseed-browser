@@ -6,7 +6,7 @@
 
 [English](readme.md) · [架構](docs/ARCHITECTURE.zh-tw.md) · [操作說明](USER_GUIDE.zh-tw.md) · [專案狀態](PROJECT_STATUS.zh-tw.md)
 
-![發光的幼苗守護者站在太空中的互聯土壤平台上，象徵可觀測且可復原的 AI 能力成長。](docs/assets/readme/blankseed-browser-hero-2026-07-22.png)
+![原創大頭穿山甲守護者在安全研究邊界旁照料能力種子，並提著證據燈籠。](docs/assets/readme/blankseed-browser-mascot-banner-v1.png)
 
 > **研究原型，僅提供 source build。** BlankSeed Browser 是 Windows 優先的本機實驗環境；它不是一般消費者瀏覽器、Chrome Extension、正式自動化產品，也不是能安全隔離任意生成程式碼的 sandbox。
 

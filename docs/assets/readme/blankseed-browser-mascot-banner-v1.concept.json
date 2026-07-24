@@ -1,0 +1,19 @@
+{
+  "schema_version": "blankseed-readme-mascot-concept-public/v1",
+  "asset": "docs/assets/readme/blankseed-browser-mascot-banner-v1.png",
+  "source_concept_digest": "74ee791bf08fcc38ac41bf1f25f6efcf3fbf5e0500c5b9c492c3cae08f750db2",
+  "approval_source": "pre-authorized-workflow",
+  "character_brief": "A cute, large-headed anthropomorphic pangolin guardian tends three capability seeds while carrying an evidence lantern at a clear local-to-remote safety boundary.",
+  "composition": "Wide 16:9 banner; mascot slightly left of centre; keep the right third calm and free of readable text or logo-like details.",
+  "design_constraints": {
+    "text_policy": "no-text",
+    "known_character_references": "none requested",
+    "third_party_reference_assets": "none supplied",
+    "avoid": [
+      "logos, badges, watermarks, and readable UI",
+      "weapons, aggression, and surveillance imagery",
+      "dense decoration in the right third"
+    ]
+  },
+  "rights_notice": "This manifest records the generation brief and supplied-reference boundary. It does not establish ownership, copyright clearance, or redistribution rights for the generated output."
+}
