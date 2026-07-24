@@ -1,0 +1,3 @@
+# WP-12 validates these fixtures against byte-level SHA-256 digests recorded in
+# its manifest.  Keep their checked-out representation canonical on Windows.
+/starter/test/fixtures/wp12/* text eol=lf
